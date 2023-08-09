@@ -1,0 +1,18 @@
+//WARNING: NEVER INCLUDE THIS FILE DIRECTLY EXCEPT IN THE CORRESPONDING .c FILE.
+//<<START>>	IMPORTANT: FIRST INCLUDE THE CORRESPONDING ".h" FILE
+//			INCLUDE ".h" OF C NON CRXed CODE THAT THIS HEADER NEEDS.
+//			INCLUDE ".h", NOT ".c.h", OF C CRXed CODE.
+#include "Crx/H/crx/c/arrays/String.h"
+//<<END>>
+
+CRX__LIB__C_CODE_BEGIN()
+
+CRX__C__Array__DEFINE(Crx_C_Arrays_String, crx_c_arrays_string_, Crx_C_String,
+		CRX__C__ARRAYS__STRING__PRIVATE__SIZE32_T, CRX__C__ARRAYS__STRING__PRIVATE__SIZE32_MAX, 0, 
+		CRXM__FALSE, crx_c_string_destruct, crx_c_string_copyConstruct, 
+		CRXM__FALSE, CRXM__FALSE)
+		
+#undef CRX__C__ARRAYS__STRING__PRIVATE__SIZE32_T
+#undef CRX__C__ARRAYS__STRING__PRIVATE__SIZE32_MAX
+
+CRX__LIB__C_CODE_END()

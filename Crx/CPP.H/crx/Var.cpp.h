@@ -23526,7 +23526,7 @@ namespace crx
 										
 										//pVarJsonData->gRemainingSize = pVarJsonData->gRemainingSize - 4;
 
-										(*pVar) += tChars;
+										//(*pVar) += tChars;
 									}
 									else if((tChar == '`') &&
 											(pVarJsonData->gRemainingSize > 7) && 

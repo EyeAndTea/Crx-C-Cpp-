@@ -73,8 +73,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendString2(Crx_C_String * pTh
 		char const * pString);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChars(Crx_C_String * pThis, 
 		char const * pChars, size_t pLength);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * pThis, 
-		wchar_t const * pWchars, size_t pLength);
+/*CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * pThis, 
+		wchar_t const * pWchars, size_t pLength);*/
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt(Crx_C_String * pThis, int32_t pInt);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis, 
 		unsigned int pNumberOfDigits, int32_t pInt);

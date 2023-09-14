@@ -101,7 +101,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChars(Crx_C_String * pThis
 
 	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pChars, pLength);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * pThis, 
+/*CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * pThis, 
 		wchar_t const * pWchars, size_t pLength)
 {
 	if(pWchars == NULL)
@@ -109,7 +109,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * p
 
 	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), 
 			(char const *)pWchars, pLength * sizeof(wchar_t));
-}
+}*/
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt(Crx_C_String * pThis, int32_t pInt)
 {
 	char vChars[100] /*= ?*/;

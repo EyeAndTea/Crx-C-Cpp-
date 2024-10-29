@@ -5,8 +5,26 @@
 #include "Crx/H/crx/c/String.h"
 
 #include "Crx/H/crx/c/Array.h"
+#include "Crx/H/crx/c/HashTable.h"
 #include <Math.h>
 //<<END>>
+
+/*
+SEARCH ALGORITHMS:
+ALGORITHM 1: 	memchr, and memcmp. 
+				IN REVERSE WOULD REQUIRE memrchr WHICH DOES NOT EXIST IN VC6
+ALGORITHM 2: 	KMP. BASED ON "string(FOR KMP ALGORITHM).pdf" IF I REMEMBER CORRECTLY.
+ALGORITHM 3: 	KMP BUT WITH AN OPTIMIZATION BASED ON THE WINDOW TRICK
+ALGORITHM 4:	USES THE WINDOW TRICK WITH memchr AND memcmp. 
+				IN REVERSE WOULD REQUIRE memrchr WHICH DOES NOT EXIST IN VC6
+ALGORITHM 5: 	BRUTE FORCE SEARCH
+ALGORITHM 6: 	TWO WAY SEARCH MATCHING IMPLEMENTATION FOUND ONLINE. MEANT FOR SANITY CHECKS.
+				ONLY FARWARD, NO REVERSE.
+ALGORITHM 7: 	TWO WAY SEARCH ALGORITHM
+ALGORITHM 8: 	USES THE WINDOW TRICK WITH memcmp ONLY. MEANT AS A REPLACEMENT FOR ALGORITHM
+						4 WHEN IN REVERSE.
+				FAILED TO RANK AS GOOD AS ALGORITHM 4 (IF I REMEMBER, AND DEDUCED CORRECTLY).
+*/
 
 CRX__LIB__C_CODE_BEGIN()
 
@@ -17,10 +35,63 @@ CRX__LIB__C_CODE_BEGIN()
 	#define CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE CRXM__FALSE
 #endif
 
+
 CRX__C__Array__DEFINE(Crx_C_String, crx_c_string_, char, 
 		uint32_t, CRX__C__STRING__PRIVATE__SIZE32_MAX, 
 		16, CRXM__FALSE,
 		CRXM__FALSE, CRXM__FALSE, CRXM__FALSE, CRXM__FALSE)
+
+CRX__LIB__PRIVATE_C_FUNCTION() int32_t crx_c_string_caseInsensitivelyCompare(
+		char const * pChars, char const * pChars__2, size_t pCommonLength)
+{
+	char const * vCurrentChar = pChars;
+	char const * vEndChar = vCurrentChar + pCommonLength;
+	char const * vCurrentChar2 = pChars__2;
+	int32_t vReturn = 0;
+
+	while((vCurrentChar != vEndChar) && (vReturn == 0))
+	{
+		if(*vCurrentChar != *vCurrentChar2)
+		{
+			int32_t tChar = ((int32_t)(*((unsigned char const *)vCurrentChar)));
+			int32_t tChar2 = ((int32_t)(*((unsigned char const *)vCurrentChar2)));
+
+			if((tChar >= 65) && (tChar2 <= 90))
+				{tChar = tChar + 32;}
+			if((tChar2 >= 65) && (tChar2 <= 90))
+				{tChar2 = tChar2 + 32;}
+
+			vReturn = tChar - tChar2;
+		}
+
+		vCurrentChar++;
+		vCurrentChar2++;
+	}
+	
+	if(vReturn == 0)
+		{return 0;}
+	else
+		{return ((vReturn > 0) ? 1 : -1);}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_areStringsEqual(void const * pString,
+		void const * pString__2)
+{
+	if((pString != NULL) && (pString__2 != NULL))
+	{
+		return crx_c_string_isEqualTo((Crx_C_String const *)pString, 
+				(Crx_C_String const *)pString__2, false);
+	}
+	else
+		{return false;}//TWO NULLS ARE NOT EQUAL
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getHash(size_t pSeed, 
+		void const * CRX_NOT_NULL pString)
+{
+	return crx_c_hashTable_compute32BitsHash(pSeed, crx_c_string_constantGetElementsPointer(pString),
+			crx_c_string_getLength(pString));
+}
+
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, char pChar)
 {
@@ -36,9 +107,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct4(Crx_C_String * pThis,
 	crx_c_string_insertCArrayAt(pThis, 0, pString, vLength);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, 
-		char const * pChars, size_t pLength)
+		char const * pChars, size_t pSize)
 {
-	size_t vLength = ((pChars == NULL) ? 0 : pLength);
+	size_t vLength = ((pChars == NULL) ? 0 : pSize);
 
 	crx_c_string_construct(pThis, vLength);
 	crx_c_string_insertCArrayAt(pThis, 0, pChars, vLength);
@@ -64,9 +135,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new4(char const * pStr
 	
 	return vString;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char const * pChars, size_t pLength)
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char const * pChars, size_t pSize)
 {
-	size_t vLength = ((pChars == NULL) ? 0 : pLength);
+	size_t vLength = ((pChars == NULL) ? 0 : pSize);
 	Crx_C_String * vString = crx_c_string_new(vLength);
 	
 	if(vString != NULL)
@@ -76,39 +147,36 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char const * pCha
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendString(Crx_C_String * pThis, 
-		Crx_C_String const * pString)
+		Crx_C_String const * CRX_NOT_NULL pString)
 {
-	if(pString == NULL)
-		{return true;}
-
 	return crx_c_string_insertElementsAt(pThis, crx_c_string_getLength(pThis), pString, 0,
 			crx_c_string_getLength(pString));
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChar(Crx_C_String * pThis, char pChar)
 	{return crx_c_string_push2(pThis, pChar);}
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendString2(Crx_C_String * pThis, 
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendCString(Crx_C_String * pThis, 
 		char const * pString)
 {
-	if(pString == NULL)
-		{return true;}
-
-	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pString, strlen(pString));
+	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pString, 
+			strlen(pString));
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChars(Crx_C_String * pThis, char const * pChars, size_t pLength)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChars(Crx_C_String * pThis, 
+		char const * CRX_NOT_NULL pChars, size_t pSize)
+	{return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pChars, pSize);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendSub(Crx_C_String * pThis, 
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub)
 {
-	if(pChars == NULL)
-		{return true;}
-
-	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pChars, pLength);
+	return crx_c_string_appendChars(pThis, crx_c_string_sub_getCharsPointer(pSub),
+			crx_c_string_sub_getLength(pSub));
 }
 /*CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendWideChars(Crx_C_String * pThis, 
-		wchar_t const * pWchars, size_t pLength)
+		wchar_t const * pWchars, size_t pSize)
 {
 	if(pWchars == NULL)
 		{return true;}
 
 	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), 
-			(char const *)pWchars, pLength * sizeof(wchar_t));
+			(char const *)pWchars, pSize * sizeof(wchar_t));
 }*/
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt(Crx_C_String * pThis, int32_t pInt)
 {
@@ -116,10 +184,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt(Crx_C_String * pThis, 
 	
 	sprintf(vChars, "%d", pInt);
 	
-	return crx_c_string_appendString2(pThis, vChars);
+	return crx_c_string_appendCString(pThis, vChars);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis, 
-		unsigned int pNumberOfDigits, int32_t pInt)
+		uint32_t pNumberOfDigits, int32_t pInt)
 {
 	if(pNumberOfDigits < 50)
 	{
@@ -127,7 +195,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis,
 	
 		sprintf(vChars, "%.*d", pNumberOfDigits, pInt);
 	
-		return crx_c_string_appendString2(pThis, vChars);
+		return crx_c_string_appendCString(pThis, vChars);
 	}
 	else
 	{
@@ -154,7 +222,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_looselyAppendFloat(Crx_C_String 
 	
 	sprintf(vChars, "%#.32G", pDouble);
 	
-	return crx_c_string_appendString2(pThis, vChars);
+	return crx_c_string_appendCString(pThis, vChars);
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pThis)
@@ -166,25 +234,126 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pTh
 	{
 		if(!(((crx_c_string_copyGet(pThis, tI) >= 0) && (crx_c_string_copyGet(pThis, tI) <= 32)) || 
 				(crx_c_string_copyGet(pThis, tI) == 127)))
-			{return true;}
+			{return false;}
 	}
 	CRX_ENDFOR
 
-	return false;
+	return true;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
-		Crx_C_String const * pString)
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
 {
-	return ((crx_c_string_getLength(pThis) == crx_c_string_getLength(pString)) &&
-			(memcmp(crx_c_string_constantGetElementsPointer(pThis),
-					crx_c_string_constantGetElementsPointer(pString),
-					crx_c_string_getLength(pString)) == 0));
+	char * vChars = crx_c_string_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	size_t vStartIndex = 0;
+
+	/*while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
+			(*vChars == 32) || (*vChars == 127)))*/
+	while((vChars != vChars__end) && (((*vChars >= 0) && (*vChars <= 32)) ||
+			(*vChars == 127)))
+	{
+		vChars++;
+		vStartIndex++;
+	}
+	
+	if(vChars != vChars__end)
+	{
+		char * tChars = vChars__end - 1;
+		size_t tEndIndex = crx_c_string_getLength(pThis);
+
+		/*while(((*tChars >= 9) && (*tChars <= 13)) ||
+				(*tChars == 32) || (*vChars == 127))*/
+		while(((*tChars >= 0) && (*tChars <= 32)) || (*vChars == 127))
+		{
+			tEndIndex--;
+
+			if(tChars != vChars)
+				{tChars--;}
+			else
+				{break;}
+		}
+
+		crx_c_string_unsafeUpdateLength(pThis, tEndIndex);
+		crx_c_string_removeElements(pThis, 0, vStartIndex);
+	}
+	else
+		{crx_c_string_unsafeUpdateLength(pThis, 0);}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_leftTrim(Crx_C_String * pThis)
+{
+	char * vChars = crx_c_string_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	size_t vStartIndex = 0;
+
+	/*while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
+			(*vChars == 32) || (*vChars == 127)))*/
+	while((vChars != vChars__end) && (((*vChars >= 0) && (*vChars <= 32)) ||
+			(*vChars == 127)))
+	{
+		vChars++;
+		vStartIndex++;
+	}
+
+	crx_c_string_removeElements(pThis, 0, vStartIndex);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightTrim(Crx_C_String * pThis)
+{
+	CRX_SCOPE_META
+	if(crx_c_string_getLength(pThis) == 0)
+		{return;}
+
+	CRX_SCOPE
+	char * vChars = crx_c_string_unsafeGetCArray(pThis);
+	char * vChars__last = vChars + crx_c_string_getLength(pThis) - 1;
+	size_t tEndIndex = crx_c_string_getLength(pThis);
+
+	/*while(((*vChars__last >= 9) && (*vChars__last <= 13)) ||
+			(*vChars__last == 32) || (*vChars == 127))*/
+	while(((*vChars__last >= 0) && (*vChars__last <= 32)) ||
+			(*vChars == 127))
+	{
+		tEndIndex--;
+
+		if(vChars__last != vChars)
+			{vChars__last--;}
+		else
+			{break;}
+	}
+
+	crx_c_string_unsafeUpdateLength(pThis, tEndIndex);
+	CRX_SCOPE_END
+}
+
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(pString),
+			crx_c_string_getLength(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo2(Crx_C_String const * pThis,
-		char const * pString)
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+	{return crx_c_string_isEqualTo3(pThis, pString, strlen(pString), pIsCaseInSensitive);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo3(Crx_C_String const * pThis,
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	return (strncmp(crx_c_string_constantGetElementsPointer(pThis), pString,
-					crx_c_string_getLength(pThis)) == 0);
+	if(crx_c_string_getLength(pThis) != pSize)
+		{return false;}
+	else
+	{
+		if(!pIsCaseInSensitive)
+			{return (memcmp(crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);}
+		else
+		{
+			return (crx_c_string_caseInsensitivelyCompare(
+					crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo4(Crx_C_String const * pThis,
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive)
+{
+	return crx_c_string_isEqualTo3(pThis, crx_c_string_sub_getCharsPointer(pSub),
+			crx_c_string_sub_getLength(pSub), pIsCaseInSensitive);
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String * pThis)
@@ -210,41 +379,80 @@ CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String 
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith(Crx_C_String const * pThis,
-		Crx_C_String const * pString)
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
 	return crx_c_string_isBeginningWith3(pThis, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString));
+			crx_c_string_getLength(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith2(Crx_C_String const * pThis,
-		char const * pString)
-	{return crx_c_string_isBeginningWith3(pThis, pString, strlen(pString));}
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+	{return crx_c_string_isBeginningWith3(pThis, pString, strlen(pString), pIsCaseInSensitive);}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith3(Crx_C_String const * pThis,
-		char const * pChars, size_t pLength)
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if(crx_c_string_getLength(pThis) < pLength)
-		{return false;}
-	else
-		{return (memcmp(crx_c_string_constantGetElementsPointer(pThis), pChars, pLength) == 0);}
-}
-
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith(Crx_C_String const * pThis,
-		Crx_C_String const * pString)
-{
-	return crx_c_string_isEndingWith3(pThis, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString));
-}
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith2(Crx_C_String const * pThis,
-		char const * pString)
-	{return crx_c_string_isEndingWith3(pThis, pString, strlen(pString));}
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith3(Crx_C_String const * pThis,
-		char const * pChars, size_t pLength)
-{
-	if(crx_c_string_getLength(pThis) < pLength)
+	if(crx_c_string_getLength(pThis) < pSize)
 		{return false;}
 	else
 	{
-		return (memcmp(crx_c_string_constantGetElementsPointer(pThis) + 
-				crx_c_string_getLength(pThis) - pLength, pChars, pLength) == 0);
+		if(!pIsCaseInSensitive)
+			{return (memcmp(crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);}
+		else
+		{
+			return (crx_c_string_caseInsensitivelyCompare(
+					crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith4(Crx_C_String const * pThis,
+		Crx_C_String_Sub const * pSub, bool pIsCaseInSensitive)
+{
+	if(crx_c_string_sub_getLength(pSub) == 0)
+		{return true;} //BASED ON THE BEHAVIOR OF memcmp(x, y, 0)
+	else
+	{
+		return crx_c_string_isBeginningWith3(pThis, crx_c_string_sub_getCharsPointer(pSub),
+				crx_c_string_sub_getLength(pSub), pIsCaseInSensitive);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith(Crx_C_String const * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_isEndingWith3(pThis, crx_c_string_constantGetElementsPointer(pString),
+			crx_c_string_getLength(pString), pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith2(Crx_C_String const * pThis,
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+	{return crx_c_string_isEndingWith3(pThis, pString, strlen(pString), pIsCaseInSensitive);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith3(Crx_C_String const * pThis,
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
+{
+	if(crx_c_string_getLength(pThis) < pSize)
+		{return false;}
+	else
+	{
+		if(!pIsCaseInSensitive)
+		{
+			return (memcmp(crx_c_string_constantGetElementsPointer(pThis) + 
+					crx_c_string_getLength(pThis) - pSize, pChars, pSize) == 0);
+		}
+		else
+		{
+			return (crx_c_string_caseInsensitivelyCompare(
+					crx_c_string_constantGetElementsPointer(pThis) + crx_c_string_getLength(pThis) -
+					pSize, pChars, pSize) == 0);
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith4(Crx_C_String const * pThis,
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive)
+{
+	if(crx_c_string_sub_getLength(pSub) == 0)
+		{return true;} //BASED ON THE BEHAVIOR OF memcmp(x, y, 0)
+	else
+	{
+		return crx_c_string_isEndingWith3(pThis, crx_c_string_sub_getCharsPointer(pSub),
+				crx_c_string_sub_getLength(pSub), pIsCaseInSensitive);
 	}
 }
 
@@ -275,164 +483,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_upperTheCase(Crx_C_String * pThi
 	}
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
-{
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__end = vChars + crx_c_string_getLength(pThis);
-	size_t vStartIndex = 0;
-
-	while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
-			(*vChars == 32)))
-	{
-		vChars++;
-		vStartIndex++;
-	}
-	
-	if(vChars != vChars__end)
-	{
-		size_t tEndIndex = crx_c_string_getLength(pThis);
-
-		while((vChars__end != vChars) && (((*vChars__end >= 9) && (*vChars__end <= 13)) ||
-				(*vChars__end == 32)))
-		{
-			vChars__end--;
-			tEndIndex--;
-		}
-
-		crx_c_string_unsafeUpdateLength(pThis, tEndIndex);
-		crx_c_string_removeElements(pThis, 0, tEndIndex - vStartIndex);
-	}
-	else
-		{crx_c_string_unsafeUpdateLength(pThis, 0);}
-}
-
-#if(0)
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_splitAndGet(Crx_C_String const * pThis, 
-		Crx_C_Arrays_String * CRX_NOT_NULL pReturn, char const * pDelimiter, size_t pLength)
-{
-	/*
-	NOTE: GIVEN A STRING[1..N], THE Nth SUFFIX PREFIX IS THE Nth LARGEST PREFIX OF THE STRING
-			THAT IS ALSO ITS SUFFIX. THE LARGEST SUFFIX PREFIX IS THE STRING ITSELF. IN OTHER
-			WORDS:
-					SUFFIX_PREFIX{n}(STRING) = STRING[N-K+1..N] = STRING[1..K]  ; K IS THE LENGTH OF
-							THE nth LARGEST SUFFIX PREFIX.
-			NOTE THAT THE LENGTH OF STRING[X..Y] IS Y - X + 1. IN OTHER WORDS
-							|STRING[N-K+1..N]| = K
-			
-			WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIC PREFIX.
-			
-			NOTE THAT IF FOR SUBSTRING STRING[A..B], 
-					|SUFFIX_PREFIX{2}(STRING[A..B])| = K, 
-			THEN FOR SUBSTRING STRING[A..B+1] 
-					|SUFFIX_PREFIX{2}(STRING[A..B+1])| <= K + 1
-			BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD START AT (A-L) FOR L > 0, MAKING IT A 
-			CONTRADITCTION BECUASE THEN K WOULD NOT HAVE BEEN THE LENGTH OF THE SECOND LARGEST 
-			SUFFIX PREFIX OF STRING[A..B].
-
-			*NOTE THAT THE THIRD LARGEST SUFFIX PREFIX OF STRING[1..N], MEANING
-					SUFFIX_PREFIX{3}(STRING[1..N])
-			WOULD BE A SUBSTRING AND A SUFFIX PREFIX OF STRING[N-K+1..N], THE SECOND LARGEST 
-			SUFFIX PREFIX, MEANING A SUBTRING OF
-					SUFFIX_PREFIX{2}(STRING[1..N]) = STRING[N-K+1..N]
-			AND BECAUSE STRING[N-K+1..N] IS EQUAL TO STRING[1..K], IT FOLLOWS THAT THIS THIRD 
-			LARGEST SUFFIX PREFIX IS ALSO THE SECOND LARGEST SUFFIX PREFIX OF STRING[1..K]. IN OTHER
-			WORDS
-					SUFFIX_PREFIX{3}(STRING[1..N]) = SUFFIX_PREFIX{2}(SUFFIX_PREFIX{2}(STRING[1..N]))
-												   = SUFFIX_PREFIX{2}(STRING[N-K+1..N])
-												   = SUFFIX_PREFIX{2}(STRING[1..K])
-			IF THIS WAS NOT THE CASE IT WOULD BE A CONTRADICTION. FOR EXAMPLE, IF THE LENGTH OF THE 
-			THIRD LARGEST SUFFIX PREFIX OF STRING[1..N] IS L, THEN WE KNOW L < K AND WE KNOW THAT 
-			THERE CAN BE NO OTHER SUFFIX PREFIX WHOSE LENGTH Y IS L < Y < K, AND NOW IF THIS SUFFIX 
-			PREFIX IS NOT THE SECOND LARGEST SUFFIX PREFIX OF STRING[1..K], SUCH AS IT IS THE THIRD 
-			LARGEST FOR EXAMPLE, THEN THERE EXISTS A SUFFIX PREFIX FOR STRING[1..K] WHOSE LENGTH 
-			M > L. HOWEVER THIS SUFFIX PREFIX WOULD BE A SUFFIX PREFIX OF STRING[1..N], YET ITS 
-			LENGTH M > L WHILE NOT BEING M = K, MEANING L < M < K WHICH IS A CONTRADICTION.
-	*/
-	CRX_SCOPE_META
-	if((crx_c_string_getLength(pThis) < pLength) || (crx_c_string_getLength(pThis) == 0) ||
-			(pLength == 0))
-		{return false;}
-
-	CRX_SCOPE
-	size_t vLength = crx_c_string_getLength(pThis);
-	size_t * vSecondLargestSuffixPrefixForSubDelimiterUpToIndex = calloc(1, sizeof(size_t) * (pLength + 1)); //ACTUAL VALUE AT i IS vBackTrackValues[i] - 1
-	size_t vCurrentIndexInDelimiter = 0;
-	
-	crx_c_arrays_string_empty(pReturn);
-
-#if(CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE)
-	return memmem(crx_c_string_constantGetElementsPointer(pThis), vLength, pDelimiter, pLength);
-#else
-    vSecondLargestSuffixPrefixForSubDelimiterUpToIndex[0] = 0;
-
-    CRX_FOR(size_t tI = 1; tI < pLength; tI++)
-	{        
-        size_t tJ = vSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI - 1];
-
-		//IF SECOND LARGEST SUFFIX PREFIX DOES NOT HELP, WE SEEK OUT THE THIRD LARGEST
-		//		SUFFIX PREFIX WHICH HAPPENS TO BE THE SECOND LARGEST SUFFIX PREFIX OF THE
-		//		SECOND LARGEST SUFFIX PREFIX. AND SO FORTH.
-        while((tJ != 0) && (*(pDelimiter + tI) != *(pDelimiter + tJ)))
-			{tJ = vSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tJ - 1];}
-
-        if(*(pDelimiter + tI) == *(pDelimiter + tJ))
-			{tJ += 1;}
-
-        vSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI] = tJ;
-	}
-	CRX_ENDFOR
-
-	vCurrentIndexInDelimiter = 0;
-	CRX_FOR(size_t tI = 0; tI < vLength; tI++)
-	{        
-        while((vCurrentIndexInDelimiter != 0) && (a[tI] != b[vCurrentIndexInDelimiter]))
-		{
-			//SEE * ABOVE.
-			vCurrentIndexInDelimiter = 
-					vSecondLargestSuffixPrefixForSubDelimiterUpToIndex[
-					vCurrentIndexInDelimiter - 1];
-		}
-        
-        if(a[tI] == b[vCurrentIndexInDelimiter])
-			{vCurrentIndexInDelimiter += 1;}
-
-        # invariant formally defined below
-        assert a[tI + 1 - vCurrentIndexInDelimiter:tI + 1] == b[0:vCurrentIndexInDelimiter]
-
-        if(vCurrentIndexInDelimiter == n)
-			{return tI + 1 - n;}
-	}
-	CRX_ENDFOR
-    
-	CRX_SCOPE_END
-#endif
-}
-#endif
-
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf(
-		Crx_C_String const * pThis, size_t pStartIndex, Crx_C_String const * pString__delimiter,
+		Crx_C_String const * pThis, size_t pStartIndex, Crx_C_String const * pDelimiter,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis, pStartIndex,
-			crx_c_string_constantGetElementsPointer(pString__delimiter),
-			crx_c_string_getLength(pString__delimiter),
+			crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter),
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf2(
-		Crx_C_String const * pThis, size_t pStartIndex, char const * pString__delimiter,
+		Crx_C_String const * pThis, size_t pStartIndex, char const * pDelimiter,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis, pStartIndex,
-			pString__delimiter, strlen(pString__delimiter), pSizeOfCharacterSet);
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
-		Crx_C_String const * pThis, size_t pStartIndex, char const * pDelimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+		Crx_C_String const * pThis, size_t pStartIndex, char const * pChars__delimiter, 
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	CRX_SCOPE_META
-	if(((crx_c_string_getLength(pThis) - pStartIndex) < pLength) || 
-			(crx_c_string_getLength(pThis) <= pStartIndex) || (pLength == 0))
-		{return crx_c_string_getLength(pThis);}
+	if(((crx_c_string_getLength(pThis) - pStartIndex) < pSize) || 
+			(crx_c_string_getLength(pThis) <= pStartIndex) || (pSize == 0))
+		{return ((size_t)(-1));}
 
 	CRX_SCOPE
 	uint32_t vAlgorithm = 0;
@@ -447,10 +521,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	
 
 #if(CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE)
-	vChars__startOfFoundOccurance = memmem(vChars, vLength, pDelimiter, pLength);
+	vChars__startOfFoundOccurance = memmem(vChars, vLength, pChars__delimiter, pSize);
 
 	if(vChars__startOfFoundOccurance != NULL)
 		{vReturn = vChars__startOfFoundOccurance - vChars;}
+	else
+		{vReturn = ((size_t)(-1));}
+
+	return vReturn;
 #else
 	/*
 	NOTE: CURRENTLY, THE FOLLOWING IS PER THE ASSUMPTION THAT THE USER IS USING THE FUNCTION TO FIND
@@ -495,29 +573,31 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	}*/
 	
 	//THE FOLLOWING WAS PER THE BENCHMARKS. NOTE THIS SHOULD BE ASSUMED VALID ONLY FOR
-	//		FIRST OCCURANCE SEARCH.
-	if(pLength <= 8)
+	//		FARWARD FIRST OCCURANCE SEARCH.
+	if(pSize <= 8)
 		{vAlgorithm = 1;}
-	else if(pLength < 32768)
+	else if(pSize < 32768)
+	{
 		if(vSizeOfCharacterSet > 16)
 			{vAlgorithm = 4;}
 		else
 			{vAlgorithm = 1;}
+	}
 	else
 		{vAlgorithm = 4;}
 	
 	if(vAlgorithm == 1)
 	{
 		char const * tChar = vChars;
-		char const * tEndChar = vChars + (vLength - pLength + 1);
+		char const * tEndChar = vChars + (vLength - pSize + 1);
 
 		while(tChar < tEndChar)
 		{
-			tChar = memchr(tChar, *pDelimiter, tEndChar - tChar);
+			tChar = memchr(tChar, *pChars__delimiter, tEndChar - tChar);
 
 			if(tChar != NULL)
 			{
-				if(memcmp(tChar, pDelimiter, pLength) == 0)
+				if(memcmp(tChar, pChars__delimiter, pSize) == 0)
 				{
 					vReturn = tChar - vChars;
 
@@ -544,13 +624,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 				NOTE THAT THE LENGTH OF STRING[X..Y] IS Y - X + 1. IN OTHER WORDS
 								|STRING[N-K+1..N]| = K
 				
-				WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIC PREFIX.
+				WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIX PREFIX.
 				
 				NOTE THAT IF FOR SUBSTRING STRING[A..B], 
 						|SUFFIX_PREFIX{2}(STRING[A..B])| = K, 
 				THEN FOR SUBSTRING STRING[A..B+1] 
 						|SUFFIX_PREFIX{2}(STRING[A..B+1])| <= K + 1
-				BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD START AT (A-L) FOR L > 0, MAKING IT A 
+				BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD END AT (A + K + L) FOR L > 0, MAKING IT A 
 				CONTRADITCTION BECUASE THEN K WOULD NOT HAVE BEEN THE LENGTH OF THE SECOND LARGEST 
 				SUFFIX PREFIX OF STRING[A..B].
 
@@ -577,30 +657,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 		size_t * tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = NULL;
 		bool tIsToFree = false;
 		
-		if(pLength + 1 > 80)
+		if(pSize + 1 > 80)
 		{
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-					calloc(1, sizeof(size_t) * (pLength + 1));
+					calloc(1, sizeof(size_t) * (pSize + 1));
 			tIsToFree = true;
 		}
 		else
 		{
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-					CRX__ALLOCA(sizeof(size_t) * (pLength + 1));
+					CRX__ALLOCA(sizeof(size_t) * (pSize + 1));
 		}
 		
 		tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[0] = 0;
-		CRX_FOR(size_t tI = 1, tI < pLength, tI++)
+		CRX_FOR(size_t tI = 1, tI < pSize, tI++)
 		{        
 			size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI - 1];
 
 			//IF SECOND LARGEST SUFFIX PREFIX DOES NOT HELP, WE SEEK OUT THE THIRD LARGEST
 			//		SUFFIX PREFIX WHICH HAPPENS TO BE THE SECOND LARGEST SUFFIX PREFIX OF THE
 			//		SECOND LARGEST SUFFIX PREFIX. AND SO FORTH.
-			while((tJ != 0) && (*(pDelimiter + tI) != *(pDelimiter + tJ)))
+			while((tJ != 0) && (*(pChars__delimiter + tI) != *(pChars__delimiter + tJ)))
 				{tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tJ - 1];}
 
-			if(*(pDelimiter + tI) == *(pDelimiter + tJ))
+			if(*(pChars__delimiter + tI) == *(pChars__delimiter + tJ))
 				{tJ += 1;}
 
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI] = tJ;
@@ -614,7 +694,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			CRX_FOR(size_t tI = 0, tI < vLength, tI++)
 			{
 				while((tCurrentIndexInDelimiter != 0) && 
-						(*(vChars + tI) != *(pDelimiter + tCurrentIndexInDelimiter)))
+						(*(vChars + tI) != *(pChars__delimiter + tCurrentIndexInDelimiter)))
 				{
 					//SEE * ABOVE.
 					tCurrentIndexInDelimiter = 
@@ -622,20 +702,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 							tCurrentIndexInDelimiter - 1];
 				}
 				
-				if(*(vChars + tI) == *(pDelimiter + tCurrentIndexInDelimiter))
+				if(*(vChars + tI) == *(pChars__delimiter + tCurrentIndexInDelimiter))
 					{tCurrentIndexInDelimiter += 1;}
 
 				/*
 					AT THIS POINT, THE FOLLOWING MUST ALWAYS HOLD TRUE
 							vChars[tI + 1 - tCurrentIndexInDelimiter:tI + 1] == 
-									pDelimiter[0:tCurrentIndexInDelimiter]
-					IN OTHER WORDS, THE WINDOW, pDelimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
+									pChars__delimiter[0:tCurrentIndexInDelimiter]
+					IN OTHER WORDS, THE WINDOW, pChars__delimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
 					ALWAYS EQUAL TO THE OVERLAP EVEN AFTER SHIFTING.
 				*/
 
-				if(tCurrentIndexInDelimiter == pLength)
+				if(tCurrentIndexInDelimiter == pSize)
 				{
-					vReturn = tI + 1 - pLength;
+					vReturn = tI + 1 - pSize;
 
 					break;
 				}
@@ -649,16 +729,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			//		AS SLOW	FOR RANDOM INPUT, AND MORE SLOW FOR HIGHLY PATTERNED INTPUT UP TO THREE 
 			//		TIMES AS SLOW
 			uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
-			char tLastCharacter = *(pDelimiter + pLength - 1);
+			char tLastCharacter = *(pChars__delimiter + pSize - 1);
 			
 			CRX_FOR(size_t tI = 0, tI < 256, tI++)
-				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 			CRX_ENDFOR
 
-			CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 			{
-				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > (pLength - tI - 1))
-					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = pLength - tI - 1;}
+				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > (pSize - tI - 1))
+					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = pSize - tI - 1;}
 			}
 			CRX_ENDFOR
 			
@@ -666,13 +746,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			{
 				if(tCurrentIndexInDelimiter == 0)
 				{
-					while((tI <= vLength - pLength) && (*(vChars + tI + pLength - 1) != tLastCharacter))
-						{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)vChars) + tI + pLength - 1)];}
+					while((tI <= vLength - pSize) && (*(vChars + tI + pSize - 1) != tLastCharacter))
+						{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)vChars) + tI + pSize - 1)];}
 				}
 				else
 				{
 					while((tCurrentIndexInDelimiter != 0) && 
-							(*(vChars + tI) != *(pDelimiter + tCurrentIndexInDelimiter)))
+							(*(vChars + tI) != *(pChars__delimiter + tCurrentIndexInDelimiter)))
 					{
 						//SEE * ABOVE.
 						tCurrentIndexInDelimiter = 
@@ -682,13 +762,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 				}
 
 
-				if(*(vChars + tI) == *(pDelimiter + tCurrentIndexInDelimiter))
+				if(*(vChars + tI) == *(pChars__delimiter + tCurrentIndexInDelimiter))
 					{tCurrentIndexInDelimiter += 1;}
 
 				/*SEE ABOVE*/
-				if(tCurrentIndexInDelimiter == pLength)
+				if(tCurrentIndexInDelimiter == pSize)
 				{
-					vReturn = tI + 1 - pLength;
+					vReturn = tI + 1 - pSize;
 
 					break;
 				}
@@ -707,36 +787,36 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	{
 		//OLD NOTE: WHEN THE CHARACTER SET IS VERY SMALL, THIS IS THE SLOWEST
 		unsigned char const * tChar = vChars;
-		unsigned char const * tEndChar = vChars + (vLength - pLength) + 1;
-		unsigned char tLastCharacter = *(pDelimiter + pLength - 1);
+		unsigned char const * tEndChar = vChars + (vLength - pSize) + 1;
+		unsigned char tLastCharacter = *(pChars__delimiter + pSize - 1);
 		uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
 
 		CRX_FOR(size_t tI = 0, tI < 256, tI++)
-			{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+			{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 		CRX_ENDFOR
 		
-		CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+		CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 		{
-			if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > (pLength - tI - 1))
-				{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = pLength - tI - 1;}
+			if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > (pSize - tI - 1))
+				{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = pSize - tI - 1;}
 		}
 		CRX_ENDFOR
 
 		while(tChar < tEndChar)
 		{
-			tChar = memchr(tChar, *pDelimiter, tEndChar - tChar);
+			tChar = memchr(tChar, *pChars__delimiter, tEndChar - tChar);
 
 			if(tChar != NULL)
 			{
-				while((tChar < tEndChar) && (*(tChar + pLength - 1) != tLastCharacter))
+				while((tChar < tEndChar) && (*(tChar + pSize - 1) != tLastCharacter))
 				{
 					tChar = tChar + 
-							tReverseIndexOfCharacterLastOccurance[*(tChar + pLength - 1)];
+							tReverseIndexOfCharacterLastOccurance[*(tChar + pSize - 1)];
 				}
 
 				if(tChar < tEndChar)
 				{
-					if(memcmp(tChar, pDelimiter, pLength) == 0)
+					if(memcmp(tChar, pChars__delimiter, pSize) == 0)
 					{
 						vReturn = ((char const *)tChar) - vChars;
 
@@ -757,13 +837,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	{
 		//THIS DID NOT PROVE USEFUL AGAINST ALGORITHM 1, EVEN IF DELIMITER IS VERY
 		//		SHORT SUCH AS 1 CHARACTER
-		CRX_FOR(size_t tI = 0, tI <= vLength - pLength, tI++)
+		CRX_FOR(size_t tI = 0, tI <= vLength - pSize, tI++)
 		{
 			bool tIsFound = true;
 
-			CRX_FOR(size_t tI2 = 0, tI2 < pLength, tI2++)
+			CRX_FOR(size_t tI2 = 0, tI2 < pSize, tI2++)
 			{
-				if(*(vChars + tI + tI2) != *(pDelimiter + tI2))
+				if(*(vChars + tI + tI2) != *(pChars__delimiter + tI2))
 				{
 					tIsFound = false;
 					break;
@@ -781,7 +861,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	}
 	else if(vAlgorithm == 6)
 	{
-		vReturn = TW(pDelimiter, pLength, vChars, vLength);
+		/*TWO WAY SEARCH ALGORITHM IMPLEMENTATION FROM "Two Way algorithm.mht" 
+				"http://igm.univ-mlv.fr/~lecroq/string/node26.html" THAT I
+				USED FOR COMPARISON WITH THE ALGORITHM THAT I WROTE PER THE ORIGINAL PAPER*/
+		vReturn = TW(pChars__delimiter, pSize, vChars, vLength);
 		
 		if(vReturn == vLength)
 			{vReturn = vFullLength;}
@@ -789,8 +872,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 	else if(vAlgorithm == 7)
 	{
 		/*
-		TWO WAY SEARCH ALGORITHM. SEE PAPER. THE LETTERS IN COMMENT IS TO HELP COMPARE CODE
-		TO ALOGIRHTMS IN THE PAPER. 
+		TWO WAY SEARCH ALGORITHM. SEE PAPER "CP-1991-jacm". THE LETTERS IN COMMENT IS TO HELP 
+		COMPARE CODE TO ALOGIRHTMS IN THE PAPER. 
 		*/
 		size_t tCriticalPosition = 0; 	//ONE BASED INDEX
 		size_t tI = 0; 					//ONE BASED INDEX
@@ -805,11 +888,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 		//tI2  //j
 		//tOffset //k
 		//tDeltaTi //p
-		//pLength //n
-		while(tI2 + tOffset <= pLength)
+		//pSize //n
+		while(tI2 + tOffset <= pSize)
 		{
-			char tChar = *(pDelimiter + tI + tOffset - 1);
-			char tChar2 = *(pDelimiter + tI2 + tOffset - 1);
+			char tChar = *(pChars__delimiter + tI + tOffset - 1);
+			char tChar2 = *(pChars__delimiter + tI2 + tOffset - 1);
 
 			if(tChar > tChar2)
 			{
@@ -846,12 +929,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 		tI2 = 1;  //j
 		tOffset = 1;  //k
 		tDeltaTi = 1; //p
-		//pLength //n
+		//pSize //n
 
-		while(tI2 + tOffset <= pLength)
+		while(tI2 + tOffset <= pSize)
 		{
-			char tChar = *(pDelimiter + tI + tOffset - 1);
-			char tChar2 = *(pDelimiter + tI2 + tOffset - 1);
+			char tChar = *(pChars__delimiter + tI + tOffset - 1);
+			char tChar2 = *(pChars__delimiter + tI2 + tOffset - 1);
 
 			if(tChar < tChar2)
 			{
@@ -889,8 +972,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			tPotentialPeriod = tDeltaTi; 
 		}
 		
-		if((tCriticalPosition < (pLength >> 1)) && 
-				(memcmp(pDelimiter, pDelimiter + tPotentialPeriod, tCriticalPosition) == 0))
+		if((tCriticalPosition < (pSize >> 1)) && 
+				(memcmp(pChars__delimiter, pChars__delimiter + tPotentialPeriod, tCriticalPosition) == 0))
 		{
 			//BASED ON POSITIONS() FUNCTION IN THE PAPER.
 			size_t tPeriod = tPotentialPeriod; //p
@@ -900,20 +983,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			//tI //i
 			//tCriticalPosition //l
 			//vLength //|t|
-			//pLength //|x|
+			//pSize //|x|
 			
-			while(tI2 + pLength <= vLength)
+			while(tI2 + pSize <= vLength)
 			{
-				//assert(pDelimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
+				//assert(pChars__delimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
 				//		vChars[tI2 + 1 : tI2 + tUpperBoundOfAlreadyVerifiedValuesOnRight]) //right side is exclusive.
 
 				tI = ((tCriticalPosition < tUpperBoundOfAlreadyVerifiedValuesOnRight) ? 
 						tUpperBoundOfAlreadyVerifiedValuesOnRight : tCriticalPosition) + 1;
 				
-				while((tI <= pLength) && (*(pDelimiter + tI - 1) == *(vChars + tI2 + tI - 1)))
+				while((tI <= pSize) && (*(pChars__delimiter + tI - 1) == *(vChars + tI2 + tI - 1)))
 					{tI++;}
 
-				if(tI <= pLength)
+				if(tI <= pSize)
 				{
 					if((tUpperBoundOfAlreadyVerifiedValuesOnRight > tPeriod) &&
 							((tUpperBoundOfAlreadyVerifiedValuesOnRight - tPeriod + 1) > 
@@ -930,7 +1013,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 
 					//NO NEED TO SEARCH BEFORE tUpperBoundOfAlreadyVerifiedValuesOnRight. SEE ASSERT ABOVE
 					while((tJ > tUpperBoundOfAlreadyVerifiedValuesOnRight) && 
-							(*(pDelimiter + tJ - 1) == *(vChars + tI2 + tJ - 1)))
+							(*(pChars__delimiter + tJ - 1) == *(vChars + tI2 + tJ - 1)))
 						{tJ = tJ - 1;}
 
 					if(tJ <= tUpperBoundOfAlreadyVerifiedValuesOnRight)
@@ -941,14 +1024,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 					else 	//IF YOU REMOVE THE break ABOVE, MEANING YOU WANT TO FIND ALL OCCURANCES,
 							//	THE FOLLOWING CODE MUST ALWAYS RUN. IN THAT CASE, IF YOU WANT TO FIND
 							//	NON OVERLAPPING OCCURANCES AND A MATCH IS FOUND, YOU WOULD INCRMENT 
-							//	BY pLength INSTEAD OF tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
+							//	BY pSize INSTEAD OF tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
 							//	TO ZERO, OTHERWISE BY tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
-							//	TO pLength - tPeriod, OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, 
+							//	TO pSize - tPeriod, OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, 
 							//	YOU WOULD ALWAYS INCREMENT BY tPeriod AND SET 
-							//	tUpperBoundOfAlreadyVerifiedValuesOnRight TO pLength - tPeriod
+							//	tUpperBoundOfAlreadyVerifiedValuesOnRight TO pSize - tPeriod
 					{
 						tI2 = tI2 + tPeriod;
-						tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+						tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 					}
 				}
 			}
@@ -960,29 +1043,29 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 			SAME AS ABOVE, BUT THE VALUE OF tUpperBoundOfAlreadyVerifiedValuesOnRight IS SUCH AS ALL CONDITIONS
 			AROUND IT EVALUATE TO FALSE, AND THE VALUE IS EFFECTIVELY 0.
 			*/
-			size_t tPeriodLowerBound = ((tCriticalPosition >= pLength - tCriticalPosition) ?
-					tCriticalPosition : pLength - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
+			size_t tPeriodLowerBound = ((tCriticalPosition >= pSize - tCriticalPosition) ?
+					tCriticalPosition : pSize - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
 			
 			tI2 = 0;//pos
 			//tI //i
 			//tCriticalPosition //l
 			//vLength //|t|
-			//pLength //|x|
+			//pSize //|x|
 
-			while(tI2 + pLength <= vLength)
+			while(tI2 + pSize <= vLength)
 			{
 				tI = tCriticalPosition + 1;
 				
-				while((tI <= pLength) && (*(pDelimiter + tI - 1) == *(vChars + tI2 + tI - 1)))
+				while((tI <= pSize) && (*(pChars__delimiter + tI - 1) == *(vChars + tI2 + tI - 1)))
 					{tI++;}
 
-				if(tI <= pLength)
+				if(tI <= pSize)
 					{tI2 = tI2 + tI - tCriticalPosition;}
 				else
 				{
 					size_t tJ = tCriticalPosition; //ONE BASED INDEX
 
-					while((tJ > 0) && (*(pDelimiter + tJ - 1) == *(vChars + tI2 + tJ - 1)))
+					while((tJ > 0) && (*(pChars__delimiter + tJ - 1) == *(vChars + tI2 + tJ - 1)))
 						{tJ = tJ - 1;}
 
 					if(tJ == 0)
@@ -993,7 +1076,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 					else 	//IF YOU REMOVE THE break ABOVE, MEANING YOU WANT TO FIND ALL OCCURANCES,
 							//	THE FOLLOWING CODE MUST ALWAYS RUN. IN THAT CASE, IF YOU WANT TO FIND
 							//	NON OVERLAPPING OCCURANCES AND A MATCH IS FOUND, YOU WOULD INCRMENT 
-							//	BY pLength INSTEAD OF tPeriodLowerBound, OTHERWISE BY tPeriodLowerBound,
+							//	BY pSize INSTEAD OF tPeriodLowerBound, OTHERWISE BY tPeriodLowerBound,
 							//	OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, YOU WOULD ALWAYS INCREMENT
 							//	BY tPeriodLowerBound
 						{tI2 = tI2 + tPeriodLowerBound;}
@@ -1005,31 +1088,44 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 		{assert(false);}
 #endif
     
-	return ((vReturn != vFullLength) ? (vReturn + pStartIndex) : vFullLength);
+	return ((vReturn != vFullLength) ? (vReturn + pStartIndex) : ((size_t)(-1)));
 	CRX_SCOPE_END
 #endif
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf4(
+		Crx_C_String const * pThis, size_t pStartIndex, 
+		Crx_C_String_Sub const * pSub__delimiter, 
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(crx_c_string_sub_getLength(pSub__delimiter) == 0)
+		{return ((size_t)(-1));}
+
+	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis, pStartIndex,
+			crx_c_string_sub_getCharsPointer(pSub__delimiter),
+			crx_c_string_sub_getLength(pSub__delimiter),
+			pSizeOfCharacterSet);
 }
 
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranceOf(
-		Crx_C_String const * pThis, size_t pInclusiveEndIndex, Crx_C_String const * pString__delimiter,
+		Crx_C_String const * pThis, size_t pInclusiveEndIndex, Crx_C_String const * pDelimiter,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
-			crx_c_string_constantGetElementsPointer(pString__delimiter),
-			crx_c_string_getLength(pString__delimiter),
+			crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter),
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranceOf2(
-		Crx_C_String const * pThis, size_t pInclusiveEndIndex, char const * pString__delimiter,
+		Crx_C_String const * pThis, size_t pInclusiveEndIndex, char const * pDelimiter,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
-			pString__delimiter, strlen(pString__delimiter), pSizeOfCharacterSet);
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranceOf3(
-		Crx_C_String const * pThis, size_t pInclusiveEndIndex, char const * pDelimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+		Crx_C_String const * pThis, size_t pInclusiveEndIndex, char const * pChars__delimiter, 
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	/*
 	IMPORTANT: TO AVOID CONFUSION, UNDERSTAND THAT ALGORITHM 8 UNLIKE THE OTHER ALGORITHMS, 
@@ -1042,9 +1138,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			ALGORITHM 8, TO KEEP THEIR SYMMETRY WITH THE OCCURANCE SEARCH ALGORITHMS ELSEWHERE.
 	*/
 	CRX_SCOPE_META
-	if((pInclusiveEndIndex < pLength - 1) || 
-			(pInclusiveEndIndex >= crx_c_string_getLength(pThis)) || (pLength == 0))
-		{return crx_c_string_getLength(pThis);}
+	if((pInclusiveEndIndex < pSize - 1) || 
+			(pInclusiveEndIndex >= crx_c_string_getLength(pThis)) || (pSize == 0))
+		{return ((size_t)(-1));}
 
 	CRX_SCOPE
 	uint32_t vAlgorithm = 0;
@@ -1052,35 +1148,35 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	size_t vFullLength = crx_c_string_getLength(pThis);
 	size_t vLength = pInclusiveEndIndex + 1;
 	char const * vChars = crx_c_string_constantGetElementsPointer(pThis);
-	size_t vReturn = vFullLength;
+	size_t vReturn = ((size_t)(-1));
 	
 
 	/*
 	NOTE: CURRENTLY, THE FOLLOWING IS PER THE ASSUMPTION THAT THE USER IS USING THE FUNCTION TO FIND
 			THE FIRST OCCURANCE ONLY
 	*/
-	/*if(pLength < 5)
+	/*if(pSize < 5)
 		{vAlgorithm = 1;}
 	else
 	{
 		double tSizeOfCharacterSet = ((double)pSizeOfCharacterSet);
-		double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pLength)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
+		double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pSize)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
 		double q = 0.4;
 		double e = 1.0 / (((1.0 - q) / tSizeOfCharacterSet) + (q / s2));
 		
-		/*if(e > pLength)
-			//{e = pLength;}* /
+		/*if(e > pSize)
+			//{e = pSize;}* /
 		
-		/*if((pLength < 4) || (pLength * (vLength - pLength) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
+		/*if((pSize < 4) || (pSize * (vLength - pSize) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
 		//if(e <= 7)
 		//	{vAlgorithm = 7/*6* /;}
 		if(e <= 22)
 			{vAlgorithm = 4;}
 		else if(e <= 40)
 			{vAlgorithm = 1;}
-		else if(pLength < 7340032)
+		else if(pSize < 7340032)
 		{
-			/*if(pLength < 16)
+			/*if(pSize < 16)
 				{vAlgorithm = 2;}			
 			else
 				{vAlgorithm = 3;}* /
@@ -1090,7 +1186,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 		else
 			{vAlgorithm = 4;}
 	}
-	if(pLength < 5)
+	if(pSize < 5)
 		{vAlgorithm = 1;}
 	else
 	{
@@ -1098,16 +1194,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	}*/
 	
 	//THE FOLLOWING WAS PER THE BENCHMARKS. NOTE THIS SHOULD BE ASSUMED VALID ONLY FOR
-	//		FIRST OCCURANCE SEARCH.
-	/*if(pLength <= 8)
-		{vAlgorithm = 8;}
-	else if(pLength < 32768)
+	//		FARWARD FIRST OCCURANCE SEARCH.
+	//		(THE FOLLOWING WAS ORIGINALLY MODIFIED TO USE '8' FOR ALL BRANCHES, WHICH I ASSUME MEANS 
+	//				THAT I TESTED ALGORITHM 8, AND SETTLED ON 3 INSTEAD)
+	/*if(pSize <= 8)
+		{vAlgorithm = 1;}
+	else if(pSize < 32768)
+	{
 		if(vSizeOfCharacterSet > 16)
-			{vAlgorithm = 8;}
+			{vAlgorithm = 4;}
 		else
-			{vAlgorithm = 8;}
+			{vAlgorithm = 1;}
+	}
 	else
-		{vAlgorithm = 8;}*/
+		{vAlgorithm = 4;}*/
 	
 	vAlgorithm = 3;
 	
@@ -1124,13 +1224,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 				NOTE THAT THE LENGTH OF STRING[X..Y] IS Y - X + 1. IN OTHER WORDS
 								|STRING[N-K+1..N]| = K
 				
-				WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIC PREFIX.
+				WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIX PREFIX.
 				
 				NOTE THAT IF FOR SUBSTRING STRING[A..B], 
 						|SUFFIX_PREFIX{2}(STRING[A..B])| = K, 
 				THEN FOR SUBSTRING STRING[A..B+1] 
 						|SUFFIX_PREFIX{2}(STRING[A..B+1])| <= K + 1
-				BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD START AT (A-L) FOR L > 0, MAKING IT A 
+				BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD END AT (A + K + L) FOR L > 0, MAKING IT A 
 				CONTRADITCTION BECUASE THEN K WOULD NOT HAVE BEEN THE LENGTH OF THE SECOND LARGEST 
 				SUFFIX PREFIX OF STRING[A..B].
 
@@ -1157,30 +1257,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 		size_t * tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = NULL;
 		bool tIsToFree = false;
 		
-		if(pLength + 1 > 80)
+		if(pSize + 1 > 80)
 		{
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-					calloc(1, sizeof(size_t) * (pLength + 1));
+					calloc(1, sizeof(size_t) * (pSize + 1));
 			tIsToFree = true;
 		}
 		else
 		{
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-					CRX__ALLOCA(sizeof(size_t) * (pLength + 1));
+					CRX__ALLOCA(sizeof(size_t) * (pSize + 1));
 		}
 		
 		tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[0] = 0;
-		CRX_FOR(size_t tI = 1, tI < pLength, tI++)
+		CRX_FOR(size_t tI = 1, tI < pSize, tI++)
 		{        
-			size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[pLength - 1 - (tI - 1)];
+			size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[pSize - 1 - (tI - 1)];
 
 			//IF SECOND LARGEST SUFFIX PREFIX DOES NOT HELP, WE SEEK OUT THE THIRD LARGEST
 			//		SUFFIX PREFIX WHICH HAPPENS TO BE THE SECOND LARGEST SUFFIX PREFIX OF THE
 			//		SECOND LARGEST SUFFIX PREFIX. AND SO FORTH.
-			while((tJ != 0) && (*(pDelimiter + pLength - 1 - tI) != *(pDelimiter + pLength - 1 - tJ)))
+			while((tJ != 0) && (*(pChars__delimiter + pSize - 1 - tI) != *(pChars__delimiter + pSize - 1 - tJ)))
 				{tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tJ - 1];}
 
-			if(*(pDelimiter + pLength - 1 - tI) == *(pDelimiter + pLength - 1 - tJ))
+			if(*(pChars__delimiter + pSize - 1 - tI) == *(pChars__delimiter + pSize - 1 - tJ))
 				{tJ += 1;}
 
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI] = tJ;
@@ -1194,7 +1294,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			CRX_FOR(size_t tI = 0, tI < vLength, tI++)
 			{
 				while((tCurrentIndexInDelimiter != 0) && 
-						(*(vChars + vLength - 1 - tI) != *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter)))
+						(*(vChars + vLength - 1 - tI) != *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter)))
 				{
 					//SEE * ABOVE.
 					tCurrentIndexInDelimiter = 
@@ -1202,20 +1302,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 							tCurrentIndexInDelimiter - 1];
 				}
 				
-				if(*(vChars + vLength - 1 - tI) == *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter))
+				if(*(vChars + vLength - 1 - tI) == *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter))
 					{tCurrentIndexInDelimiter += 1;}
 
 				/*
 					AT THIS POINT, THE FOLLOWING MUST ALWAYS HOLD TRUE
 							vChars[tI + 1 - tCurrentIndexInDelimiter:tI + 1] == 
-									pDelimiter[0:tCurrentIndexInDelimiter]
-					IN OTHER WORDS, THE WINDOW, pDelimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
+									pChars__delimiter[0:tCurrentIndexInDelimiter]
+					IN OTHER WORDS, THE WINDOW, pChars__delimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
 					ALWAYS EQUAL TO THE OVERLAP EVEN AFTER SHIFTING.
 				*/
 
-				if(tCurrentIndexInDelimiter == pLength)
+				if(tCurrentIndexInDelimiter == pSize)
 				{
-					vReturn = vLength - 1 - tI;//== vLength - 1 - (tI + 1 - pLength) - (pLength - 1)
+					vReturn = vLength - 1 - tI;//== vLength - 1 - (tI + 1 - pSize) - (pSize - 1)
 
 					break;
 				}
@@ -1229,16 +1329,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			//		AS SLOW	FOR RANDOM INPUT, AND MORE SLOW FOR HIGHLY PATTERNED INTPUT UP TO THREE 
 			//		TIMES AS SLOW
 			uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
-			char tLastCharacter = *pDelimiter;
+			char tLastCharacter = *pChars__delimiter;
 			
 			CRX_FOR(size_t tI = 0, tI < 256, tI++)
-				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 			CRX_ENDFOR
 
-			CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 			{
-				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter) + pLength - 1 - tI)] > (pLength - tI - 1))
-					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter) + pLength - 1 - tI)] = pLength - tI - 1;}
+				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter) + pSize - 1 - tI)] > (pSize - tI - 1))
+					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter) + pSize - 1 - tI)] = pSize - tI - 1;}
 			}
 			CRX_ENDFOR
 			
@@ -1246,13 +1346,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			{
 				if(tCurrentIndexInDelimiter == 0)
 				{
-					while((tI <= vLength - pLength) && (*(vChars + vLength - 1 - (tI + pLength - 1)) != tLastCharacter))
-						{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)vChars) + vLength - 1 - (tI + pLength - 1))];}
+					while((tI <= vLength - pSize) && (*(vChars + vLength - 1 - (tI + pSize - 1)) != tLastCharacter))
+						{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)vChars) + vLength - 1 - (tI + pSize - 1))];}
 				}
 				else
 				{
 					while((tCurrentIndexInDelimiter != 0) && 
-							(*(vChars + vLength - 1 - tI) != *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter)))
+							(*(vChars + vLength - 1 - tI) != *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter)))
 					{
 						//SEE * ABOVE.
 						tCurrentIndexInDelimiter = 
@@ -1262,13 +1362,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 				}
 
 
-				if(*(vChars + vLength - 1 - tI) == *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter))
+				if(*(vChars + vLength - 1 - tI) == *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter))
 					{tCurrentIndexInDelimiter += 1;}
 
 				/*SEE ABOVE*/
-				if(tCurrentIndexInDelimiter == pLength)
+				if(tCurrentIndexInDelimiter == pSize)
 				{
-					vReturn = vLength - 1 - tI; //vLength - 1 - (tI + 1 - pLength) - (pLength - 1)
+					vReturn = vLength - 1 - tI; //vLength - 1 - (tI + 1 - pSize) - (pSize - 1)
 
 					break;
 				}
@@ -1284,13 +1384,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	}
 	else if(vAlgorithm == 5)
 	{
-		CRX_FOR(size_t tI = 0, tI <= vLength - pLength, tI++)
+		CRX_FOR(size_t tI = 0, tI <= vLength - pSize, tI++)
 		{
 			bool tIsFound = true;
 
-			CRX_FOR(size_t tI2 = 0, tI2 < pLength, tI2++)
+			CRX_FOR(size_t tI2 = 0, tI2 < pSize, tI2++)
 			{
-				if(*(vChars + vLength - 1 - tI - tI2) != *(pDelimiter + pLength - 1 - tI2))
+				if(*(vChars + vLength - 1 - tI - tI2) != *(pChars__delimiter + pSize - 1 - tI2))
 				{
 					tIsFound = false;
 					break;
@@ -1300,7 +1400,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 					
 			if(tIsFound)
 			{
-				vReturn = vLength - tI - pLength;//vLength - 1 - tI - (pLength - 1)
+				vReturn = vLength - tI - pSize;//vLength - 1 - tI - (pSize - 1)
 				break;
 			}
 		}
@@ -1309,8 +1409,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	else if(vAlgorithm == 7)
 	{
 		/*
-		TWO WAY SEARCH ALGORITHM. SEE PAPER. THE LETTERS IN COMMENT IS TO HELP COMPARE CODE
-		TO ALOGIRHTMS IN THE PAPER. 
+		TWO WAY SEARCH ALGORITHM. SEE PAPER "CP-1991-jacm". THE LETTERS IN COMMENT IS TO HELP 
+		COMPARE CODE TO ALOGIRHTMS IN THE PAPER. 
 		*/
 		size_t tCriticalPosition = 0; 	//ONE BASED INDEX
 		size_t tI = 0; 					//ONE BASED INDEX
@@ -1325,11 +1425,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 		//tI2  //j
 		//tOffset //k
 		//tDeltaTi //p
-		//pLength //n
-		while(tI2 + tOffset <= pLength)
+		//pSize //n
+		while(tI2 + tOffset <= pSize)
 		{
-			char tChar = *(pDelimiter + pLength - 1 - (tI + tOffset - 1));
-			char tChar2 = *(pDelimiter + pLength - 1 - (tI2 + tOffset - 1));
+			char tChar = *(pChars__delimiter + pSize - 1 - (tI + tOffset - 1));
+			char tChar2 = *(pChars__delimiter + pSize - 1 - (tI2 + tOffset - 1));
 
 			if(tChar > tChar2)
 			{
@@ -1366,12 +1466,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 		tI2 = 1;  //j
 		tOffset = 1;  //k
 		tDeltaTi = 1; //p
-		//pLength //n
+		//pSize //n
 
-		while(tI2 + tOffset <= pLength)
+		while(tI2 + tOffset <= pSize)
 		{
-			char tChar = *(pDelimiter + pLength - 1 - (tI + tOffset - 1));
-			char tChar2 = *(pDelimiter + pLength - 1 - (tI2 + tOffset - 1));
+			char tChar = *(pChars__delimiter + pSize - 1 - (tI + tOffset - 1));
+			char tChar2 = *(pChars__delimiter + pSize - 1 - (tI2 + tOffset - 1));
 
 			if(tChar < tChar2)
 			{
@@ -1409,8 +1509,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			tPotentialPeriod = tDeltaTi; 
 		}
 		
-		if((tCriticalPosition < (pLength >> 1)) && 
-				(memcmp(pDelimiter + pLength - 1 - (tCriticalPosition - 1), pDelimiter + pLength - 1 - tPotentialPeriod - (tCriticalPosition - 1), tCriticalPosition) == 0))
+		if((tCriticalPosition < (pSize >> 1)) && 
+				(memcmp(pChars__delimiter + pSize - 1 - (tCriticalPosition - 1), pChars__delimiter + pSize - 1 - tPotentialPeriod - (tCriticalPosition - 1), tCriticalPosition) == 0))
 		{
 			//BASED ON POSITIONS() FUNCTION IN THE PAPER.
 			size_t tPeriod = tPotentialPeriod; //p
@@ -1420,20 +1520,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			//tI //i
 			//tCriticalPosition //l
 			//vLength //|t|
-			//pLength //|x|
+			//pSize //|x|
 			
-			while(tI2 + pLength <= vLength)
+			while(tI2 + pSize <= vLength)
 			{
-				//assert(pDelimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
+				//assert(pChars__delimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
 				//		vChars[tI2 + 1 : tI2 + tUpperBoundOfAlreadyVerifiedValuesOnRight]) //right side is exclusive.
 
 				tI = ((tCriticalPosition < tUpperBoundOfAlreadyVerifiedValuesOnRight) ? 
 						tUpperBoundOfAlreadyVerifiedValuesOnRight : tCriticalPosition) + 1;
 				
-				while((tI <= pLength) && (*(pDelimiter + pLength - 1 - (tI - 1)) == *(vChars + vLength - 1 - (tI2 + tI - 1))))
+				while((tI <= pSize) && (*(pChars__delimiter + pSize - 1 - (tI - 1)) == *(vChars + vLength - 1 - (tI2 + tI - 1))))
 					{tI++;}
 
-				if(tI <= pLength)
+				if(tI <= pSize)
 				{
 					if((tUpperBoundOfAlreadyVerifiedValuesOnRight > tPeriod) &&
 							((tUpperBoundOfAlreadyVerifiedValuesOnRight - tPeriod + 1) > 
@@ -1450,25 +1550,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 
 					//NO NEED TO SEARCH BEFORE tUpperBoundOfAlreadyVerifiedValuesOnRight. SEE ASSERT ABOVE
 					while((tJ > tUpperBoundOfAlreadyVerifiedValuesOnRight) && 
-							(*(pDelimiter + pLength - 1 - (tJ - 1)) == *(vChars + vLength - 1 - (tI2 + tJ - 1))))
+							(*(pChars__delimiter + pSize - 1 - (tJ - 1)) == *(vChars + vLength - 1 - (tI2 + tJ - 1))))
 						{tJ = tJ - 1;}
 
 					if(tJ <= tUpperBoundOfAlreadyVerifiedValuesOnRight)
 					{
-						vReturn = vLength - 1 - tI2 - (pLength - 1);
+						vReturn = vLength - 1 - tI2 - (pSize - 1);
 						break;
 					}
 					else 	//IF YOU REMOVE THE break ABOVE, MEANING YOU WANT TO FIND ALL OCCURANCES,
 							//	THE FOLLOWING CODE MUST ALWAYS RUN. IN THAT CASE, IF YOU WANT TO FIND
 							//	NON OVERLAPPING OCCURANCES AND A MATCH IS FOUND, YOU WOULD INCRMENT 
-							//	BY pLength INSTEAD OF tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
+							//	BY pSize INSTEAD OF tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
 							//	TO ZERO, OTHERWISE BY tPeriod AND SET tUpperBoundOfAlreadyVerifiedValuesOnRight
-							//	TO pLength - tPeriod, OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, 
+							//	TO pSize - tPeriod, OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, 
 							//	YOU WOULD ALWAYS INCREMENT BY tPeriod AND SET 
-							//	tUpperBoundOfAlreadyVerifiedValuesOnRight TO pLength - tPeriod
+							//	tUpperBoundOfAlreadyVerifiedValuesOnRight TO pSize - tPeriod
 					{
 						tI2 = tI2 + tPeriod;
-						tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+						tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 					}
 				}
 			}
@@ -1480,40 +1580,40 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 			SAME AS ABOVE, BUT THE VALUE OF tUpperBoundOfAlreadyVerifiedValuesOnRight IS SUCH AS ALL CONDITIONS
 			AROUND IT EVALUATE TO FALSE, AND THE VALUE IS EFFECTIVELY 0.
 			*/
-			size_t tPeriodLowerBound = ((tCriticalPosition >= pLength - tCriticalPosition) ?
-					tCriticalPosition : pLength - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
+			size_t tPeriodLowerBound = ((tCriticalPosition >= pSize - tCriticalPosition) ?
+					tCriticalPosition : pSize - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
 			
 			tI2 = 0;//pos
 			//tI //i
 			//tCriticalPosition //l
 			//vLength //|t|
-			//pLength //|x|
+			//pSize //|x|
 
-			while(tI2 + pLength <= vLength)
+			while(tI2 + pSize <= vLength)
 			{
 				tI = tCriticalPosition + 1;
 				
-				while((tI <= pLength) && (*(pDelimiter + pLength - 1 - (tI - 1)) == *(vChars + vLength - 1 - (tI2 + tI - 1))))
+				while((tI <= pSize) && (*(pChars__delimiter + pSize - 1 - (tI - 1)) == *(vChars + vLength - 1 - (tI2 + tI - 1))))
 					{tI++;}
 
-				if(tI <= pLength)
+				if(tI <= pSize)
 					{tI2 = tI2 + tI - tCriticalPosition;}
 				else
 				{
 					size_t tJ = tCriticalPosition; //ONE BASED INDEX
 
-					while((tJ > 0) && (*(pDelimiter + pLength - 1 - (tJ - 1)) == *(vChars + vLength - 1 - (tI2 + tJ - 1))))
+					while((tJ > 0) && (*(pChars__delimiter + pSize - 1 - (tJ - 1)) == *(vChars + vLength - 1 - (tI2 + tJ - 1))))
 						{tJ = tJ - 1;}
 
 					if(tJ == 0)
 					{
-						vReturn = vLength - 1 - tI2 - (pLength - 1);
+						vReturn = vLength - 1 - tI2 - (pSize - 1);
 						break;
 					}
 					else 	//IF YOU REMOVE THE break ABOVE, MEANING YOU WANT TO FIND ALL OCCURANCES,
 							//	THE FOLLOWING CODE MUST ALWAYS RUN. IN THAT CASE, IF YOU WANT TO FIND
 							//	NON OVERLAPPING OCCURANCES AND A MATCH IS FOUND, YOU WOULD INCRMENT 
-							//	BY pLength INSTEAD OF tPeriodLowerBound, OTHERWISE BY tPeriodLowerBound,
+							//	BY pSize INSTEAD OF tPeriodLowerBound, OTHERWISE BY tPeriodLowerBound,
 							//	OR IF YOU DO WANT TO FIND OVERLAPPING OCCURANCES, YOU WOULD ALWAYS INCREMENT
 							//	BY tPeriodLowerBound
 						{tI2 = tI2 + tPeriodLowerBound;}
@@ -1524,20 +1624,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	else if(vAlgorithm == 8)
 	{
 		unsigned char const * tChars = vChars;
-		size_t tEndIndex = pLength - 1; //One based index
-		unsigned char tFirstCharacter = *pDelimiter;
-		unsigned char tLastCharacter = *(pDelimiter + pLength - 1);
+		size_t tEndIndex = pSize - 1; //One based index
+		unsigned char tFirstCharacter = *pChars__delimiter;
+		unsigned char tLastCharacter = *(pChars__delimiter + pSize - 1);
 		uint32_t tIndexOfCharacterFirstOccurance[256] /*= ?*/;
 		size_t vI = vLength; //One based index
 
 		CRX_FOR(size_t tI = 0, tI < 256, tI++)
-			{tIndexOfCharacterFirstOccurance[tI] = (uint32_t)pLength;}
+			{tIndexOfCharacterFirstOccurance[tI] = (uint32_t)pSize;}
 		CRX_ENDFOR
 		
-		CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+		CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 		{
-			if(tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > tI)
-				{tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = tI;}
+			if(tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > tI)
+				{tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = tI;}
 		}
 		CRX_ENDFOR
 
@@ -1548,14 +1648,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 
 			if(vI > tEndIndex)
 			{
-				while((vI > tEndIndex) && (*(tChars + vI - pLength) != tFirstCharacter))
-					{vI = vI - tIndexOfCharacterFirstOccurance[*(tChars + vI - pLength)];}
+				while((vI > tEndIndex) && (*(tChars + vI - pSize) != tFirstCharacter))
+					{vI = vI - tIndexOfCharacterFirstOccurance[*(tChars + vI - pSize)];}
 
 				if(vI > tEndIndex)
 				{
-					if(memcmp(tChars + vI - pLength, pDelimiter, pLength) == 0)
+					if(memcmp(tChars + vI - pSize, pChars__delimiter, pSize) == 0)
 					{
-						vReturn = vI - pLength;
+						vReturn = vI - pSize;
 
 						break;
 					}
@@ -1571,30 +1671,43 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	return vReturn;
 	CRX_SCOPE_END
 }
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranceOf4(
+		Crx_C_String const * pThis, size_t pInclusiveEndIndex, 
+		Crx_C_String_Sub const * pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(crx_c_string_sub_getLength(pSub__delimiter) == 0)
+		{return ((size_t)(-1));}
+
+	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
+			crx_c_string_sub_getCharsPointer(pSub__delimiter),
+			crx_c_string_sub_getLength(pSub__delimiter),
+			pSizeOfCharacterSet);
+}
 
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf(
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pStartIndex, Crx_C_String const * pString__delimiter,
+		size_t pStartIndex, Crx_C_String const * pDelimiter,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
-	return crx_c_string_getIndicesOfAllOccurancesOf3(pThis, pReturn,
-			pStartIndex, crx_c_string_constantGetElementsPointer(pString__delimiter),
-			crx_c_string_getLength(pString__delimiter),
+	return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis, pReturn,
+			pStartIndex, crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf2(
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf2(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pStartIndex, char const * pString__delimiter,
+		size_t pStartIndex, char const * pDelimiter,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
-	return crx_c_string_getIndicesOfAllOccurancesOf3(pThis, pReturn,
-			pStartIndex, pString__delimiter, strlen(pString__delimiter),
+	return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis, pReturn,
+			pStartIndex, pDelimiter, strlen(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf3(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pStartIndex, char const * pDelimiter, size_t pLength,
+		size_t pStartIndex, char const * pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	uint8_t vSizeOfCharacterSet = ((pSizeOfCharacterSet == 0) ? 255 : pSizeOfCharacterSet);
@@ -1603,35 +1716,35 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 
 	crx_c_arrays_size_empty(pReturn);
 
-	if(!(((vFullLength - pStartIndex) < pLength) || 
-			(vFullLength <= pStartIndex) || (pLength == 0)))
+	if(!(((vFullLength - pStartIndex) < pSize) || 
+			(vFullLength <= pStartIndex) || (pSize == 0)))
 	{
 		uint32_t tAlgorithm = 0;
 		size_t tLength = vFullLength - pStartIndex;
 		char const * tChars = crx_c_string_constantGetElementsPointer(pThis) + pStartIndex;
 
-		/*if(pLength < 5)
+		/*if(pSize < 5)
 			{tAlgorithm = 1;}
 		else
 		{
 			double tSizeOfCharacterSet = ((double)pSizeOfCharacterSet);
-			double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pLength)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
+			double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pSize)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
 			double q = 0.4;
 			double e = 1.0 / (((1.0 - q) / tSizeOfCharacterSet) + (q / s2));
 			
-			/*if(e > pLength)
-				//{e = pLength;}* /
+			/*if(e > pSize)
+				//{e = pSize;}* /
 			
-			/*if((pLength < 4) || (pLength * (tLength - pLength) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
+			/*if((pSize < 4) || (pSize * (tLength - pSize) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
 			//if(e <= 7)
 			//	{tAlgorithm = 7/*6* /;}
 			if(e <= 22)
 				{tAlgorithm = 4;}
 			else if(e <= 40)
 				{tAlgorithm = 1;}
-			else if(pLength < 7340032)
+			else if(pSize < 7340032)
 			{
-				/*if(pLength < 16)
+				/*if(pSize < 16)
 					{tAlgorithm = 2;}			
 				else
 					{tAlgorithm = 3;}* /
@@ -1641,7 +1754,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 			else
 				{tAlgorithm = 4;}
 		}
-		if(pLength < 5)
+		if(pSize < 5)
 			{tAlgorithm = 1;}
 		else
 		{
@@ -1653,20 +1766,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 		if(tAlgorithm == 1)
 		{
 			char const * tChar = tChars;
-			char const * tEndChar = tChars + (tLength - pLength + 1);
+			char const * tEndChar = tChars + (tLength - pSize + 1);
 
 			while(tChar < tEndChar)
 			{
-				tChar = memchr(tChar, *pDelimiter, tEndChar - tChar);
+				tChar = memchr(tChar, *pChars__delimiter, tEndChar - tChar);
 
 				if(tChar != NULL)
 				{
-					if(memcmp(tChar, pDelimiter, pLength) == 0)
+					if(memcmp(tChar, pChars__delimiter, pSize) == 0)
 					{
 						if(crx_c_arrays_size_push2(pReturn, tChar - tChars))
 						{
 							if(!pIsToAllowOverlap)
-								{tChar = tChar + pLength;}
+								{tChar = tChar + pSize;}
 							else
 								{tChar++;}
 						}
@@ -1696,13 +1809,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 					NOTE THAT THE LENGTH OF STRING[X..Y] IS Y - X + 1. IN OTHER WORDS
 									|STRING[N-K+1..N]| = K
 					
-					WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIC PREFIX.
+					WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIX PREFIX.
 					
 					NOTE THAT IF FOR SUBSTRING STRING[A..B], 
 							|SUFFIX_PREFIX{2}(STRING[A..B])| = K, 
 					THEN FOR SUBSTRING STRING[A..B+1] 
 							|SUFFIX_PREFIX{2}(STRING[A..B+1])| <= K + 1
-					BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD START AT (A-L) FOR L > 0, MAKING IT A 
+					BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD END AT (A + K + L) FOR L > 0, MAKING IT A 
 					CONTRADITCTION BECUASE THEN K WOULD NOT HAVE BEEN THE LENGTH OF THE SECOND LARGEST 
 					SUFFIX PREFIX OF STRING[A..B].
 
@@ -1729,30 +1842,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 			size_t * tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = NULL;
 			bool tIsToFree = false;
 			
-			if(pLength + 1 > 80)
+			if(pSize + 1 > 80)
 			{
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-						calloc(1, sizeof(size_t) * (pLength + 1));
+						calloc(1, sizeof(size_t) * (pSize + 1));
 				tIsToFree = true;
 			}
 			else
 			{
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-						CRX__ALLOCA(sizeof(size_t) * (pLength + 1));
+						CRX__ALLOCA(sizeof(size_t) * (pSize + 1));
 			}
 			
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[0] = 0;
-			CRX_FOR(size_t tI = 1, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 1, tI < pSize, tI++)
 			{        
 				size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI - 1];
 
 				//IF SECOND LARGEST SUFFIX PREFIX DOES NOT HELP, WE SEEK OUT THE THIRD LARGEST
 				//		SUFFIX PREFIX WHICH HAPPENS TO BE THE SECOND LARGEST SUFFIX PREFIX OF THE
 				//		SECOND LARGEST SUFFIX PREFIX. AND SO FORTH.
-				while((tJ != 0) && (*(pDelimiter + tI) != *(pDelimiter + tJ)))
+				while((tJ != 0) && (*(pChars__delimiter + tI) != *(pChars__delimiter + tJ)))
 					{tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tJ - 1];}
 
-				if(*(pDelimiter + tI) == *(pDelimiter + tJ))
+				if(*(pChars__delimiter + tI) == *(pChars__delimiter + tJ))
 					{tJ += 1;}
 
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI] = tJ;
@@ -1766,7 +1879,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				CRX_FOR(size_t tI = 0, tI < tLength, tI++)
 				{
 					while((tCurrentIndexInDelimiter != 0) && 
-							(*(tChars + tI) != *(pDelimiter + tCurrentIndexInDelimiter)))
+							(*(tChars + tI) != *(pChars__delimiter + tCurrentIndexInDelimiter)))
 					{
 						//SEE * ABOVE.
 						tCurrentIndexInDelimiter = 
@@ -1774,23 +1887,23 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 								tCurrentIndexInDelimiter - 1];
 					}
 					
-					if(*(tChars + tI) == *(pDelimiter + tCurrentIndexInDelimiter))
+					if(*(tChars + tI) == *(pChars__delimiter + tCurrentIndexInDelimiter))
 						{tCurrentIndexInDelimiter += 1;}
 
 					/*
 						AT THIS POINT, THE FOLLOWING MUST ALWAYS HOLD TRUE
 								tChars[tI + 1 - tCurrentIndexInDelimiter:tI + 1] == 
-										pDelimiter[0:tCurrentIndexInDelimiter]
-						IN OTHER WORDS, THE WINDOW, pDelimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
+										pChars__delimiter[0:tCurrentIndexInDelimiter]
+						IN OTHER WORDS, THE WINDOW, pChars__delimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
 						ALWAYS EQUAL TO THE OVERLAP EVEN AFTER SHIFTING.
 					*/
 
-					if(tCurrentIndexInDelimiter == pLength)
+					if(tCurrentIndexInDelimiter == pSize)
 					{
-						if(crx_c_arrays_size_push2(pReturn, tI + 1 - pLength))
+						if(crx_c_arrays_size_push2(pReturn, tI + 1 - pSize))
 						{
 							if(pIsToAllowOverlap)
-								{tI = tI + 1 - pLength;}
+								{tI = tI + 1 - pSize;}
 
 							tCurrentIndexInDelimiter = 0;
 						}
@@ -1810,16 +1923,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				//		AS SLOW	FOR RANDOM INPUT, AND MORE SLOW FOR HIGHLY PATTERNED INTPUT UP TO THREE 
 				//		TIMES AS SLOW
 				uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
-				char tLastCharacter = *(pDelimiter + pLength - 1);
+				char tLastCharacter = *(pChars__delimiter + pSize - 1);
 				
 				CRX_FOR(size_t tI = 0, tI < 256, tI++)
-					{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+					{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 				CRX_ENDFOR
 
-				CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+				CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 				{
-					if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > (pLength - tI - 1))
-						{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = pLength - tI - 1;}
+					if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > (pSize - tI - 1))
+						{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = pSize - tI - 1;}
 				}
 				CRX_ENDFOR
 				
@@ -1827,13 +1940,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				{
 					if(tCurrentIndexInDelimiter == 0)
 					{
-						while((tI <= tLength - pLength) && (*(tChars + tI + pLength - 1) != tLastCharacter))
-							{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)tChars) + tI + pLength - 1)];}
+						while((tI <= tLength - pSize) && (*(tChars + tI + pSize - 1) != tLastCharacter))
+							{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)tChars) + tI + pSize - 1)];}
 					}
 					else
 					{
 						while((tCurrentIndexInDelimiter != 0) && 
-								(*(tChars + tI) != *(pDelimiter + tCurrentIndexInDelimiter)))
+								(*(tChars + tI) != *(pChars__delimiter + tCurrentIndexInDelimiter)))
 						{
 							//SEE * ABOVE.
 							tCurrentIndexInDelimiter = 
@@ -1843,16 +1956,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 					}
 
 
-					if(*(tChars + tI) == *(pDelimiter + tCurrentIndexInDelimiter))
+					if(*(tChars + tI) == *(pChars__delimiter + tCurrentIndexInDelimiter))
 						{tCurrentIndexInDelimiter += 1;}
 
 					/*SEE ABOVE*/
-					if(tCurrentIndexInDelimiter == pLength)
+					if(tCurrentIndexInDelimiter == pSize)
 					{
-						if(crx_c_arrays_size_push2(pReturn, tI + 1 - pLength))
+						if(crx_c_arrays_size_push2(pReturn, tI + 1 - pSize))
 						{
 							if(pIsToAllowOverlap)
-								{tI = tI + 1 - pLength;}
+								{tI = tI + 1 - pSize;}
 
 							tCurrentIndexInDelimiter = 0;
 						}
@@ -1876,41 +1989,41 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 		{
 			//OLD NOTE: WHEN THE CHARACTER SET IS VERY SMALL, THIS IS THE SLOWEST
 			unsigned char const * tChar = tChars;
-			unsigned char const * tEndChar = tChars + (tLength - pLength) + 1;
-			unsigned char tLastCharacter = *(pDelimiter + pLength - 1);
+			unsigned char const * tEndChar = tChars + (tLength - pSize) + 1;
+			unsigned char tLastCharacter = *(pChars__delimiter + pSize - 1);
 			uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
 
 			CRX_FOR(size_t tI = 0, tI < 256, tI++)
-				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+				{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 			CRX_ENDFOR
 			
-			CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 			{
-				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > (pLength - tI - 1))
-					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = pLength - tI - 1;}
+				if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > (pSize - tI - 1))
+					{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = pSize - tI - 1;}
 			}
 			CRX_ENDFOR
 
 			while(tChar < tEndChar)
 			{
-				tChar = memchr(tChar, *pDelimiter, tEndChar - tChar);
+				tChar = memchr(tChar, *pChars__delimiter, tEndChar - tChar);
 
 				if(tChar != NULL)
 				{
-					while((tChar < tEndChar) && (*(tChar + pLength - 1) != tLastCharacter))
+					while((tChar < tEndChar) && (*(tChar + pSize - 1) != tLastCharacter))
 					{
 						tChar = tChar + 
-								tReverseIndexOfCharacterLastOccurance[*(tChar + pLength - 1)];
+								tReverseIndexOfCharacterLastOccurance[*(tChar + pSize - 1)];
 					}
 
 					if(tChar < tEndChar)
 					{
-						if(memcmp(tChar, pDelimiter, pLength) == 0)
+						if(memcmp(tChar, pChars__delimiter, pSize) == 0)
 						{
 							if(crx_c_arrays_size_push2(pReturn, ((char const *)tChar) - tChars))
 							{
 								if(!pIsToAllowOverlap)
-									{tChar = tChar + pLength;}
+									{tChar = tChar + pSize;}
 								else
 									{tChar++;}
 							}
@@ -1934,13 +2047,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 		{
 			//THIS DID NOT PROVE USEFUL AGAINST ALGORITHM 1, EVEN IF DELIMITER IS VERY
 			//		SHORT SUCH AS 1 CHARACTER
-			CRX_FOR(size_t tI = 0, tI <= tLength - pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI <= tLength - pSize, tI++)
 			{
 				bool tIsFound = true;
 
-				CRX_FOR(size_t tI2 = 0, tI2 < pLength, tI2++)
+				CRX_FOR(size_t tI2 = 0, tI2 < pSize, tI2++)
 				{
-					if(*(tChars + tI + tI2) != *(pDelimiter + tI2))
+					if(*(tChars + tI + tI2) != *(pChars__delimiter + tI2))
 					{
 						tIsFound = false;
 						break;
@@ -1953,7 +2066,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 					if(crx_c_arrays_size_push2(pReturn, tI))
 					{
 						if(!pIsToAllowOverlap)
-							{tI = tI + pLength - 1;}
+							{tI = tI + pSize - 1;}
 					}
 					else
 					{
@@ -1967,8 +2080,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 		else if(tAlgorithm == 7)
 		{
 			/*
-			TWO WAY SEARCH ALGORITHM. SEE PAPER. THE LETTERS IN COMMENT IS TO HELP COMPARE CODE
-			TO ALOGIRHTMS IN THE PAPER. 
+			TWO WAY SEARCH ALGORITHM. SEE PAPER "CP-1991-jacm". THE LETTERS IN COMMENT IS TO HELP
+			COMPARE CODE TO ALOGIRHTMS IN THE PAPER. 
 			*/
 			size_t tCriticalPosition = 0; 	//ONE BASED INDEX
 			size_t tI = 0; 					//ONE BASED INDEX
@@ -1983,11 +2096,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 			//tI2  //j
 			//tOffset //k
 			//tDeltaTi //p
-			//pLength //n
-			while(tI2 + tOffset <= pLength)
+			//pSize //n
+			while(tI2 + tOffset <= pSize)
 			{
-				char tChar = *(pDelimiter + tI + tOffset - 1);
-				char tChar2 = *(pDelimiter + tI2 + tOffset - 1);
+				char tChar = *(pChars__delimiter + tI + tOffset - 1);
+				char tChar2 = *(pChars__delimiter + tI2 + tOffset - 1);
 
 				if(tChar > tChar2)
 				{
@@ -2024,12 +2137,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 			tI2 = 1;  //j
 			tOffset = 1;  //k
 			tDeltaTi = 1; //p
-			//pLength //n
+			//pSize //n
 
-			while(tI2 + tOffset <= pLength)
+			while(tI2 + tOffset <= pSize)
 			{
-				char tChar = *(pDelimiter + tI + tOffset - 1);
-				char tChar2 = *(pDelimiter + tI2 + tOffset - 1);
+				char tChar = *(pChars__delimiter + tI + tOffset - 1);
+				char tChar2 = *(pChars__delimiter + tI2 + tOffset - 1);
 
 				if(tChar < tChar2)
 				{
@@ -2067,8 +2180,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				tPotentialPeriod = tDeltaTi; 
 			}
 			
-			if((tCriticalPosition < (pLength >> 1)) && 
-					(memcmp(pDelimiter, pDelimiter + tPotentialPeriod, tCriticalPosition) == 0))
+			if((tCriticalPosition < (pSize >> 1)) && 
+					(memcmp(pChars__delimiter, pChars__delimiter + tPotentialPeriod, tCriticalPosition) == 0))
 			{
 				//BASED ON POSITIONS() FUNCTION IN THE PAPER.
 				size_t tPeriod = tPotentialPeriod; //p
@@ -2078,20 +2191,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				//tI //i
 				//tCriticalPosition //l
 				//tLength //|t|
-				//pLength //|x|
+				//pSize //|x|
 				
-				while(tI2 + pLength <= tLength)
+				while(tI2 + pSize <= tLength)
 				{
-					//assert(pDelimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
+					//assert(pChars__delimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
 					//		tChars[tI2 + 1 : tI2 + tUpperBoundOfAlreadyVerifiedValuesOnRight]) //right side is exclusive.
 
 					tI = ((tCriticalPosition < tUpperBoundOfAlreadyVerifiedValuesOnRight) ? 
 							tUpperBoundOfAlreadyVerifiedValuesOnRight : tCriticalPosition) + 1;
 					
-					while((tI <= pLength) && (*(pDelimiter + tI - 1) == *(tChars + tI2 + tI - 1)))
+					while((tI <= pSize) && (*(pChars__delimiter + tI - 1) == *(tChars + tI2 + tI - 1)))
 						{tI++;}
 
-					if(tI <= pLength)
+					if(tI <= pSize)
 					{
 						if((tUpperBoundOfAlreadyVerifiedValuesOnRight > tPeriod) &&
 								((tUpperBoundOfAlreadyVerifiedValuesOnRight - tPeriod + 1) > 
@@ -2108,7 +2221,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 
 						//NO NEED TO SEARCH BEFORE tUpperBoundOfAlreadyVerifiedValuesOnRight. SEE ASSERT ABOVE
 						while((tJ > tUpperBoundOfAlreadyVerifiedValuesOnRight) && 
-								(*(pDelimiter + tJ - 1) == *(tChars + tI2 + tJ - 1)))
+								(*(pChars__delimiter + tJ - 1) == *(tChars + tI2 + tJ - 1)))
 							{tJ = tJ - 1;}
 
 						if(tJ <= tUpperBoundOfAlreadyVerifiedValuesOnRight)
@@ -2117,13 +2230,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 							{
 								if(!pIsToAllowOverlap)
 								{
-									tI2 = tI2 + pLength;
+									tI2 = tI2 + pSize;
 									tUpperBoundOfAlreadyVerifiedValuesOnRight = 0;
 								}
 								else
 								{
 									tI2 = tI2 + tPeriod;
-									tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+									tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 								}
 							}
 							else
@@ -2135,7 +2248,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 						else
 						{
 							tI2 = tI2 + tPeriod;
-							tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+							tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 						}
 					}
 				}
@@ -2147,29 +2260,29 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 				SAME AS ABOVE, BUT THE VALUE OF tUpperBoundOfAlreadyVerifiedValuesOnRight IS SUCH AS ALL CONDITIONS
 				AROUND IT EVALUATE TO FALSE, AND THE VALUE IS EFFECTIVELY 0.
 				*/
-				size_t tPeriodLowerBound = ((tCriticalPosition >= pLength - tCriticalPosition) ?
-						tCriticalPosition : pLength - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
+				size_t tPeriodLowerBound = ((tCriticalPosition >= pSize - tCriticalPosition) ?
+						tCriticalPosition : pSize - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
 				
 				tI2 = 0;//pos
 				//tI //i
 				//tCriticalPosition //l
 				//tLength //|t|
-				//pLength //|x|
+				//pSize //|x|
 
-				while(tI2 + pLength <= tLength)
+				while(tI2 + pSize <= tLength)
 				{
 					tI = tCriticalPosition + 1;
 					
-					while((tI <= pLength) && (*(pDelimiter + tI - 1) == *(tChars + tI2 + tI - 1)))
+					while((tI <= pSize) && (*(pChars__delimiter + tI - 1) == *(tChars + tI2 + tI - 1)))
 						{tI++;}
 
-					if(tI <= pLength)
+					if(tI <= pSize)
 						{tI2 = tI2 + tI - tCriticalPosition;}
 					else
 					{
 						size_t tJ = tCriticalPosition; //ONE BASED INDEX
 
-						while((tJ > 0) && (*(pDelimiter + tJ - 1) == *(tChars + tI2 + tJ - 1)))
+						while((tJ > 0) && (*(pChars__delimiter + tJ - 1) == *(tChars + tI2 + tJ - 1)))
 							{tJ = tJ - 1;}
 
 						if(tJ == 0)
@@ -2177,7 +2290,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 							if(crx_c_arrays_size_push2(pReturn, tI2))
 							{
 								if(!pIsToAllowOverlap)
-									{tI2 = tI2 + pLength;}
+									{tI2 = tI2 + pSize;}
 								else
 									{tI2 = tI2 + tPeriodLowerBound;}
 							}
@@ -2199,29 +2312,48 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllOccurancesOf3(
 
 	return vIsNoError;
 }
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf4(
+		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pStartIndex, Crx_C_String_Sub const * pSub__delimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(crx_c_string_sub_getLength(pSub__delimiter) == 0)
+	{
+		crx_c_arrays_size_empty(pReturn);
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurancesOf(
+		return true;
+	}
+	else
+	{
+		return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis, pReturn,
+				pStartIndex, crx_c_string_sub_getCharsPointer(pSub__delimiter),
+				crx_c_string_sub_getLength(pSub__delimiter),
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccurancesOf(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pInclusiveEndIndex, Crx_C_String const * pString__delimiter,
+		size_t pInclusiveEndIndex, Crx_C_String const * pDelimiter,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
-	return crx_c_string_getIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
-			pInclusiveEndIndex, crx_c_string_constantGetElementsPointer(pString__delimiter),
-			crx_c_string_getLength(pString__delimiter),
+	return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
+			pInclusiveEndIndex, crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurancesOf2(
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccurancesOf2(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pInclusiveEndIndex, char const * pString__delimiter,
+		size_t pInclusiveEndIndex, char const * pDelimiter,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
-	return crx_c_string_getIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
-			pInclusiveEndIndex, pString__delimiter, strlen(pString__delimiter),
+	return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
+			pInclusiveEndIndex, pDelimiter, strlen(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurancesOf3(
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccurancesOf3(
 		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pInclusiveEndIndex, char const * pDelimiter, size_t pLength,
+		size_t pInclusiveEndIndex, char const * pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	/*
@@ -2240,36 +2372,36 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 
 	crx_c_arrays_size_empty(pReturn);
 
-	if(!((pInclusiveEndIndex < pLength - 1) || 
-			(pInclusiveEndIndex >= vFullLength) || (pLength == 0)))
+	if(!((pInclusiveEndIndex < pSize - 1) || 
+			(pInclusiveEndIndex >= vFullLength) || (pSize == 0)))
 	{
 
 		uint32_t tAlgorithm = 0;
 		size_t tLength = pInclusiveEndIndex + 1;
 		char const * tChars = crx_c_string_constantGetElementsPointer(pThis);
 
-		/*if(pLength < 5)
+		/*if(pSize < 5)
 			{tAlgorithm = 1;}
 		else
 		{
 			double tSizeOfCharacterSet = ((double)pSizeOfCharacterSet);
-			double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pLength)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
+			double s2 = (tSizeOfCharacterSet * (1.0 - pow(1.0 - (1.0/tSizeOfCharacterSet), pSize)));//EXPECTED DISTINCT CHARACTERS IN DELIMITER
 			double q = 0.4;
 			double e = 1.0 / (((1.0 - q) / tSizeOfCharacterSet) + (q / s2));
 			
-			/*if(e > pLength)
-				//{e = pLength;}* /
+			/*if(e > pSize)
+				//{e = pSize;}* /
 			
-			/*if((pLength < 4) || (pLength * (tLength - pLength) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
+			/*if((pSize < 4) || (pSize * (tLength - pSize) <= 80000 * (1.0 - (1.0/vSizeOfCharacterSet))))* /
 			//if(e <= 7)
 			//	{tAlgorithm = 7/*6* /;}
 			if(e <= 22)
 				{tAlgorithm = 4;}
 			else if(e <= 40)
 				{tAlgorithm = 1;}
-			else if(pLength < 7340032)
+			else if(pSize < 7340032)
 			{
-				/*if(pLength < 16)
+				/*if(pSize < 16)
 					{tAlgorithm = 2;}			
 				else
 					{tAlgorithm = 3;}* /
@@ -2279,14 +2411,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 			else
 				{tAlgorithm = 4;}
 		}
-		if(pLength < 5)
+		if(pSize < 5)
 			{tAlgorithm = 1;}
 		else
 		{
 			tAlgorithm = 4;
 		}*/
 
-		if(pLength < 7340032)
+		if(pSize < 7340032)
 			{tAlgorithm = 3;}
 		else
 			{tAlgorithm = 8;}
@@ -2304,13 +2436,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 					NOTE THAT THE LENGTH OF STRING[X..Y] IS Y - X + 1. IN OTHER WORDS
 									|STRING[N-K+1..N]| = K
 					
-					WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIC PREFIX.
+					WE ARE FOR THE ALGOIRTHM ONLY INTERESTED IN THE SECOND LARGEST SUFFIX PREFIX.
 					
 					NOTE THAT IF FOR SUBSTRING STRING[A..B], 
 							|SUFFIX_PREFIX{2}(STRING[A..B])| = K, 
 					THEN FOR SUBSTRING STRING[A..B+1] 
 							|SUFFIX_PREFIX{2}(STRING[A..B+1])| <= K + 1
-					BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD START AT (A-L) FOR L > 0, MAKING IT A 
+					BECAUSE OTHERWISE THIS SUFFIX PREFIX WOULD END AT (A + K + L) FOR L > 0, MAKING IT A 
 					CONTRADITCTION BECUASE THEN K WOULD NOT HAVE BEEN THE LENGTH OF THE SECOND LARGEST 
 					SUFFIX PREFIX OF STRING[A..B].
 
@@ -2337,30 +2469,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 			size_t * tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = NULL;
 			bool tIsToFree = false;
 			
-			if(pLength + 1 > 80)
+			if(pSize + 1 > 80)
 			{
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-						calloc(1, sizeof(size_t) * (pLength + 1));
+						calloc(1, sizeof(size_t) * (pSize + 1));
 				tIsToFree = true;
 			}
 			else
 			{
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex = 
-						CRX__ALLOCA(sizeof(size_t) * (pLength + 1));
+						CRX__ALLOCA(sizeof(size_t) * (pSize + 1));
 			}
 			
 			tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[0] = 0;
-			CRX_FOR(size_t tI = 1, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 1, tI < pSize, tI++)
 			{        
-				size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[pLength - 1 - (tI - 1)];
+				size_t tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[pSize - 1 - (tI - 1)];
 
 				//IF SECOND LARGEST SUFFIX PREFIX DOES NOT HELP, WE SEEK OUT THE THIRD LARGEST
 				//		SUFFIX PREFIX WHICH HAPPENS TO BE THE SECOND LARGEST SUFFIX PREFIX OF THE
 				//		SECOND LARGEST SUFFIX PREFIX. AND SO FORTH.
-				while((tJ != 0) && (*(pDelimiter + pLength - 1 - tI) != *(pDelimiter + pLength - 1 - tJ)))
+				while((tJ != 0) && (*(pChars__delimiter + pSize - 1 - tI) != *(pChars__delimiter + pSize - 1 - tJ)))
 					{tJ = tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tJ - 1];}
 
-				if(*(pDelimiter + pLength - 1 - tI) == *(pDelimiter + pLength - 1 - tJ))
+				if(*(pChars__delimiter + pSize - 1 - tI) == *(pChars__delimiter + pSize - 1 - tJ))
 					{tJ += 1;}
 
 				tSecondLargestSuffixPrefixForSubDelimiterUpToIndex[tI] = tJ;
@@ -2374,7 +2506,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				CRX_FOR(size_t tI = 0, tI < tLength, tI++)
 				{
 					while((tCurrentIndexInDelimiter != 0) && 
-							(*(tChars + tLength - 1 - tI) != *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter)))
+							(*(tChars + tLength - 1 - tI) != *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter)))
 					{
 						//SEE * ABOVE.
 						tCurrentIndexInDelimiter = 
@@ -2382,23 +2514,23 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 								tCurrentIndexInDelimiter - 1];
 					}
 					
-					if(*(tChars + tLength - 1 - tI) == *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter))
+					if(*(tChars + tLength - 1 - tI) == *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter))
 						{tCurrentIndexInDelimiter += 1;}
 
 					/*
 						AT THIS POINT, THE FOLLOWING MUST ALWAYS HOLD TRUE
 								tChars[tI + 1 - tCurrentIndexInDelimiter:tI + 1] == 
-										pDelimiter[0:tCurrentIndexInDelimiter]
-						IN OTHER WORDS, THE WINDOW, pDelimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
+										pChars__delimiter[0:tCurrentIndexInDelimiter]
+						IN OTHER WORDS, THE WINDOW, pChars__delimiter[0:tCurrentIndexInDelimiter], IS ALWAYS VALID, 
 						ALWAYS EQUAL TO THE OVERLAP EVEN AFTER SHIFTING.
 					*/
 
-					if(tCurrentIndexInDelimiter == pLength)
+					if(tCurrentIndexInDelimiter == pSize)
 					{
-						if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI))/*== tLength - 1 - (tI + 1 - pLength) - (pLength - 1)*/
+						if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI))/*== tLength - 1 - (tI + 1 - pSize) - (pSize - 1)*/
 						{
 							if(pIsToAllowOverlap)
-								{tI = tI + 1 - pLength;}
+								{tI = tI + 1 - pSize;}
 							
 							tCurrentIndexInDelimiter = 0;
 						}
@@ -2418,16 +2550,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				//		AS SLOW	FOR RANDOM INPUT, AND MORE SLOW FOR HIGHLY PATTERNED INTPUT UP TO THREE 
 				//		TIMES AS SLOW
 				uint32_t tReverseIndexOfCharacterLastOccurance[256] /*= ?*/;
-				char tLastCharacter = *pDelimiter;
+				char tLastCharacter = *pChars__delimiter;
 				
 				CRX_FOR(size_t tI = 0, tI < 256, tI++)
-					{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pLength;}
+					{tReverseIndexOfCharacterLastOccurance[tI] = (uint32_t)pSize;}
 				CRX_ENDFOR
 
-				CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+				CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 				{
-					if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter) + pLength - 1 - tI)] > (pLength - tI - 1))
-						{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pDelimiter) + pLength - 1 - tI)] = pLength - tI - 1;}
+					if(tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter) + pSize - 1 - tI)] > (pSize - tI - 1))
+						{tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)pChars__delimiter) + pSize - 1 - tI)] = pSize - tI - 1;}
 				}
 				CRX_ENDFOR
 				
@@ -2435,13 +2567,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				{
 					if(tCurrentIndexInDelimiter == 0)
 					{
-						while((tI <= tLength - pLength) && (*(tChars + tLength - 1 - (tI + pLength - 1)) != tLastCharacter))
-							{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)tChars) + tLength - 1 - (tI + pLength - 1))];}
+						while((tI <= tLength - pSize) && (*(tChars + tLength - 1 - (tI + pSize - 1)) != tLastCharacter))
+							{tI = tI + tReverseIndexOfCharacterLastOccurance[*(((unsigned char const *)tChars) + tLength - 1 - (tI + pSize - 1))];}
 					}
 					else
 					{
 						while((tCurrentIndexInDelimiter != 0) && 
-								(*(tChars + tLength - 1 - tI) != *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter)))
+								(*(tChars + tLength - 1 - tI) != *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter)))
 						{
 							//SEE * ABOVE.
 							tCurrentIndexInDelimiter = 
@@ -2451,16 +2583,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 					}
 
 
-					if(*(tChars + tLength - 1 - tI) == *(pDelimiter + pLength - 1 - tCurrentIndexInDelimiter))
+					if(*(tChars + tLength - 1 - tI) == *(pChars__delimiter + pSize - 1 - tCurrentIndexInDelimiter))
 						{tCurrentIndexInDelimiter += 1;}
 
 					/*SEE ABOVE*/
-					if(tCurrentIndexInDelimiter == pLength)
+					if(tCurrentIndexInDelimiter == pSize)
 					{
-						if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI))/*== tLength - 1 - (tI + 1 - pLength) - (pLength - 1)*/
+						if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI))/*== tLength - 1 - (tI + 1 - pSize) - (pSize - 1)*/
 						{
 							if(pIsToAllowOverlap)
-								{tI = tI + 1 - pLength;}
+								{tI = tI + 1 - pSize;}
 							
 							tCurrentIndexInDelimiter = 0;
 						}
@@ -2482,13 +2614,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 		}
 		else if(tAlgorithm == 5)
 		{
-			CRX_FOR(size_t tI = 0, tI <= tLength - pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI <= tLength - pSize, tI++)
 			{
 				bool tIsFound = true;
 
-				CRX_FOR(size_t tI2 = 0, tI2 < pLength, tI2++)
+				CRX_FOR(size_t tI2 = 0, tI2 < pSize, tI2++)
 				{
-					if(*(tChars + tLength - 1 - tI - tI2) != *(pDelimiter + pLength - 1 - tI2))
+					if(*(tChars + tLength - 1 - tI - tI2) != *(pChars__delimiter + pSize - 1 - tI2))
 					{
 						tIsFound = false;
 						break;
@@ -2498,10 +2630,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 						
 				if(tIsFound)
 				{
-					if(crx_c_arrays_size_push2(pReturn, tLength - tI - pLength))/*== tLength - 1 - tI - (pLength - 1)*/
+					if(crx_c_arrays_size_push2(pReturn, tLength - tI - pSize))/*== tLength - 1 - tI - (pSize - 1)*/
 					{
 						if(!pIsToAllowOverlap)
-							{tI = tI + pLength - 1;}
+							{tI = tI + pSize - 1;}
 					}
 					else
 					{
@@ -2515,8 +2647,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 		else if(tAlgorithm == 7)
 		{
 			/*
-			TWO WAY SEARCH ALGORITHM. SEE PAPER. THE LETTERS IN COMMENT IS TO HELP COMPARE CODE
-			TO ALOGIRHTMS IN THE PAPER. 
+			TWO WAY SEARCH ALGORITHM. SEE PAPER "CP-1991-jacm". THE LETTERS IN COMMENT IS TO HELP
+			COMPARE CODE TO ALOGIRHTMS IN THE PAPER. 
 			*/
 			size_t tCriticalPosition = 0; 	//ONE BASED INDEX
 			size_t tI = 0; 					//ONE BASED INDEX
@@ -2531,11 +2663,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 			//tI2  //j
 			//tOffset //k
 			//tDeltaTi //p
-			//pLength //n
-			while(tI2 + tOffset <= pLength)
+			//pSize //n
+			while(tI2 + tOffset <= pSize)
 			{
-				char tChar = *(pDelimiter + pLength - 1 - (tI + tOffset - 1));
-				char tChar2 = *(pDelimiter + pLength - 1 - (tI2 + tOffset - 1));
+				char tChar = *(pChars__delimiter + pSize - 1 - (tI + tOffset - 1));
+				char tChar2 = *(pChars__delimiter + pSize - 1 - (tI2 + tOffset - 1));
 
 				if(tChar > tChar2)
 				{
@@ -2572,12 +2704,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 			tI2 = 1;  //j
 			tOffset = 1;  //k
 			tDeltaTi = 1; //p
-			//pLength //n
+			//pSize //n
 
-			while(tI2 + tOffset <= pLength)
+			while(tI2 + tOffset <= pSize)
 			{
-				char tChar = *(pDelimiter + pLength - 1 - (tI + tOffset - 1));
-				char tChar2 = *(pDelimiter + pLength - 1 - (tI2 + tOffset - 1));
+				char tChar = *(pChars__delimiter + pSize - 1 - (tI + tOffset - 1));
+				char tChar2 = *(pChars__delimiter + pSize - 1 - (tI2 + tOffset - 1));
 
 				if(tChar < tChar2)
 				{
@@ -2615,8 +2747,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				tPotentialPeriod = tDeltaTi; 
 			}
 			
-			if((tCriticalPosition < (pLength >> 1)) && 
-					(memcmp(pDelimiter + pLength - 1 - (tCriticalPosition - 1), pDelimiter + pLength - 1 - tPotentialPeriod - (tCriticalPosition - 1), tCriticalPosition) == 0))
+			if((tCriticalPosition < (pSize >> 1)) && 
+					(memcmp(pChars__delimiter + pSize - 1 - (tCriticalPosition - 1), pChars__delimiter + pSize - 1 - tPotentialPeriod - (tCriticalPosition - 1), tCriticalPosition) == 0))
 			{
 				//BASED ON POSITIONS() FUNCTION IN THE PAPER.
 				size_t tPeriod = tPotentialPeriod; //p
@@ -2626,20 +2758,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				//tI //i
 				//tCriticalPosition //l
 				//tLength //|t|
-				//pLength //|x|
+				//pSize //|x|
 				
-				while(tI2 + pLength <= tLength)
+				while(tI2 + pSize <= tLength)
 				{
-					//assert(pDelimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
+					//assert(pChars__delimiter[1 : tUpperBoundOfAlreadyVerifiedValuesOnRight] = 
 					//		tChars[tI2 + 1 : tI2 + tUpperBoundOfAlreadyVerifiedValuesOnRight]) //right side is exclusive.
 
 					tI = ((tCriticalPosition < tUpperBoundOfAlreadyVerifiedValuesOnRight) ? 
 							tUpperBoundOfAlreadyVerifiedValuesOnRight : tCriticalPosition) + 1;
 					
-					while((tI <= pLength) && (*(pDelimiter + pLength - 1 - (tI - 1)) == *(tChars + tLength - 1 - (tI2 + tI - 1))))
+					while((tI <= pSize) && (*(pChars__delimiter + pSize - 1 - (tI - 1)) == *(tChars + tLength - 1 - (tI2 + tI - 1))))
 						{tI++;}
 
-					if(tI <= pLength)
+					if(tI <= pSize)
 					{
 						if((tUpperBoundOfAlreadyVerifiedValuesOnRight > tPeriod) &&
 								((tUpperBoundOfAlreadyVerifiedValuesOnRight - tPeriod + 1) > 
@@ -2656,22 +2788,22 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 
 						//NO NEED TO SEARCH BEFORE tUpperBoundOfAlreadyVerifiedValuesOnRight. SEE ASSERT ABOVE
 						while((tJ > tUpperBoundOfAlreadyVerifiedValuesOnRight) && 
-								(*(pDelimiter + pLength - 1 - (tJ - 1)) == *(tChars + tLength - 1 - (tI2 + tJ - 1))))
+								(*(pChars__delimiter + pSize - 1 - (tJ - 1)) == *(tChars + tLength - 1 - (tI2 + tJ - 1))))
 							{tJ = tJ - 1;}
 
 						if(tJ <= tUpperBoundOfAlreadyVerifiedValuesOnRight)
 						{
-							if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI2 - (pLength - 1)))
+							if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI2 - (pSize - 1)))
 							{
 								if(!pIsToAllowOverlap)
 								{
-									tI2 = tI2 + pLength;
+									tI2 = tI2 + pSize;
 									tUpperBoundOfAlreadyVerifiedValuesOnRight = 0;
 								}
 								else
 								{
 									tI2 = tI2 + tPeriod;
-									tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+									tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 								}
 							}
 							else
@@ -2683,7 +2815,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 						else
 						{
 							tI2 = tI2 + tPeriod;
-							tUpperBoundOfAlreadyVerifiedValuesOnRight = pLength - tPeriod;
+							tUpperBoundOfAlreadyVerifiedValuesOnRight = pSize - tPeriod;
 						}
 					}
 				}
@@ -2695,37 +2827,37 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 				SAME AS ABOVE, BUT THE VALUE OF tUpperBoundOfAlreadyVerifiedValuesOnRight IS SUCH AS ALL CONDITIONS
 				AROUND IT EVALUATE TO FALSE, AND THE VALUE IS EFFECTIVELY 0.
 				*/
-				size_t tPeriodLowerBound = ((tCriticalPosition >= pLength - tCriticalPosition) ?
-						tCriticalPosition : pLength - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
+				size_t tPeriodLowerBound = ((tCriticalPosition >= pSize - tCriticalPosition) ?
+						tCriticalPosition : pSize - tCriticalPosition) + 1; //p OR q IN THE FINAL FORM
 				
 				tI2 = 0;//pos
 				//tI //i
 				//tCriticalPosition //l
 				//tLength //|t|
-				//pLength //|x|
+				//pSize //|x|
 
-				while(tI2 + pLength <= tLength)
+				while(tI2 + pSize <= tLength)
 				{
 					tI = tCriticalPosition + 1;
 					
-					while((tI <= pLength) && (*(pDelimiter + pLength - 1 - (tI - 1)) == *(tChars + tLength - 1 - (tI2 + tI - 1))))
+					while((tI <= pSize) && (*(pChars__delimiter + pSize - 1 - (tI - 1)) == *(tChars + tLength - 1 - (tI2 + tI - 1))))
 						{tI++;}
 
-					if(tI <= pLength)
+					if(tI <= pSize)
 						{tI2 = tI2 + tI - tCriticalPosition;}
 					else
 					{
 						size_t tJ = tCriticalPosition; //ONE BASED INDEX
 
-						while((tJ > 0) && (*(pDelimiter + pLength - 1 - (tJ - 1)) == *(tChars + tLength - 1 - (tI2 + tJ - 1))))
+						while((tJ > 0) && (*(pChars__delimiter + pSize - 1 - (tJ - 1)) == *(tChars + tLength - 1 - (tI2 + tJ - 1))))
 							{tJ = tJ - 1;}
 
 						if(tJ == 0)
 						{
-							if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI2 - (pLength - 1)))
+							if(crx_c_arrays_size_push2(pReturn, tLength - 1 - tI2 - (pSize - 1)))
 							{
 								if(!pIsToAllowOverlap)
-									{tI2 = tI2 + pLength;}
+									{tI2 = tI2 + pSize;}
 								else
 									{tI2 = tI2 + tPeriodLowerBound;}
 							}
@@ -2744,20 +2876,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 		else if(tAlgorithm == 8)
 		{
 			unsigned char const * tChars__2 = tChars;
-			size_t tEndIndex = pLength - 1; //One based index
-			unsigned char tFirstCharacter = *pDelimiter;
-			unsigned char tLastCharacter = *(pDelimiter + pLength - 1);
+			size_t tEndIndex = pSize - 1; //One based index
+			unsigned char tFirstCharacter = *pChars__delimiter;
+			unsigned char tLastCharacter = *(pChars__delimiter + pSize - 1);
 			uint32_t tIndexOfCharacterFirstOccurance[256] /*= ?*/;
 			size_t vI = tLength; //One based index
 
 			CRX_FOR(size_t tI = 0, tI < 256, tI++)
-				{tIndexOfCharacterFirstOccurance[tI] = (uint32_t)pLength;}
+				{tIndexOfCharacterFirstOccurance[tI] = (uint32_t)pSize;}
 			CRX_ENDFOR
 			
-			CRX_FOR(size_t tI = 0, tI < pLength, tI++)
+			CRX_FOR(size_t tI = 0, tI < pSize, tI++)
 			{
-				if(tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pDelimiter)  + tI)] > tI)
-					{tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pDelimiter)  + tI)] = tI;}
+				if(tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] > tI)
+					{tIndexOfCharacterFirstOccurance[*(((unsigned char const *)pChars__delimiter)  + tI)] = tI;}
 			}
 			CRX_ENDFOR
 
@@ -2768,17 +2900,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 
 				if(vI > tEndIndex)
 				{
-					while((vI > tEndIndex) && (*(tChars__2 + vI - pLength) != tFirstCharacter))
-						{vI = vI - tIndexOfCharacterFirstOccurance[*(tChars__2 + vI - pLength)];}
+					while((vI > tEndIndex) && (*(tChars__2 + vI - pSize) != tFirstCharacter))
+						{vI = vI - tIndexOfCharacterFirstOccurance[*(tChars__2 + vI - pSize)];}
 
 					if(vI > tEndIndex)
 					{
-						if(memcmp(tChars__2 + vI - pLength, pDelimiter, pLength) == 0)
+						if(memcmp(tChars__2 + vI - pSize, pChars__delimiter, pSize) == 0)
 						{
-							if(crx_c_arrays_size_push2(pReturn, vI - pLength))
+							if(crx_c_arrays_size_push2(pReturn, vI - pSize))
 							{
 								if(!pIsToAllowOverlap)
-									{vI = vI - pLength;}
+									{vI = vI - pSize;}
 								else
 									{vI--;}
 							}
@@ -2800,10 +2932,1009 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getIndicesOfAllReverseOccurances
 
 	return vIsNoError;
 }
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccurancesOf4(
+		Crx_C_String const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pInclusiveEndIndex, Crx_C_String_Sub const * pSub__delimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(crx_c_string_sub_getLength(pSub__delimiter) == 0)
+	{
+		crx_c_arrays_size_empty(pReturn);
 
+		return true;
+	}
+	else
+	{
+		return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
+				pInclusiveEndIndex, crx_c_string_sub_getCharsPointer(pSub__delimiter),
+				crx_c_string_sub_getLength(pSub__delimiter),
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_replaceOccurancesOfChar(Crx_C_String * pThis,
+		size_t pStartingIndex, char pChar, char pReplacementChar, bool pIsToReplaceFirstOnly)
+{
+	CRX_SCOPE_META
+	if(crx_c_string_getLength(pThis) == 0)
+		{return;}
+
+	CRX_SCOPE
+	char * vCurrentChar = crx_c_string_getElementsPointer(pThis) + pStartingIndex;
+	char * vEndChar = vCurrentChar + crx_c_string_getLength(pThis);
+
+	vCurrentChar = memchr(vCurrentChar, pChar, vEndChar - vCurrentChar);
+
+	if(!pIsToReplaceFirstOnly)
+	{
+		while(vCurrentChar != NULL)
+		{
+			*vCurrentChar = pReplacementChar;
+			vCurrentChar = memchr(vCurrentChar, pChar, vEndChar - vCurrentChar);
+		}
+	}
+	else
+	{
+		if(vCurrentChar != NULL)
+			{*vCurrentChar = pReplacementChar;}
+	}
+		
+
+	CRX_SCOPE_END
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex(
+		Crx_C_String const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, Crx_C_String const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex, 
+			crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex2(
+		Crx_C_String const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex, 
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex3(
+		Crx_C_String const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	size_t vEndIndex = crx_c_string_getIndexOfFirstOccuranceOf3(pThis, *pIndex, pChars__delimiter, 
+			pSize, pSizeOfCharacterSet);
+
+	if(vEndIndex != ((size_t)(-1)))
+	{
+		crx_c_string_sub_setString2(pReturn, pThis, *pIndex, vEndIndex);
+		*pIndex = vEndIndex + pSize;
+
+		return true;
+	}
+	else
+	{
+		if(*pIndex < crx_c_string_getLength(pThis))
+		{
+			crx_c_string_sub_setString2(pReturn, pThis, *pIndex, 
+					crx_c_string_getLength(pThis));
+			*pIndex = crx_c_string_getLength(pThis);
+
+			return true;
+		}
+		else if(*pIndex == crx_c_string_getLength(pThis))
+		{
+			crx_c_string_sub_setString2(pReturn, pThis, 
+					crx_c_string_getLength(pThis), 
+					crx_c_string_getLength(pThis));
+			*pIndex = ((size_t)(-1));
+
+			return true;
+		}
+		else
+		{
+			crx_c_string_sub_unsetString(pReturn);
+			*pIndex = ((size_t)(-1));
+
+			return false;
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex4(
+		Crx_C_String const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, 
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex, 
+			crx_c_string_sub_getCharsPointer(pSub__delimiter),
+			crx_c_string_sub_getLength(pSub__delimiter), pSizeOfCharacterSet);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft(
+		Crx_C_String const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, Crx_C_String const * pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex, 
+			crx_c_string_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft2(
+		Crx_C_String const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, char const * pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex, 
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft3(
+		Crx_C_String const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	Crx_C_Arrays_Size vIndices /*= ?*/;
+	Crx_C_String_Sub vSub /*= ?*/;
+	size_t vIndex = pIndex;
+			
+	crx_c_arrays_size_construct(&vIndices, 2);
+	crx_c_string_sub_construct(&vSub);
+	
+	crx_c_string_arrays_sub_empty(pReturn);
+
+	crx_c_string_computeIndicesOfAllOccurancesOf3(pThis, &vIndices, pIndex, pChars__delimiter, 
+			pSize, false, pSizeOfCharacterSet);
+	
+	CRX_FOR(size_t tI = 0, tI < crx_c_arrays_size_getLength(&vIndices), tI++)
+	{
+		size_t tIndex = crx_c_arrays_size_copyGet(&vIndices, tI);
+
+		crx_c_string_sub_setString2(&vSub, pThis, vIndex, tIndex);
+		vIndex = tIndex + pSize;
+		
+		crx_c_string_arrays_sub_push(pReturn, &vSub);
+	}
+	CRX_ENDFOR
+
+	if(vIndex < crx_c_string_getLength(pThis))
+	{
+		crx_c_string_sub_setString2(&vSub, pThis, vIndex, crx_c_string_getLength(pThis));
+		crx_c_string_arrays_sub_push(pReturn, &vSub);
+	}
+
+	crx_c_arrays_size_destruct(&vIndices);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft4(
+		Crx_C_String const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, Crx_C_String_Sub const * pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex, 
+			crx_c_string_sub_getCharsPointer(pSub__delimiter), 
+			crx_c_string_sub_getLength(pSub__delimiter), pSizeOfCharacterSet);
+}
 
 #undef CRX__C__STRING__PRIVATE__SIZE32_MAX
 #undef CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE
+
+//---------------------------
+//CLASS: String::Sub
+//---------------------------
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_construct(Crx_C_String_Sub * pThis)
+{
+	pThis->gPrivate_string = NULL;
+	pThis->gPrivate_startIndex = ((uint32_t)(-1));
+	pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	pThis->PRIVATE__CHAR = '\0';
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_construct2(Crx_C_String_Sub * pThis,
+		Crx_C_String const * pString)
+{
+	pThis->gPrivate_string = pString;
+
+	if(pString != NULL)
+	{
+		pThis->gPrivate_startIndex = 0;
+		pThis->gPrivate_endIndex = crx_c_string_getLength(pString);
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+	pThis->PRIVATE__CHAR = '\0';
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_construct3(Crx_C_String_Sub * pThis,
+		Crx_C_String const * pString, size_t pStart, size_t pEnd)
+{
+	assert(pStart <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	pThis->gPrivate_string = pString;
+
+	if(pThis->gPrivate_string != NULL)
+	{
+		uint32_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+
+		if(pStart < tLength)
+		{
+			pThis->gPrivate_startIndex = ((uint32_t)pStart);
+			pThis->gPrivate_endIndex = tLength;
+		}
+		else
+		{
+			pThis->gPrivate_startIndex = ((uint32_t)(-1));
+			pThis->gPrivate_endIndex = ((uint32_t)(-1));
+		}
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+	pThis->PRIVATE__CHAR = '\0';
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String_Sub * crx_c_string_sub_new()
+{
+	Crx_C_String_Sub * vReturn = ((Crx_C_String_Sub *) malloc(sizeof(Crx_C_String_Sub)));
+
+	if(vReturn != NULL)
+		{crx_c_string_sub_construct(vReturn);}
+
+	return vReturn;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String_Sub * crx_c_string_sub_new2(
+		Crx_C_String const * pString)
+{
+	Crx_C_String_Sub * vReturn = ((Crx_C_String_Sub *) malloc(sizeof(Crx_C_String_Sub)));
+
+	if(vReturn != NULL)
+		{crx_c_string_sub_construct2(vReturn, pString);}
+
+	return vReturn;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String_Sub * crx_c_string_sub_new3(
+		Crx_C_String const * pString, size_t pStart, size_t pEnd)
+{
+	Crx_C_String_Sub * vReturn = ((Crx_C_String_Sub *) malloc(sizeof(Crx_C_String_Sub)));
+
+	if(vReturn != NULL)
+		{crx_c_string_sub_construct3(vReturn, pString, pStart, pEnd);}
+
+	return vReturn;
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setRange(Crx_C_String_Sub * pThis,
+		size_t pStart, size_t pEnd)
+{
+	CRX_SCOPE_META
+	assert(pStart <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+	assert(pEnd <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	if(pThis->gPrivate_string == NULL)
+		{return 0;}
+
+	CRX_SCOPE
+	size_t vLength = crx_c_string_getLength(pThis->gPrivate_string);
+
+	if((pEnd <= vLength) && (pStart <= pEnd))
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)pStart);
+		pThis->gPrivate_endIndex = ((uint32_t)pEnd);
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+	CRX_SCOPE_END
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setString(Crx_C_String_Sub * pThis,
+		Crx_C_String const * pString)
+{
+	pThis->gPrivate_string = pString;
+
+	if(pThis->gPrivate_string != NULL)
+	{
+		pThis->gPrivate_startIndex = 0;
+		pThis->gPrivate_endIndex = crx_c_string_getLength(pThis->gPrivate_string);
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setString2(Crx_C_String_Sub * pThis,
+		Crx_C_String const * pString, size_t pStart, size_t pEnd)
+{
+	assert(pStart <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+	assert(pEnd <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	pThis->gPrivate_string = pString;
+
+	if(pThis->gPrivate_string != NULL)
+	{
+		size_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+
+		if((pStart < tLength) && (pStart <= pEnd))
+		{
+			pThis->gPrivate_startIndex = ((uint32_t)pStart);
+			pThis->gPrivate_endIndex = ((uint32_t)pEnd);
+		}
+		else
+		{
+			pThis->gPrivate_startIndex = ((uint32_t)(-1));
+			pThis->gPrivate_endIndex = ((uint32_t)(-1));
+		}
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getSubStartIndex(
+		Crx_C_String_Sub const * pThis)
+{
+	return ((pThis->gPrivate_startIndex == ((uint32_t)(-1))) ? 
+			((size_t)(-1)) : pThis->gPrivate_startIndex);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getSubEndIndex(Crx_C_String_Sub const * pThis)
+{
+	return ((pThis->gPrivate_endIndex == ((uint32_t)(-1))) ? 
+			((size_t)(-1)) : pThis->gPrivate_endIndex);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_setNoRange(Crx_C_String_Sub * pThis)
+{
+	pThis->gPrivate_startIndex = ((uint32_t)(-1));
+	pThis->gPrivate_endIndex = ((uint32_t)(-1));
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_unsetString(Crx_C_String_Sub * pThis)
+{
+	pThis->gPrivate_string = NULL;
+	pThis->gPrivate_startIndex = ((uint32_t)(-1));
+	pThis->gPrivate_endIndex = ((uint32_t)(-1));
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_getLength(Crx_C_String_Sub const * pThis)
+	{return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);}
+
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_sub_getCharsPointer(
+		Crx_C_String_Sub const * pThis)
+{
+	if((pThis->gPrivate_string != NULL) && (pThis->gPrivate_startIndex != ((uint32_t)(-1))))
+	{
+		return crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+				pThis->gPrivate_startIndex;
+	}
+	else
+		{return &(pThis->PRIVATE__CHAR);}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() char crx_c_string_sub_copyGet(Crx_C_String_Sub const * pThis, 
+		size_t pIndex)
+{
+	assert((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) > pIndex);
+	
+	return pThis->gPrivate_startIndex + pIndex;
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_leftCut(Crx_C_String_Sub * pThis, 
+		size_t pLength)
+{
+	assert(pLength <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	if(pThis->gPrivate_string != NULL)
+	{
+		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) > pLength)
+			{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex + ((uint32_t)pLength);}
+		else
+			{pThis->gPrivate_startIndex = pThis->gPrivate_endIndex;}
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_rightCut(Crx_C_String_Sub * pThis, 
+		size_t pLength)
+{
+	assert(pLength <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	if(pThis->gPrivate_string != NULL)
+	{
+		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) > pLength)
+			{pThis->gPrivate_endIndex = pThis->gPrivate_endIndex - ((uint32_t)pLength);}
+		else
+			{pThis->gPrivate_endIndex = pThis->gPrivate_startIndex;}
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_leftExtend(Crx_C_String_Sub * pThis,
+		size_t pLength)
+{
+	assert(pLength <= CRX__C__STRING__PRIVATE__SIZE32_MAX);
+
+	if((pThis->gPrivate_string != NULL) && (pThis->gPrivate_startIndex != ((uint32_t)(-1))))
+	{
+		if(pThis->gPrivate_startIndex >= pLength)
+			{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - ((uint32_t)pLength);}
+		else
+			{pThis->gPrivate_startIndex = 0;}
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_rightExtend(Crx_C_String_Sub * pThis, 
+		size_t pLength)
+{
+	if((pThis->gPrivate_string != NULL) && (pThis->gPrivate_endIndex != ((uint32_t)(-1))))
+	{
+		size_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+
+		if((tLength - pThis->gPrivate_endIndex) > pLength)
+			{pThis->gPrivate_endIndex = pThis->gPrivate_endIndex + pLength;}
+		else
+			{pThis->gPrivate_endIndex = tLength;}
+	}
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+}
+
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEmpty(Crx_C_String_Sub const * pThis)
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
+		{return true;}
+
+	char const * tCurrentChar = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+			pThis->gPrivate_startIndex;
+	char const * tEndChar = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+			pThis->gPrivate_endIndex;
+
+	while(tCurrentChar != tEndChar)
+	{
+		if(!(((*tCurrentChar >= 0) && (*tCurrentChar <= 32)) || (*tCurrentChar == 127)))
+			{return false;}
+	}
+
+	return true;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_trim(Crx_C_String_Sub * pThis,
+		unsigned char pLowerByteValue, unsigned char pUpperByteValue)
+{
+	CRX_SCOPE_META
+	if(pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0)
+		{return 0;}
+
+	CRX_SCOPE
+	char const * vChars = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+			pThis->gPrivate_startIndex;
+	char const * vChars__end = vChars + pThis->gPrivate_endIndex;
+
+	/*while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
+			(*vChars == 32) || (*vChars == 127)))*/
+	while((vChars != vChars__end) && (((*vChars >= 0) && (*vChars <= 32)) ||
+			(*vChars == 127)))
+	{
+		vChars++;
+		pThis->gPrivate_startIndex = pThis->gPrivate_startIndex + 1;
+	}
+	
+	if(vChars != vChars__end)
+	{
+		char const * tChars = vChars__end - 1;
+
+		/*while((tChars != vChars) && (((*tChars >= 9) && (*tChars <= 13)) ||
+				(*tChars == 32) || (*vChars == 127)))*/
+		while((tChars != vChars) && (((*tChars >= 0) && (*tChars <= 32)) ||
+				(*vChars == 127)))
+		{
+			tChars--;
+			pThis->gPrivate_endIndex = pThis->gPrivate_endIndex - 1;
+		}
+	}
+	else
+	{
+		pThis->gPrivate_startIndex = ((uint32_t)(-1));
+		pThis->gPrivate_endIndex = ((uint32_t)(-1));
+	}
+
+
+	return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);
+	CRX_SCOPE_END
+}
+
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo(Crx_C_String_Sub const * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(pString), 
+			crx_c_string_getLength(pString), pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo2(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+	{return crx_c_string_sub_isEqualTo3(pThis, pString, strlen(pString), pIsCaseInSensitive);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo3(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
+		{return (pLength == 0);}
+	else
+	{
+		if(!pIsCaseInSensitive)
+		{
+			return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+					pThis->gPrivate_startIndex, pChars, pLength) == 0);
+		}
+		else
+		{
+			return (crx_c_string_caseInsensitivelyCompare(
+					crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+					pThis->gPrivate_startIndex, pChars, pLength) == 0);
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo4(Crx_C_String_Sub const * pThis,
+		Crx_C_String_Sub * CRX_NOT_NULL pSub, bool pIsCaseInSensitive)
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) != 
+			(pSub->gPrivate_endIndex - pSub->gPrivate_startIndex))
+		{return false;}
+	else
+	{
+		if(pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0)
+			{return true;}
+		else
+		{
+			return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(
+							pSub->gPrivate_string) + pSub->gPrivate_startIndex,
+					pThis->gPrivate_endIndex - pThis->gPrivate_startIndex, pIsCaseInSensitive);
+		}
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith(Crx_C_String_Sub const * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_sub_isBeginningWith3(pThis, 
+			crx_c_string_constantGetElementsPointer(pString), crx_c_string_getLength(pString),
+			pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith2(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_sub_isBeginningWith3(pThis, pString, strlen(pString), 
+			pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith3(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pLength)
+		{return false;}
+	else
+	{
+		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
+			{return (pLength == 0);}
+		else
+		{
+			if(!pIsCaseInSensitive)
+			{
+				return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pLength) == 0);
+			}
+			else
+			{
+				return (crx_c_string_caseInsensitivelyCompare(
+						crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pLength) == 0);
+			}
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith4(Crx_C_String_Sub const * pThis,
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive)
+{
+	if((pSub->gPrivate_endIndex - pSub->gPrivate_startIndex) == 0)
+		{return true;} //BASED ON THE BEHAVIOR OF memcmp(x, y, 0)
+	else
+	{
+		return crx_c_string_sub_isBeginningWith3(pThis, 
+				crx_c_string_constantGetElementsPointer(pSub->gPrivate_string) + 
+				pSub->gPrivate_startIndex, pSub->gPrivate_endIndex - 
+				pSub->gPrivate_startIndex, pIsCaseInSensitive);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith(Crx_C_String_Sub const * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_sub_isEndingWith3(pThis, 
+			crx_c_string_constantGetElementsPointer(pString), crx_c_string_getLength(pString),
+			pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith2(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
+{
+	return crx_c_string_sub_isEndingWith3(pThis, pString, strlen(pString), 
+			pIsCaseInSensitive);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith3(Crx_C_String_Sub const * pThis,
+		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pLength)
+		{return false;}
+	else
+	{
+		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
+			{return (pLength == 0);}
+		else
+		{
+			if(!pIsCaseInSensitive)
+			{
+				return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_endIndex - pLength, pChars, pLength) == 0);
+			}
+			else
+			{
+				return (crx_c_string_caseInsensitivelyCompare(
+						crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_endIndex - pLength, pChars, pLength) == 0);
+			}
+		}
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith4(Crx_C_String_Sub const * pThis,
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive)
+{
+	if((pSub->gPrivate_endIndex - pSub->gPrivate_startIndex) == 0)
+		{return true;} //BASED ON THE BEHAVIOR OF memcmp(x, y, 0)
+	else
+	{
+		return crx_c_string_sub_isEndingWith3(pThis, 
+				crx_c_string_constantGetElementsPointer(pSub->gPrivate_string) + 
+				pSub->gPrivate_startIndex, pSub->gPrivate_endIndex - 
+				pSub->gPrivate_startIndex, pIsCaseInSensitive);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf(
+		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
+		Crx_C_String const * CRX_NOT_NULL pDelimiter, 
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_getIndexOfFirstOccuranceOf3(pThis, pStartIndex, 
+			crx_c_string_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf2(
+		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
+		char const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_getIndexOfFirstOccuranceOf3(pThis, pStartIndex, 
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf3(
+		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
+		char const * CRX_NOT_NULL pChars__delimiter, 
+		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
+			(((uint32_t)(-1)) - 1 - pStartIndex  <= pThis->gPrivate_startIndex))
+		{return ((size_t)(-1));}
+
+	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis->gPrivate_string,
+			pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pLength, 
+			pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf4(
+		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter, 
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex == 0))
+		{return ((size_t)(-1));}
+
+	return crx_c_string_sub_getIndexOfFirstOccuranceOf3(pThis, pStartIndex, 
+			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+					pSub__delimiter->gPrivate_startIndex, 
+			pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex,
+			pSizeOfCharacterSet);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf(
+		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
+		Crx_C_String const * CRX_NOT_NULL pDelimiter, 
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
+			crx_c_string_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf2(
+		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
+		char const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex, 
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(
+		Crx_C_String_Sub const * pThis, 
+		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, 
+		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
+			(((uint32_t)(-1)) - 1 - pInclusiveEndIndex  <= pThis->gPrivate_startIndex))
+		{return ((size_t)(-1));}
+
+	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis->gPrivate_string,
+			pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pLength, 
+			pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf4(
+		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex == 0))
+		{return ((size_t)(-1));}
+
+	return crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex, 
+			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+					pSub__delimiter->gPrivate_startIndex, 
+			pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex,
+			pSizeOfCharacterSet);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pStartIndex, Crx_C_String const * CRX_NOT_NULL pDelimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_computeIndicesOfAllOccurancesOf3(pThis, pReturn, pStartIndex, 
+			crx_c_string_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_getLength(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf2(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pStartIndex, char const * CRX_NOT_NULL pDelimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_computeIndicesOfAllOccurancesOf3(pThis, pReturn, pStartIndex, 
+			pDelimiter, strlen(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf3(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pStartIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
+			(((size_t)(-1)) - 1 - pStartIndex  <= pThis->gPrivate_startIndex))
+	{
+		crx_c_arrays_size_empty(pReturn);
+
+		return true;
+	}
+	else
+	{
+		return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis->gPrivate_string, pReturn,
+				pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pLength, 
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf4(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pStartIndex, Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex == 0))
+	{
+		crx_c_arrays_size_empty(pReturn);
+
+		return true;
+	}
+	else
+	{
+		return crx_c_string_sub_computeIndicesOfAllOccurancesOf3(pThis, pReturn, pStartIndex, 
+				crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+						pSub__delimiter->gPrivate_startIndex, 
+				pSub__delimiter->gPrivate_endIndex - 
+							pSub__delimiter->gPrivate_startIndex,
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pInclusiveEndIndex, Crx_C_String const * CRX_NOT_NULL pDelimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn, 
+			pInclusiveEndIndex, crx_c_string_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_getLength(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf2(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pDelimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn, 
+			pInclusiveEndIndex, pDelimiter, strlen(pDelimiter), pIsToAllowOverlap, 
+			pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
+			(((size_t)(-1)) - 1 - pInclusiveEndIndex  <= pThis->gPrivate_startIndex))
+	{
+		crx_c_arrays_size_empty(pReturn);
+
+		return true;
+	}
+	else
+	{
+		return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis->gPrivate_string, pReturn,
+				pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pLength, 
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf4(
+		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
+		size_t pInclusiveEndIndex, Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
+		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if((pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex == 0))
+	{
+		crx_c_arrays_size_empty(pReturn);
+
+		return true;
+	}
+	else
+	{
+		return crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn, 
+				pInclusiveEndIndex, 
+				crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) +
+						pSub__delimiter->gPrivate_startIndex, 
+				pSub__delimiter->gPrivate_endIndex - 
+						pSub__delimiter->gPrivate_startIndex,
+				pIsToAllowOverlap, pSizeOfCharacterSet);
+	}
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, Crx_C_String const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex,
+			crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex2(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex,
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(pThis->gPrivate_string == NULL)
+	{
+		crx_c_string_sub_unsetString(pReturn);
+		*pIndex = ((size_t)(-1));
+
+		return false;
+	}
+	else
+	{
+		return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis->gPrivate_string, pReturn, 
+				pIndex, pChars__delimiter, pLength, pSizeOfCharacterSet);
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex4(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
+		size_t * CRX_NOT_NULL pIndex, 
+		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex,
+			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+					pSub__delimiter->gPrivate_startIndex,
+			pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex, 
+			pSizeOfCharacterSet);
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, Crx_C_String const * pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex,
+			crx_c_string_constantGetElementsPointer(pDelimiter),
+			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft2(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, char const * pDelimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex,
+			pDelimiter, strlen(pDelimiter), pSizeOfCharacterSet);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft3(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	if(pThis->gPrivate_string == NULL)
+	{
+		crx_c_string_arrays_sub_empty(pReturn);
+
+		return false;
+	}
+	else
+	{
+		return crx_c_string_findAllTokensStartingFromLeft3(pThis->gPrivate_string, pReturn, pIndex,
+				pChars__delimiter, pLength, pSizeOfCharacterSet);
+	}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft4(
+		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
+		size_t pIndex, Crx_C_String_Sub const * pSub__delimiter,
+		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+{
+	return crx_c_string_sub_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex,
+			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+					pSub__delimiter->gPrivate_startIndex,
+			pSub__delimiter->gPrivate_endIndex - 
+					pSub__delimiter->gPrivate_startIndex,
+			pSizeOfCharacterSet);
+}
+
+
+//---------------------------
+//CLASS: String::Arrays_Sub
+//---------------------------
+
+CRX__C__Array__DEFINE(Crx_C_String_Arrays_Sub, crx_c_string_arrays_sub_, Crx_C_String_Sub,
+		CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_T, 
+				CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_MAX, 0, CRXM__FALSE, 
+		CRXM__FALSE, CRXM__FALSE, 
+		CRXM__FALSE, CRXM__FALSE)
+		
+#undef CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_T
+#undef CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_MAX
 
 CRX__LIB__C_CODE_END()
 

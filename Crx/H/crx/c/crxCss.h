@@ -53,14 +53,14 @@ typedef struct Crx_C_CrxCss_Block Crx_C_CrxCss_Block;
 
 
 //--- ENUM: Type ------------------//
-typedef enum Crx_C_CrxCss_Type
-{
-	CRX__C__CRX_CSS__TYPE__NULL,
+CRX_ENUM(Crx_C_CrxCss_Type,
+(
+	CRX__C__CRX_CSS__TYPE__NULL = 0,
 	CRX__C__CRX_CSS__TYPE__AT_RULE_STATEMENT,
 	CRX__C__CRX_CSS__TYPE__AT_RULE_ELEMENT,
 	CRX__C__CRX_CSS__TYPE__AT_RULE_NAME_VALUE_BLOCK,
 	CRX__C__CRX_CSS__TYPE__REFERENCE_NAME_VALUE_BLOCK
-}Crx_C_CrxCss_Type;
+));
 
 //--- CLASS: AtRuleStatement ----------------------------//
 typedef struct Crx_C_CrxCss_AtRuleStatement

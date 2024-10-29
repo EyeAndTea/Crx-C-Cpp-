@@ -188,6 +188,41 @@ HAS STARTED DURING RESIZE.
 			bool function(const * pKEY_TYPE, const * pKEY_TYPE)
 	- pFUNC_COMPUTE_HASH IS A FUNCTION WITH THE SIGNATURE:
 			pSIZE_T function(size_t pSeed, const * pKEY_TYPE)
+	- OVERRIDES (DECLARE, DEFINE):	(KEYS ARE COPYABLE)
+		- KEYS ONLY:										(11 PARAMETERS)
+				CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX,
+						pSIZE_T, pSIZE_T_MAX,
+						pKEY_TYPE, pFUNC_KEY_DESTRUCTOR,
+						pFUNC_KEY_COPY_CONSTRUCTOR,
+						pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR,
+						pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH)
+		- KEYS AND ELEMENTS:								(15 OR 16 PARAMETERS)
+				CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX,
+						pSIZE_T, pSIZE_T_MAX,
+						pKEY_TYPE, pFUNC_KEY_DESTRUCTOR,
+						pFUNC_KEY_COPY_CONSTRUCTOR,
+						pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR,
+						pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH,
+						pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR,
+						[pFUNC_ELEMENT_COPY_CONSTRUCTOR,]
+						pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR)
+	- OVERRIDES (DECLARE2, DEFINE2): (KEYS ARE NOT COPYABLE)
+		- KEYS ONLY:										(10 PARAMETERS)
+				CRX__C__HashTable__DECLARE2(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX,
+						pSIZE_T, pSIZE_T_MAX,
+						pKEY_TYPE, pFUNC_KEY_DESTRUCTOR,
+						pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR,
+						pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH)
+		- KEYS AND ELEMENTS:								(14 OR 15 PARAMETERS)
+				CRX__C__HashTable__DECLARE2(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX,
+						pSIZE_T, pSIZE_T_MAX,
+						pKEY_TYPE, pFUNC_KEY_DESTRUCTOR,
+						pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR,
+						pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH,
+						pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR,
+						[pFUNC_ELEMENT_COPY_CONSTRUCTOR,]
+						pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR)
+				
 */
 
 #if(UINT32_MAX < SIZE_MAX)
@@ -203,6 +238,26 @@ HAS STARTED DURING RESIZE.
 	#define CRX__C__HashTable__DECLARE(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__HashTable__DECLARE, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
+/*KEYS ONLY				(KEYS COPYABLE)*/
+#define CRX__C__HashTable__DECLARE__11(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		pFUNC_KEY_COPY_CONSTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH) \
+_CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		CRXM__TRUE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		CRXM__TRUE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+\
+		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION()) \
+
+/*KEYS AND ELEMENTS.	(KEYS COPYABLE)*/
 #define CRX__C__HashTable__DECLARE__15(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -218,12 +273,10 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
-
-
 #define CRX__C__HashTable__DECLARE__16(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -242,7 +295,7 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		CRXM__TRUE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
 
 
@@ -252,6 +305,25 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 	#define CRX__C__HashTable__DECLARE2(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__HashTable__DECLARE2, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
+/*KEYS ONLY				(KEYS NOT COPYABLE)*/
+#define CRX__C__HashTable__DECLARE2__10(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH) \
+_CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		CRXM__TRUE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		\
+		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION()) \
+
+/*KEYS AND ELEMENTS.	(KEYS NOT COPYABLE)*/
 #define CRX__C__HashTable__DECLARE2__14(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -262,16 +334,14 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		CRXM__FALSE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
-
-
 #define CRX__C__HashTable__DECLARE2__15(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -283,13 +353,13 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		CRXM__FALSE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		CRXM__TRUE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
 
 
@@ -317,8 +387,9 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 		pELEMENT_TYPE * gPrivate_elements;, ) \
 	} pHASH_TABLE_TYPE_NAME; \
 	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## construct(pHASH_TABLE_TYPE_NAME * pThis); \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyConstruct(pHASH_TABLE_TYPE_NAME * pThis, \
-			pHASH_TABLE_TYPE_NAME const * pHashTable); \
+			pHASH_TABLE_TYPE_NAME const * CRX_NOT_NULL pHashTable); \
 	PUBLIC pHASH_TABLE_TYPE_NAME * pMEMBER_FUNCTIONS_PREFIX ## new(); \
 	PUBLIC pHASH_TABLE_TYPE_NAME * pMEMBER_FUNCTIONS_PREFIX ## moveNew( \
 			pHASH_TABLE_TYPE_NAME * pHashTable); \
@@ -352,17 +423,17 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement);, ) \
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndSet( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement);, \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE const * pElement);, \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndSet( \
 			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey);) \
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveElementAndSet( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement);, ) \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey, pELEMENT_TYPE * pElement);, ) \
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## set( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement);, \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey, pELEMENT_TYPE const * pElement);, \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## set( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey); ) \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey); ) \
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## get(pHASH_TABLE_TYPE_NAME * pThis, \
@@ -371,8 +442,8 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## constantGet( \
 			pHASH_TABLE_TYPE_NAME const * pThis, pKEY_TYPE const * pKey);, ) \
 	CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), pIS_ELEMENT_COPYABLE), \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyGet(pHASH_TABLE_TYPE_NAME const * pThis, \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyGetTo(pHASH_TABLE_TYPE_NAME const * pThis, \
 			pELEMENT_TYPE * pReturn, pKEY_TYPE const * pKey);, \
 	PUBLIC pELEMENT_TYPE pMEMBER_FUNCTIONS_PREFIX ## copyGet(pHASH_TABLE_TYPE_NAME const * pThis, \
 			pKEY_TYPE const * pKey);), ) \
@@ -405,6 +476,26 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 	#define CRX__C__HashTable__DEFINE(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__HashTable__DEFINE, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
+/*KEYS ONLY.	(KEYS COPYABLE)*/
+#define CRX__C__HashTable__DEFINE__11(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		pFUNC_KEY_COPY_CONSTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH) \
+_CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		CRXM__TRUE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		CRXM__TRUE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		\
+		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
+
+/*KEYS AND ELEMENTS.	(KEYS COPYABLE)*/
 #define CRX__C__HashTable__DEFINE__15(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -420,12 +511,10 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
-
-
 #define CRX__C__HashTable__DEFINE__16(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -454,6 +543,25 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	#define CRX__C__HashTable__DEFINE2(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__HashTable__DEFINE2, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
+/*KEYS ONLY.			(KEYS NOT COPYABLE)*/
+#define CRX__C__HashTable__DEFINE2__10(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH) \
+_CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
+		pSIZE_T, pSIZE_T_MAX, \
+		CRXM__TRUE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
+		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
+		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		CRXM__FALSE, CRXM__FALSE, \
+		\
+		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
+
+/*KEYS AND ELEMENTS.	(KEYS NOT COPYABLE)*/
 #define CRX__C__HashTable__DEFINE2__14(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -464,16 +572,14 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		CRXM__FALSE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
-
-
 #define CRX__C__HashTable__DEFINE2__15(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
@@ -485,13 +591,13 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_PREFIX, \
 		pSIZE_T, pSIZE_T_MAX, \
 		CRXM__FALSE, pKEY_TYPE, pFUNC_KEY_DESTRUCTOR, \
-		CRXM__FALSE, pFUNC_KEY_COPY_CONSTRUCTOR, \
+		CRXM__FALSE, CRXM__FALSE, \
 		pFUNC_KEY_MOVE_CONSTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR, \
 		pFUNC_ARE_KEYS_EQUAL, pFUNC_COMPUTE_HASH, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		CRXM__TRUE, pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-\
+		\
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
 		
 		
@@ -506,8 +612,20 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 		PUBLIC, PRIVATE) \
 	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## construct(pHASH_TABLE_TYPE_NAME * pThis) \
+	{ \
+		pThis->gPrivate_numberOfBuckets = 0; \
+		pThis->gPrivate_size = 0; \
+		pThis->gPrivate_numberOfBucketsEverUsed = 0; \
+		pThis->gPrivate_upperBoundOfNumberOfBucketsEverUsed = 0; \
+		pThis->gPrivate_seed = 0; \
+		pThis->gPrivate_bucketData = NULL; \
+		pThis->gPrivate_keys = NULL; \
+		CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
+		pThis->gPrivate_elements = NULL;, ) \
+	} \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyConstruct(pHASH_TABLE_TYPE_NAME * pThis, \
-			pHASH_TABLE_TYPE_NAME const * pHashTable) \
+			pHASH_TABLE_TYPE_NAME const * CRX_NOT_NULL pHashTable) \
 	{ \
 		CRXM__IFELSE2(CRXM__OR(CRXM__NOT(pIS_KEY_COPYABLE), \
 				CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
@@ -536,12 +654,20 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	)} \
 	\
 	PUBLIC pHASH_TABLE_TYPE_NAME * pMEMBER_FUNCTIONS_PREFIX ## new() \
-		{return (pHASH_TABLE_TYPE_NAME *)(calloc(1, sizeof(pHASH_TABLE_TYPE_NAME)));} \
+	{ \
+		pHASH_TABLE_TYPE_NAME * vReturn = (pHASH_TABLE_TYPE_NAME *)(calloc(1, \
+				sizeof(pHASH_TABLE_TYPE_NAME))); \
+	\
+		if(vReturn != NULL) \
+			{pMEMBER_FUNCTIONS_PREFIX ## construct(vReturn);} \
+	\
+		return vReturn; \
+	} \
 	\
 	PUBLIC pHASH_TABLE_TYPE_NAME * pMEMBER_FUNCTIONS_PREFIX ## moveNew( \
 			pHASH_TABLE_TYPE_NAME * pHashTable) \
 	{ \
-		pHASH_TABLE_TYPE_NAME * vReturn = (pHASH_TABLE_TYPE_NAME *)(calloc(1,\
+		pHASH_TABLE_TYPE_NAME * vReturn = (pHASH_TABLE_TYPE_NAME *)(calloc(1, \
 				sizeof(pHASH_TABLE_TYPE_NAME))); \
 	\
 		if(vReturn != NULL) \
@@ -557,7 +683,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
 						CRXM__NOT(pIS_ELEMENT_COPYABLE))), abort();, \
 	\
-		pHASH_TABLE_TYPE_NAME * vReturn = (pHASH_TABLE_TYPE_NAME *)(calloc(1,\
+		pHASH_TABLE_TYPE_NAME * vReturn = (pHASH_TABLE_TYPE_NAME *)(calloc(1, \
 				sizeof(pHASH_TABLE_TYPE_NAME))); \
 	\
 		if(vReturn != NULL) \
@@ -568,7 +694,8 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## destruct(pHASH_TABLE_TYPE_NAME * pThis) \
 	{ \
-		CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_KEY_DESTRUCTOR), \
+		CRXM__IFELSE2(CRXM__OR(pFUNC_KEY_DESTRUCTOR, CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
+				pFUNC_ELEMENT_DESTRUCTOR)), \
 		pMEMBER_FUNCTIONS_PREFIX ## empty(pThis);, ) \
 	\
 		free((void *) pThis->gPrivate_keys); \
@@ -892,7 +1019,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 									CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR)), \
 									CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))) \
 							( \
-								memcpy(tElement, &(pThis->gPrivate_elements[tI]), \
+								memcpy(tElement, pThis->gPrivate_elements + tI, \
 										sizeof(pELEMENT_TYPE)); \
 							) \
 							( \
@@ -984,9 +1111,9 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 											CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR)), \
 											CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))) \
 									( \
-										memcpy(tElement_tmp, &(pThis->gPrivate_elements[tIndex]), \
+										memcpy(tElement_tmp, pThis->gPrivate_elements + tIndex, \
 												sizeof(pELEMENT_TYPE)); \
-										memcpy(&(pThis->gPrivate_elements[tIndex]), tElement, \
+										memcpy(pThis->gPrivate_elements + tIndex, tElement, \
 												sizeof(pELEMENT_TYPE)); \
 										memcpy(tElement, tElement_tmp, sizeof(pELEMENT_TYPE)); \
 									) \
@@ -995,7 +1122,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 										( \
 											pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
 													((pELEMENT_TYPE *)tElement_tmp), \
-													&(pThis->gPrivate_elements[tIndex])); \
+													pThis->gPrivate_elements + tIndex); \
 											CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 											pFUNC_ELEMENT_MOVE_DESTRUCTOR( \
 													pThis->gPrivate_elements + tIndex), ); \
@@ -1016,13 +1143,13 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 										) \
 										( \
 											memcpy(tElement_tmp, \
-													&(pThis->gPrivate_elements[tIndex]), \
+													pThis->gPrivate_elements + tIndex, \
 													sizeof(pELEMENT_TYPE)); \
 											CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 											pFUNC_ELEMENT_MOVE_DESTRUCTOR( \
 													pThis->gPrivate_elements + tIndex);, ) \
 	\
-											memcpy(&(pThis->gPrivate_elements[tIndex]), tElement, \
+											memcpy(pThis->gPrivate_elements + tIndex, tElement, \
 													sizeof(pELEMENT_TYPE)); \
 											CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 											pFUNC_ELEMENT_MOVE_DESTRUCTOR( \
@@ -1462,7 +1589,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 							CRXM__IFELSE(CRXM__NOT(pIS_KEYS_ONLY)) \
 							( \
-								memcpy(tElement, &(pThis->gPrivate_elements[tI]), \
+								memcpy(tElement, pThis->gPrivate_elements + tI, \
 										sizeof(pELEMENT_TYPE)); \
 							)() \
 	\
@@ -1494,9 +1621,9 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 									CRXM__IFELSE(CRXM__NOT(pIS_KEYS_ONLY)) \
 									( \
-										memcpy(tElement_tmp, &(pThis->gPrivate_elements[tIndex]), \
+										memcpy(tElement_tmp, pThis->gPrivate_elements + tIndex, \
 												sizeof(pELEMENT_TYPE)); \
-										memcpy(&(pThis->gPrivate_elements[tIndex]), tElement, \
+										memcpy(pThis->gPrivate_elements + tIndex, tElement, \
 												sizeof(pELEMENT_TYPE)); \
 										memcpy(tElement, tElement_tmp, sizeof(pELEMENT_TYPE)); \
 									)() \
@@ -1510,7 +1637,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 									CRXM__IFELSE(CRXM__NOT(pIS_KEYS_ONLY)) \
 									( \
-										memcpy(&(pThis->gPrivate_elements[tIndex]), tElement, \
+										memcpy(pThis->gPrivate_elements + tIndex, tElement, \
 												sizeof(pELEMENT_TYPE)); \
 									)() \
 	\
@@ -1737,7 +1864,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndSet( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement), \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE const * pElement), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndSet( \
 			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey)) \
 	{ \
@@ -1745,7 +1872,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
 		unsigned char * vElement = (unsigned char *) CRX__ALLOCA(sizeof(pELEMENT_TYPE));, ) \
 		CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
-				CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR))), \
 		bool vReturn;, )\
 		CRXM__IFELSE2(pIS_KEYS_ONLY, \
@@ -1761,7 +1888,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 			( \
 				pFUNC_ELEMENT_COPY_CONSTRUCTOR(((pELEMENT_TYPE *)vElement), pElement); \
 	\
-				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 						vReturn = , return) pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndElementAndSet(pThis, pKey, \
 						((pELEMENT_TYPE *)vElement)); \
 			) \
@@ -1770,7 +1897,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				( \
 					memcpy(vElement, pElement, sizeof(pELEMENT_TYPE)); \
 	\
-					CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+					CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 						vReturn = , return) pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndElementAndSet(pThis, pKey, \
 						((pELEMENT_TYPE *)vElement)); \
 				) \
@@ -1780,11 +1907,19 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				) \
 			) \
 	\
-			CRXM__IFELSE(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+			CRXM__IFELSE(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR))) \
 			( \
 				if(vReturn) \
-					{pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));} \
+				{ \
+					CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+					pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+				} \
+				else \
+				{ \
+					CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+					pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+				} \
 	\
 				return vReturn; \
 			)() \
@@ -1817,11 +1952,11 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## tryMoveElementAndSet( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement) \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey, pELEMENT_TYPE * pElement) \
 	{ \
 		CRXM__IFELSE2(CRXM__OR(pFUNC_KEY_COPY_CONSTRUCTOR, pFUNC_KEY_MOVE_CONSTRUCTOR), \
 		unsigned char * vKey = (unsigned char *) CRX__ALLOCA(sizeof(pKEY_TYPE));, ) \
-		CRXM__IFELSE2(CRXM__AND(pFUNC_KEY_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE2(CRXM__AND(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_KEY_COPY_CONSTRUCTOR, pFUNC_KEY_MOVE_CONSTRUCTOR)), \
 		bool vReturn;, )\
 	\
@@ -1829,7 +1964,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 		( \
 			pFUNC_KEY_COPY_CONSTRUCTOR(((pKEY_TYPE *)vKey), pKey); \
 	\
-			CRXM__IFELSE2(pFUNC_KEY_MOVE_DESTRUCTOR, \
+			CRXM__IFELSE2(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
 					vReturn = , return) pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndElementAndSet(\
 					pThis, ((pKEY_TYPE *)vKey), pElement); \
 		) \
@@ -1838,21 +1973,29 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 			( \
 				memcpy(vKey, pKey, sizeof(pKEY_TYPE)); \
 	\
-				CRXM__IFELSE2(pFUNC_KEY_MOVE_DESTRUCTOR, \
+				CRXM__IFELSE2(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
 						vReturn = , return) pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndElementAndSet( \
 						pThis, ((pKEY_TYPE *)vKey), pElement); \
 			) \
 			( \
 				return pMEMBER_FUNCTIONS_PREFIX ## tryMoveKeyAndElementAndSet( \
-						pThis, pKey, pElement); \
+						pThis, ((pKEY_TYPE *)pKey), pElement); \
 			) \
 		) \
 	\
-		CRXM__IFELSE(CRXM__AND(pFUNC_KEY_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE(CRXM__AND(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_KEY_COPY_CONSTRUCTOR, pFUNC_KEY_MOVE_CONSTRUCTOR))) \
 		( \
 			if(vReturn) \
-				{pFUNC_KEY_MOVE_DESTRUCTOR(((pKEY_TYPE *)vKey));} \
+			{ \
+				CRXM__IFELSE2(pFUNC_KEY_MOVE_DESTRUCTOR, \
+				pFUNC_KEY_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vKey));, ) \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE2(pFUNC_KEY_DESTRUCTOR, \
+				pFUNC_KEY_DESTRUCTOR(((pELEMENT_TYPE *)vKey));, ) \
+			} \
 	\
 			return vReturn; \
 		)() \
@@ -1860,15 +2003,16 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## set( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey, pELEMENT_TYPE * pElement), \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey, pELEMENT_TYPE const * pElement), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## set( \
-			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE * pKey)) \
+			pHASH_TABLE_TYPE_NAME * pThis, pKEY_TYPE const * pKey)) \
 	{ \
 		unsigned char * vKey = (unsigned char *) CRX__ALLOCA(sizeof(pKEY_TYPE)); \
 		CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
 		unsigned char * vElement = (unsigned char *) CRX__ALLOCA(sizeof(pELEMENT_TYPE));, ) \
-		CRXM__IFELSE2(CRXM__OR(pFUNC_KEY_MOVE_DESTRUCTOR, CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
-				pFUNC_KEY_ELEMENT_DESTRUCTOR)), \
+		CRXM__IFELSE2(CRXM__OR(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
+				CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
+						CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR))), \
 		bool vReturn;, )\
 	\
 		CRXM__IFELSE(pFUNC_KEY_COPY_CONSTRUCTOR) \
@@ -1890,8 +2034,9 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 			) \
 		)() \
 	\
-		CRXM__IFELSE(CRXM__OR(pFUNC_KEY_MOVE_DESTRUCTOR, CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
-				pFUNC_ELEMENT_MOVE_DESTRUCTOR))) \
+		CRXM__IFELSE(CRXM__OR(CRXM__OR(pFUNC_KEY_DESTRUCTOR, pFUNC_KEY_MOVE_DESTRUCTOR), \
+				CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
+						CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR)))) \
 		( \
 			CRXM__IFELSE(CRXM__NOT(pIS_KEYS_ONLY)) \
 			( \
@@ -1910,6 +2055,14 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
 						pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ); \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE2(pFUNC_KEY_DESTRUCTOR, \
+				pFUNC_KEY_DESTRUCTOR(((pKEY_TYPE *)vKey));, ); \
+				CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), \
+						pFUNC_ELEMENT_DESTRUCTOR), \
+				pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ); \
 			} \
 	\
 			return vReturn; \
@@ -1933,10 +2086,9 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	{ \
 		pSIZE_T vBucketIndex = pMEMBER_FUNCTIONS_PREFIX ## private_get(pThis, pKey); \
 	\
-		if(vBucketIndex != pThis->gPrivate_numberOfBuckets) \
-			{return (pThis->gPrivate_elements + vBucketIndex);} \
-		else \
-			{return NULL;} \
+		assert(vBucketIndex != pThis->gPrivate_numberOfBuckets); \
+	\
+		return (pThis->gPrivate_elements + vBucketIndex); \
 	}, ) \
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_KEYS_ONLY), \
@@ -1945,24 +2097,33 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 		{return pMEMBER_FUNCTIONS_PREFIX ## get(((pHASH_TABLE_TYPE_NAME *)pThis), pKey);}, ) \
 	\
 	CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_KEYS_ONLY), pIS_ELEMENT_COPYABLE), \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyGet(pHASH_TABLE_TYPE_NAME const * pThis, \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## copyGetTo(pHASH_TABLE_TYPE_NAME const * pThis, \
 			pELEMENT_TYPE * pReturn, pKEY_TYPE const * pKey), \
 	PUBLIC pELEMENT_TYPE pMEMBER_FUNCTIONS_PREFIX ## copyGet(pHASH_TABLE_TYPE_NAME const * pThis, \
 			pKEY_TYPE const * pKey)) \
 	{ \
 		pSIZE_T vBucketIndex = pMEMBER_FUNCTIONS_PREFIX ## private_get(pThis, pKey); \
 	\
-		if(vBucketIndex != pThis->gPrivate_numberOfBuckets) \
-		{ \
+		assert(vBucketIndex != pThis->gPrivate_numberOfBuckets); \
+	\
+		CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
+		( \
+			CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+			pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
+	\
 			CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
 			( \
 				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, pThis->gPrivate_elements + vBucketIndex); \
 			) \
 			( \
-				return *(pThis->gPrivate_elements + vBucketIndex); \
+				memcpy(pReturn, pThis->gPrivate_elements + vBucketIndex, \
+						sizeof(pHASH_TABLE_TYPE_NAME)); \
 			) \
-		} \
+		) \
+		( \
+			return *(pThis->gPrivate_elements + vBucketIndex); \
+		) \
 	}, ) \
 	\
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## hasKey(pHASH_TABLE_TYPE_NAME const * pThis, \
@@ -2018,7 +2179,8 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex) \
 	{ \
 		CRX_SCOPE_META \
-		assert(pIndex <= pSIZE_T_MAX); \
+		if(pIndex >= pThis->gPrivate_numberOfBuckets) \
+			{return pThis->gPrivate_numberOfBuckets;} \
 	\
 		CRX_SCOPE \
 		pSIZE_T vIndex = pIndex + 1; \
@@ -2027,8 +2189,7 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 				CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
 			{vIndex = vIndex + 1;} \
 	\
-		return ((vIndex < pThis->gPrivate_numberOfBuckets) ? vIndex : \
-				pThis->gPrivate_numberOfBuckets); \
+		return vIndex; \
 		CRX_SCOPE_END \
 	} \
 	PRIVATE size_t pMEMBER_FUNCTIONS_PREFIX ## prepareSeedForHash( \
@@ -2086,21 +2247,29 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_hashTable_compute32BitsHash(
 CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_hashTable_computeSafer32BitsHash(
 		size_t pSeed, void const * CRX_NOT_NULL pBytes, size_t pSize);
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint8sEqual(void * pUint8,
-		void * pUint8__2);
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint8(void * pUint8);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint8sEqual(void const * pUint8,
+		void const * pUint8__2);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint8(void const * pUint8);
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint16sEqual(void * pUint16,
-		void * pUint16__2);
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint16(void * pUint16);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint16sEqual(void const * pUint16,
+		void const * pUint16__2);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint16(void const * pUint16);
 		
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint32sEqual(void * pUint32,
-		void * pUint32__2);
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint32(void * pUint32);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint32sEqual(void const * pUint32,
+		void const * pUint32__2);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint32(void const * pUint32);
+
+#if(!defined(CRX__BOOST_NO_INT64_T))
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint64sEqual(void const * pUint64,
+		void const * pUint64__2);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint64(void const * pUint64);
+#endif
 
 
-typedef bool (* Crx_C_HashTable_AreKeysEqual)(void const * pKey, void const * pKey__2);
-typedef size_t (* Crx_C_HashTable_GetHashForKey)(size_t pSeed, void const * pObject);
+//TEMPORARY SOLUTION UNTIL I FIX THIS EVERYWHERE IN THE CODE. REMEMBER THAT IN THE PAST
+//		GetHashForKey WAS FULLY DEFINED HERE, BUT I THEN INTRODUCED GetHash AN INNER CLASS TO 
+//		TypeBluePrint BECAUSE OF ITS IMPORTANCE.
+typedef Crx_C_TypeBluePrint_GetHash Crx_C_HashTable_GetHashForKey;
 
 typedef struct Crx_C_HashTable
 {
@@ -2114,18 +2283,18 @@ typedef struct Crx_C_HashTable
 	uint32_t * gPrivate_bucketData;
 	unsigned char * gPrivate_keys;
 	unsigned char * gPrivate_elements;
-	Crx_C_HashTable_AreKeysEqual gPrivate_areKeysEqual;
+	Crx_C_TypeBluePrint_AreObjectsEqual gPrivate_areKeysEqual;
 	Crx_C_HashTable_GetHashForKey gPrivate_getHashForKey;
 } Crx_C_HashTable;
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_construct(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_construct2(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyConstruct(Crx_C_HashTable * pThis,
 		Crx_C_HashTable const * CRX_NOT_NULL pHashTable);
@@ -2133,11 +2302,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyConstruct(Crx_C_HashTable
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_new(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element,
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_new2(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_moveNew(
 		Crx_C_HashTable * pHashTable);
@@ -2155,7 +2324,7 @@ CRX__C__TYPE_BLUE_PRINT__GENERIC__DECLARE_GET_BLUE_PRINT(
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_private_doInit(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey,
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element);
 
@@ -2176,17 +2345,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getSize(Crx_C_HashTable con
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndElementAndSet(
 		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndSet(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * pElement);
+		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void const * pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveElementAndSet(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * CRX_NOT_NULL pElement);
+		Crx_C_HashTable * pThis, void const * CRX_NOT_NULL pKey, void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_set(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * pElement);
+		Crx_C_HashTable * pThis, void const * CRX_NOT_NULL pKey, void const * pElement);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_hashTable_get(Crx_C_HashTable * pThis,
 		void const * CRX_NOT_NULL pKey);
 CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_constantGet(
 		Crx_C_HashTable const * pThis, void const * CRX_NOT_NULL pKey);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyGet(Crx_C_HashTable const * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyGetTo(Crx_C_HashTable const * pThis,
 		void * CRX_NOT_NULL pReturn, void const * CRX_NOT_NULL pKey);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_hasKey(

@@ -98,7 +98,8 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 	///////////////////////////////////////////////////////////////////////////////
 	#include <limits.h>
 
-	#if(defined(_MSC_VER))
+	//#if(defined(_MSC_VER))
+	#if(CRX__COMPILER__TYPE == CRX__COMPILER__TYPE__MICROSOFT)
 		// FROM MICROSOFT
 		// For Visual Studio 6 in C++ mode and for many Visual Studio versions when
 		// compiling for ARM we should wrap <wchar.h> include with 'extern "C++" {}'
@@ -136,7 +137,8 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 	#endif
 
 
-	#if(defined(_MSC_VER))
+	//#if(defined(_MSC_VER))
+	#if(CRX__COMPILER__TYPE == CRX__COMPILER__TYPE__MICROSOFT)
 	// FROM MICROSOFT
 	// 7.18.1 Integer types
 
@@ -288,13 +290,66 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 	typedef unsigned __int32  uint_fast32_t;
 		#endif
 
+		/*
+		EDUCATED GUESS. USING !defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64) INSTEAD
+		OF
+				!defined(BOOST_MSVC) && !defined(BOOST_BORLANDC)
+		#if(defined(CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG) && \
+				!defined(BOOST_MSVC) && !defined(BOOST_BORLANDC) && \
+				(!defined(__GLIBCPP__) || defined(_GLIBCPP_USE_LONG_LONG)) && \
+				(defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || defined(ULONGLONG_MAX)))*/
+		#if(defined(CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG) && \
+				!defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64) && \
+				(!defined(__GLIBCPP__) || defined(_GLIBCPP_USE_LONG_LONG)) && \
+				(defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || defined(ULONGLONG_MAX)))
+		#elif(ULONG_MAX != 0xffffffff)
+			#if ULONG_MAX == 18446744073709551615 // 2**64 - 1
+	typedef long                 intmax_t;
+	typedef unsigned long        uintmax_t;
+	typedef long                 int64_t;
+	typedef long                 int_least64_t;
+	typedef long                 int_fast64_t;
+	typedef unsigned long        uint64_t;
+	typedef unsigned long        uint_least64_t;
+	typedef unsigned long        uint_fast64_t;
+			#endif
+		#elif(defined(__GNUC__) && defined(CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG))
+	 __extension__ typedef long long            intmax_t;
+	 __extension__ typedef unsigned long long   uintmax_t;
+	 __extension__ typedef long long            int64_t;
+	 __extension__ typedef long long            int_least64_t;
+	 __extension__ typedef long long            int_fast64_t;
+	 __extension__ typedef unsigned long long   uint64_t;
+	 __extension__ typedef unsigned long long   uint_least64_t;
+	 __extension__ typedef unsigned long long   uint_fast64_t;
+		#elif(defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64))
+			 //
+			 //FROM BOOST: we have Borland/Intel/Microsoft __int64:
+			 //
+	 typedef __int64             intmax_t;
+	 typedef unsigned __int64    uintmax_t;
+	 typedef __int64             int64_t;
+	 typedef __int64             int_least64_t;
+	 typedef __int64             int_fast64_t;
+	 typedef unsigned __int64    uint64_t;
+	 typedef unsigned __int64    uint_least64_t;
+	 typedef unsigned __int64    uint_fast64_t;
+		#else
 	// I DO NOT SUPPORT INT64 WITH MY REPLACEMENT FOR stdint.h UNLESS IT IS MSVC
+	//	UPDATE: I ADDED SOME SUPPORT NOW (crx.h), BUT RELIANCE ON IT IS CURRENTLY DISCOURAGED
 	typedef int32_t   intmax_t;
 	typedef uint32_t  uintmax_t;
+		#endif
 	#endif
 
 
-	#if(defined(_MSC_VER))
+	//IF YOU GET AN ERROR WITH BORLAND, OR A COMPILER THAT MIGHT BE DEFINING _MSC_VER, YOU MIGHT 
+	//		HAVE TO MOVE THE TEST FOR CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64 TO HERE
+	//		AS IN DONE IN BOOST. YOU MIGHT ALSO WANT TO MOVE THE LIMITS TO THEIR OWN REGION.
+	//LATER ADDED CHECK FOR ABSENT BOOST_BORLANDC TO HOPEFULY AVOID CONFLICT WITH BORLAND AT LEAST.
+	//LATER ADDED PROPER CHECK FOR MICROSOFT COMPILER
+	//#if(defined(_MSC_VER) && !defined(BOOST_BORLANDC))
+	#if(CRX__COMPILER__TYPE == CRX__COMPILER__TYPE__MICROSOFT)
 		// FROM MICROSOFT
 
 		// 7.18.2 Limits of specified-width integer types
@@ -472,7 +527,25 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 
 			//  8-bit types  ------------------------------------------------------------//
 
-			#if (UCHAR_MAX == 0xff) && !defined(INT8_C)
+			#if defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64) && !defined(INT8_C)
+				#define INT8_C(value)     value##i8
+
+				//#ifdef BOOST_BORLANDC
+				// NOTE THE DEFINITION FOR BOOST_BORLANDC WAS FROM V1.82 WHICH INCLUDED THE CODE
+				//		GEAR COMPILER AND A CHECK THAT __clang__ WAS NOT DEFINED BY THAT COMPILER.
+				#if((CRX__COMPILER__TYPE == CRX__COMPILER__TYPE__BORLAND) || \
+						((CRX__COMPILER__TYPE == CRX__COMPILER__TYPE__CODE_GEAR) && \
+								!defined(__clang__)))
+					//FROM BOOST: Borland bug: appending ui8 makes the type a signed char
+					#if(CRX__LAN__CPP)
+						#define UINT8_C(value)    static_cast<unsigned char>(value##u)
+					#else
+						#define UINT8_C(value)    ((unsigned char) value##u)
+					#endif
+				#else
+					#define UINT8_C(value)    value##ui8
+				#endif
+			#elif (UCHAR_MAX == 0xff) && !defined(INT8_C)
 				#if(CRX__LAN__CPP)
 					#define INT8_C(value) static_cast<int8_t>(value)
 					#define UINT8_C(value) static_cast<uint8_t>(value##u)
@@ -484,7 +557,10 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 
 			//  16-bit types  -----------------------------------------------------------//
 
-			#if (USHRT_MAX == 0xffff) && !defined(INT16_C)
+			#if defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64) && !defined(INT16_C)
+				#define INT16_C(value)    value##i16
+				#define UINT16_C(value)   value##ui16
+			#elif (USHRT_MAX == 0xffff) && !defined(INT16_C)
 				#if(CRX__LAN__CPP)
 					#define INT16_C(value) static_cast<int16_t>(value)
 					#define UINT16_C(value) static_cast<uint16_t>(value##u)
@@ -496,7 +572,10 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 
 			//  32-bit types  -----------------------------------------------------------//
 			#ifndef INT32_C
-				#if(UINT_MAX == 0xffffffff)
+				#if defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64)
+					#define INT32_C(value)    value##i32
+					#define UINT32_C(value)   value##ui32
+				#elif(UINT_MAX == 0xffffffff)
 					#define INT32_C(value) value
 					#define UINT32_C(value) value##u
 				#elif ULONG_MAX == 0xffffffff
@@ -507,10 +586,14 @@ OTHERWISE, INCLUDE THIS FILE DIRECTLY.
 
 			//  64-bit types + intmax_t and uintmax_t  ----------------------------------//
 			#ifndef INT64_C
-				//BOOST_HAS_LONG_LONG IS ASSUMED NOT DEFINED AT THIS POINT. I MIGHT
-				//		ADD SUPPORT FOR THIS IN THE FUTURE, BUT THE MACRO IS NOT FUNDAMENTAL
-				//		AND THEREFORE WOULD BE KEPT FOR THIS VERY FILE.
-				#if(defined(BOOST_HAS_LONG_LONG) && \
+				#if defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64)
+					#define UINT64_C(value)   value##ui64
+					#define INTMAX_C(value)   value##i64
+					#define UINTMAX_C(value)  value##ui64
+				//BOOST_HAS_LONG_LONG WAS ASSUMED NOT DEFINED ORIGINALLY. I EVENTUALLY
+				//		ADDED SUPPORT BUT THE MACRO IS NOT FUNDAMENTAL AND THEREFORE IS KEPT 
+				//		ABOVE IN THIS VERY FILE.
+				#elif(defined(CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG) && \
 						(defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || defined(ULONGLONG_MAX) || defined(_ULLONG_MAX) || defined(_LLONG_MAX)))
 
 					#if defined(__hpux)

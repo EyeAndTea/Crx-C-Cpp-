@@ -4612,6 +4612,7 @@ namespace crx
 				AND NOT TO CRX__VAR__TYPE_POINTER.
 		*/
 		private: CRX__BOOST_FORCEINLINE void emptyDynamicResourcesIfNecessaryForAssigment(unsigned char pType);
+		private: void template_emptyDynamicResourcesIfNecessaryForAssigment(unsigned char pType);
 
 		/*WARNING: pVar MUST NOT BE THE SAME INSTANCE AS this*/
 		private: void unsafeMoveAssignFromVar(Var & pVar);
@@ -4769,7 +4770,7 @@ namespace crx
 		{
 			//REMEMBER: THIS WILL SET INTERNAL TYPE TO CRX__VAR__TYPE_NULL, NOT CRX__VAR__TYPE_POINTER IF
 			//		THE CURRENT TYPE IS NOT ALREADY CRX__VAR__TYPE_POINTER
-			this->emptyDynamicResourcesIfNecessaryForAssigment(CRX__VAR__TYPE_POINTER);
+			this->template_emptyDynamicResourcesIfNecessaryForAssigment(CRX__VAR__TYPE_POINTER);
 
 			if(pT != NULL)
 			{
@@ -7487,77 +7488,11 @@ namespace crx
 
 	#ifdef CRX__BOOST_NO_INT64_T
 	//WARNING: THIS IS FOR BIG ENDIAN BY BYTE, NOT WORD
-	static bool var_isMachineUsingBigEndian()
-	{
-		union
-		{
-			uint32_t i;
-			char c[4];
-		} vBits = {0x01020304};
-
-		return (vBits.c[0] == 1);
-	}
-	CRX__BOOST_FORCEINLINE Var_BitsOfDouble var_getBitsOfDouble(uint32_t pHighBits, uint32_t pLowBits)
-	{
-		//VC6 Var_BitsOfDouble vBitsOfDouble = {};
-		Var_BitsOfDouble vBitsOfDouble; CRX__SET_TO_ZERO(Var_BitsOfDouble, vBitsOfDouble);
-		
-		if(var_isMachineUsingBigEndian()) //big endian
-		{
-			vBitsOfDouble.uBytes[0] = (pHighBits >> 24) & 0xFF;
-			vBitsOfDouble.uBytes[1] = (pHighBits >> 16) & 0xFF;
-			vBitsOfDouble.uBytes[2] = (pHighBits >> 8) & 0xFF;
-			vBitsOfDouble.uBytes[3] = pHighBits & 0xFF;
-			vBitsOfDouble.uBytes[4] = (pLowBits >> 24) & 0xFF;
-			vBitsOfDouble.uBytes[5] = (pLowBits >> 16) & 0xFF;
-			vBitsOfDouble.uBytes[6] = (pLowBits >> 8) & 0xFF;
-			vBitsOfDouble.uBytes[7] = pLowBits & 0xFF;
-		}
-		else	//little endian
-		{
-			vBitsOfDouble.uBytes[7] = (pHighBits >> 24) & 0xFF;
-			vBitsOfDouble.uBytes[6] = (pHighBits >> 16) & 0xFF;
-			vBitsOfDouble.uBytes[5] = (pHighBits >> 8) & 0xFF;
-			vBitsOfDouble.uBytes[4] = pHighBits & 0xFF;
-			vBitsOfDouble.uBytes[3] = (pLowBits >> 24) & 0xFF;
-			vBitsOfDouble.uBytes[2] = (pLowBits >> 16) & 0xFF;
-			vBitsOfDouble.uBytes[1] = (pLowBits >> 8) & 0xFF;
-			vBitsOfDouble.uBytes[0] = pLowBits & 0xFF;
-		}
-
-		return vBitsOfDouble;
-	}
-	CRX__BOOST_FORCEINLINE bool var_isDoubleEqualTo(double pDouble, uint32_t pHighBits, uint32_t pLowBits)
-	{
-		//VC6 Var_BitsOfDouble vBitsOfDouble = {};
-		Var_BitsOfDouble vBitsOfDouble; CRX__SET_TO_ZERO(Var_BitsOfDouble, vBitsOfDouble);
-
-
-		vBitsOfDouble.uDouble = pDouble;
-
-		if(var_isMachineUsingBigEndian())
-		{
-			return ((vBitsOfDouble.uBytes[0] == ((pHighBits >> 24) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[1] == ((pHighBits >> 16) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[2] == ((pHighBits >> 8) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[3] == (pHighBits & 0xFF)) &&
-					(vBitsOfDouble.uBytes[4] == ((pLowBits >> 24) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[5] == ((pLowBits >> 16) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[6] == ((pLowBits >> 8) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[7] == (pLowBits & 0xFF)));
-		}
-		else
-		{
-			return ((vBitsOfDouble.uBytes[7] == ((pHighBits >> 24) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[6] == ((pHighBits >> 16) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[5] == ((pHighBits >> 8) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[4] == (pHighBits & 0xFF)) &&
-					(vBitsOfDouble.uBytes[3] == ((pLowBits >> 24) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[2] == ((pLowBits >> 16) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[1] == ((pLowBits >> 8) & 0xFF)) &&
-					(vBitsOfDouble.uBytes[0] == (pLowBits  & 0xFF)));
-		}
-	}
+	CRX__LIB__PRIVATE_FUNCTION() bool var_isMachineUsingBigEndian();
+	CRX__LIB__PRIVATE_FUNCTION() CRX__BOOST_FORCEINLINE Var_BitsOfDouble var_getBitsOfDouble(
+			uint32_t pHighBits, uint32_t pLowBits);
+	CRX__LIB__PRIVATE_FUNCTION() CRX__BOOST_FORCEINLINE bool var_isDoubleEqualTo(double pDouble, 
+			uint32_t pHighBits, uint32_t pLowBits);
 	#endif
 	
 	CRX__LIB__PUBLIC_FUNCTION() Var::iterator begin(Var & pVar);

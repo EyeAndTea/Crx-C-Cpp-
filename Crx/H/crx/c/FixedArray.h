@@ -79,7 +79,8 @@ _CRX__C__FixedArray__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, p
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
 	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getCorrectCapacityBoundFor(size_t pCapacity), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeOf(pARRAY_TYPE_NAME const * pArray), ); \
+	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeOf( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
 	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeFor(size_t pSizeOfInternalBuffer), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
@@ -88,82 +89,96 @@ _CRX__C__FixedArray__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, p
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis)); \
 	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveConstruct(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME * pArray), ); \
+			pARRAY_TYPE_NAME * CRX_NOT_NULL pArray), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyConstruct(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
 	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## new( \
 			size_t pSizeOfInternalBuffer CRX_DEFAULT(0)), \
 	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## new(void)); \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveNew(pARRAY_TYPE_NAME * pArray); \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyNew(pARRAY_TYPE_NAME const * pArray); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveNew( \
+			pARRAY_TYPE_NAME * CRX_NOT_NULL pArray); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyNew( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_new2(pARRAY_TYPE_NAME const * pArray, \
-			size_t pStartIndex, size_t pWidth), ); \
+	PRIVATE pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_new2( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth), ); \
 	CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
-	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_unsafeCallElementsDestruct(pARRAY_TYPE_NAME * pThis, size_t pStartIndex, \
-			size_t pEndIndex), ); \
+	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_unsafeCallElementsDestruct( \
+			pARRAY_TYPE_NAME * pThis, size_t pStartIndex, size_t pEndIndex), ); \
 	CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## destruct(pARRAY_TYPE_NAME * pThis), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## free(pARRAY_TYPE_NAME * pThis); \
 	PUBLIC pSIZE_T pARRAY_MEMBER_FUNCTIONS_PREFIX ## getLength(pARRAY_TYPE_NAME const * pThis); \
 	PUBLIC pSIZE_T pARRAY_MEMBER_FUNCTIONS_PREFIX ## getCapacity(pARRAY_TYPE_NAME const * pThis); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## empty(pARRAY_TYPE_NAME * pThis); \
-	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_fastInsertSpaceAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth); \
+	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_fastInsertSpaceAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, size_t pWidth); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyAssignFrom2(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyAssignFrom(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * pElement); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), ); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE pElement), ); \
-	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, size_t pIndex); \
-	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex); \
-	CRXM__IFELSE2(pIS_COPYABLE, \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
-			pELEMENT_TYPE * pReturn, size_t pIndex), \
-	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex)), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
-	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE const * pElement), ); \
-	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
-			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pop(pARRAY_TYPE_NAME * pThis); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement); \
-	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), ); \
-	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
-			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement), ); \
+	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex); \
+	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet( \
+			pARRAY_TYPE_NAME const * pThis, size_t pIndex); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGetTo(pARRAY_TYPE_NAME const * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pReturn, size_t pIndex), \
+	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
+			size_t pIndex)), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertCArrayAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pArray, size_t pWidth), ); \
-	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth); \
-	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## getElementsPointer(pARRAY_TYPE_NAME * pThis); \
-	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGetElementsPointer(pARRAY_TYPE_NAME const * pThis);
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pop(pARRAY_TYPE_NAME * pThis); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement); \
+	CRXM__IFELSE2(pIS_COPYABLE, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
+			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE pElement), ); \
+	CRXM__IFELSE2(pIS_COPYABLE, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementsAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, \
+			size_t pWidth), ); \
+	CRXM__IFELSE2(pIS_COPYABLE, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertCArrayAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pArray, size_t pWidth), ); \
+	CRXM__IFELSE2(pIS_COPYABLE, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement, \
+			size_t pNumberOfCopies), ); \
+	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
+			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt2( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, size_t pWidth); \
+	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## getElementsPointer( \
+			pARRAY_TYPE_NAME * pThis); \
+	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGetElementsPointer( \
+			pARRAY_TYPE_NAME const * pThis);
 //#END_DEFINE
 
 
@@ -611,6 +626,9 @@ _CRX__C__FixedArray__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pE
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pThis, pIndex, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, size_t pIndex) \
 	{ \
@@ -622,16 +640,25 @@ _CRX__C__FixedArray__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pE
 		{return pARRAY_MEMBER_FUNCTIONS_PREFIX ## get((pARRAY_TYPE_NAME *) pThis, pIndex);} \
 	\
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGetTo(pARRAY_TYPE_NAME const * pThis, \
 			pELEMENT_TYPE * pReturn, size_t pIndex), \
 	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex)) \
 	{ \
 		assert(pIndex < pThis->gPrivate_length); \
 	 \
-		CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+		CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 		( \
-			pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, pThis->gBuffer + pIndex); \
+			CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+			pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
+	\
+			CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+			( \
+				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, pThis->gBuffer + pIndex); \
+			) \
+			( \
+				memcpy(pReturn, pThis->gBuffer + pIndex, sizeof(pELEMENT_TYPE)); \
+			) \
 		) \
 		( \
 			return *(pThis->gBuffer + pIndex); \
@@ -683,6 +710,9 @@ _CRX__C__FixedArray__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pE
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pThis, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pop(pARRAY_TYPE_NAME * pThis) \
 	{ \
@@ -710,7 +740,7 @@ _CRX__C__FixedArray__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pE
 		) \
 	} \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE const * pElement) \
 	{ \
 		CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR), \
@@ -741,7 +771,12 @@ _CRX__C__FixedArray__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pE
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement) \
-		{pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pThis, pIndex, &pElement);}, ) \
+	{ \
+		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pThis, pIndex, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
+	}, ) \
 	\
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \

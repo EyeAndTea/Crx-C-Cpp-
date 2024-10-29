@@ -612,7 +612,7 @@ DESIGN NOTES:
 		pIS_NO_ERROR, pNUMBER_OF_INSERTED_CHARACTERS) \
 	if(pCODE_POINT <= 0x007Ful) \
 	{ \
-		if(pAVAILABLE_LENGTH > 1) \
+		if(pAVAILABLE_LENGTH > 0) \
 		{ \
 			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
 			( \
@@ -631,7 +631,7 @@ DESIGN NOTES:
 	} \
 	else if(pCODE_POINT <= 0x07FFul) \
 	{ \
-		if(pAVAILABLE_LENGTH > 2) \
+		if(pAVAILABLE_LENGTH > 1) \
 		{ \
 			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
 			( \
@@ -652,7 +652,7 @@ DESIGN NOTES:
 	} \
 	else if(pCODE_POINT <= 0xFFFFul) \
 	{ \
-		if((pAVAILABLE_LENGTH > 3) && !((pCODE_POINT >= 0xD800ul) && (pCODE_POINT <= 0xDFFFul)))\
+		if((pAVAILABLE_LENGTH > 2) && !((pCODE_POINT >= 0xD800ul) && (pCODE_POINT <= 0xDFFFul)))\
 		{ \
 			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
 			( \
@@ -675,7 +675,7 @@ DESIGN NOTES:
 	} \
 	else if(pCODE_POINT <= 0x10FFFFul) \
 	{ \
-		if(pAVAILABLE_LENGTH > 4) \
+		if(pAVAILABLE_LENGTH > 3) \
 		{ \
 			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
 			( \
@@ -758,6 +758,300 @@ DESIGN NOTES:
 			pCHARS_POINTER[4] = '\0'; \
 		) \
 	}
+//#END_DEFINE
+
+//THIS IS FOR INTERNAL USE ONLY. THIS IS FOR PRESERVING ERRORS FROM EXTERNAL SOURCES
+//		EXTENDED UTF8 IS INVALID UTF8, AND IT IS "UTF8" THAT ALLOWS CODE POINTS UP 32BITS.
+#define CRX__C__CHAR__INSERT_EXTENDED_UTF8_CHAR(pCODE_POINT, pCHARS_POINTER, pAVAILABLE_LENGTH, \
+		pIS_NO_ERROR, pNUMBER_OF_INSERTED_CHARACTERS) \
+	if(pCODE_POINT <= 0x007Ful) \
+	{ \
+		if(pAVAILABLE_LENGTH > 0) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)pCODE_POINT; \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 1; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)pCODE_POINT; \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 1; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0x07FFul) \
+	{ \
+		if(pAVAILABLE_LENGTH > 1) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)((6 << 5) | (pCODE_POINT >> 6)); \
+				pCHARS_POINTER[1] = (unsigned char)((2 << 6) | (pCODE_POINT & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 2; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)((6 << 5) | (pCODE_POINT >> 6)); \
+				*(pCHARS_POINTER++) = (unsigned char)((2 << 6) | (pCODE_POINT & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 2; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0xFFFFul) \
+	{ \
+		if((pAVAILABLE_LENGTH > 2) && !((pCODE_POINT >= 0xD800ul) && (pCODE_POINT <= 0xDFFFul)))\
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)((14 << 4) |  (pCODE_POINT >> 12)); \
+				pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 6) & 0x3F)); \
+				pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ( pCODE_POINT       & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 3; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)((14 << 4) |  (pCODE_POINT >> 12)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 6) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ( pCODE_POINT       & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 3; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0x1FFFFFul) \
+	{ \
+		if(pAVAILABLE_LENGTH > 3) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)((30 << 3) |  (pCODE_POINT >> 18)); \
+				pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 4; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)((30 << 3) |  (pCODE_POINT >> 18)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 4; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0x3FFFFFFul) \
+	{ \
+		if(pAVAILABLE_LENGTH > 4) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)((62 << 2) |  (pCODE_POINT >> 24)); \
+				pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 5; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)((62 << 2) |  (pCODE_POINT >> 24)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 5; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0x7FFFFFFFul) \
+	{ \
+		if(pAVAILABLE_LENGTH > 5) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = (unsigned char)((126 << 1) |  (pCODE_POINT >> 30)); \
+				pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+				pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				pCHARS_POINTER[5] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 6; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = (unsigned char)((126 << 1) |  (pCODE_POINT >> 30)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 6; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else if(pCODE_POINT <= 0xFFFFFFFFul) \
+	{ \
+		if(pAVAILABLE_LENGTH > 6) \
+		{ \
+			CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+			( \
+				pCHARS_POINTER[0] = 254; \
+				pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 30) & 0x3F)); \
+				pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+				pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				pCHARS_POINTER[5] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				pCHARS_POINTER[6] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pNUMBER_OF_INSERTED_CHARACTERS = 7; \
+			) \
+			( \
+				*(pCHARS_POINTER++) = 254; \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 30) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+				*(pCHARS_POINTER++) = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+\
+				pAVAILABLE_LENGTH = pAVAILABLE_LENGTH - 7; \
+			) \
+		} \
+		else \
+			{pIS_NO_ERROR = false;} \
+	} \
+	else \
+		{pIS_NO_ERROR = false;} \
+//#END_DEFINE
+
+//THIS IS FOR INTERNAL USE ONLY. THIS IS FOR PRESERVING ERRORS FROM EXTERNAL SOURCES
+//		EXTENDED UTF8 IS INVALID UTF8, AND IT IS "UTF8" THAT ALLOWS CODE POINTS UP 32BITS.
+#define CRX__C__CHAR__FAST_INSERT_EXTENDED_UTF8_CHAR(pCODE_POINT, pCHARS_POINTER, \
+		pNUMBER_OF_INSERTED_CHARACTERS) \
+	if(pCODE_POINT <= 0x007Ful) \
+	{ \
+		pCHARS_POINTER[0] = (unsigned char)pCODE_POINT; \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 1; \
+		) \
+		( \
+			pCHARS_POINTER[1] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0x07FFul) \
+	{ \
+		pCHARS_POINTER[1] = (unsigned char)((2 << 6) | (pCODE_POINT & 0x3F)); \
+		pCHARS_POINTER[0] = (unsigned char)((6 << 5) | (pCODE_POINT >> 6)); \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 2; \
+		) \
+		( \
+			pCHARS_POINTER[2] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0xFFFFul) \
+	{ \
+		pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ( pCODE_POINT       & 0x3F)); \
+		pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 6) & 0x3F)); \
+		pCHARS_POINTER[0] = (unsigned char)((14 << 4) |  (pCODE_POINT >> 12)); \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 3; \
+		) \
+		( \
+			pCHARS_POINTER[3] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0x1FFFFFul) \
+	{ \
+		pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+		pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+		pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+		pCHARS_POINTER[0] = (unsigned char)((30 << 3) |  (pCODE_POINT >> 18)); \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 4; \
+		) \
+		( \
+			pCHARS_POINTER[4] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0x3FFFFFFul) \
+	{ \
+		pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+		pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+		pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+		pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+		pCHARS_POINTER[0] = (unsigned char)((62 << 2) |  (pCODE_POINT >> 24)); \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 5; \
+		) \
+		( \
+			pCHARS_POINTER[5] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0x7FFFFFFFul) \
+	{ \
+			pCHARS_POINTER[5] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+			pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+			pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+			pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+			pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+			pCHARS_POINTER[0] = (unsigned char)((126 << 1) |  (pCODE_POINT >> 30)); \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 6; \
+		) \
+		( \
+			pCHARS_POINTER[6] = '\0'; \
+		) \
+	} \
+	else if(pCODE_POINT <= 0xFFFFFFFFul) \
+	{ \
+		pCHARS_POINTER[6] = (unsigned char)(( 2 << 6) | ( pCODE_POINT        & 0x3F)); \
+		pCHARS_POINTER[5] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >>  6) & 0x3F)); \
+		pCHARS_POINTER[4] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 12) & 0x3F)); \
+		pCHARS_POINTER[3] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 18) & 0x3F)); \
+		pCHARS_POINTER[2] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 24) & 0x3F)); \
+		pCHARS_POINTER[1] = (unsigned char)(( 2 << 6) | ((pCODE_POINT >> 30) & 0x3F)); \
+		pCHARS_POINTER[0] = 254; \
+	\
+		CRXM__IFELSE(pNUMBER_OF_INSERTED_CHARACTERS) \
+		( \
+			pNUMBER_OF_INSERTED_CHARACTERS = 7; \
+		) \
+		( \
+			pCHARS_POINTER[7] = '\0'; \
+		) \
+	} \
 //#END_DEFINE
 
 #define CRX__C__CHAR__INSERT_UTF16_CHAR(pIS_BIG_ENDIAN, pCODE_POINT, pCHARS_POINTER, \
@@ -1022,6 +1316,17 @@ DESIGN NOTES:
 	pCHARS_POINTER[4] = '\0';, ) \
 //#END_DEFINE
 
+#define CRX__C__IS_CODE_POINT_ASCII_NUMERIC(pCODE_POINT) ((pCODE_POINT >= 48) && \
+		(pCODE_POINT <= 57))
+#define CRX__C__IS_CODE_POINT_ASCII_UPPER_CASE_ALPHABET(pCODE_POINT) ((pCODE_POINT >= 65) && \
+		(pCODE_POINT <= 90))
+#define CRX__C__IS_CODE_POINT_ASCII_LOWER_CASE_ALPHABET(pCODE_POINT) ((pCODE_POINT >= 97) && \
+		(pCODE_POINT <= 122))
+#define CRX__C__IS_CODE_POINT_ASCII_CONTROL(pCODE_POINT) (((pCODE_POINT >= 0) && \
+		(pCODE_POINT <= 31)) || (pCODE_POINT == 127))
+#define CRX__C__IS_CODE_POINT_ASCII_HEX_DIGIT(pCODE_POINT) (((pCODE_POINT >= 48) && \
+		(pCODE_POINT <= 57)) || ((pCODE_POINT >= 65) && (pCODE_POINT <= 70)) || \
+		((pCODE_POINT >= 97) && (pCODE_POINT <= 102)))
 
 CRX__LIB__C_CODE_END()
 		

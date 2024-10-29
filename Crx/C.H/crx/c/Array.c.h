@@ -265,6 +265,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Array * crx_c_array_private_new2(Crx_C_Array
 	CRX_SCOPE_META
 	assert(pStartIndex + pWidth <= pArray->gPrivate_length);
 
+	/*if(!pArray->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}*/
+
 	CRX_SCOPE
 	Crx_C_Array * vReturn = crx_c_array_new(pArray->gPrivate_typeBluePrint, 
 			pArray->gSIZE_OF_INTERNAL_BUFFER, pWidth);
@@ -715,6 +718,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_copyAssignFrom2(Crx_C_Array * pTh
 	assert(pThis->gPrivate_typeBluePrint->gBYTE_SIZE == pArray->gPrivate_typeBluePrint->gBYTE_SIZE);
 	assert(pStartIndex + pWidth <= pArray->gPrivate_length);
 
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
 	CRX_SCOPE
 	Crx_C_Array * vArray = pArray;
 	bool vIsSameArray = CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis, pArray, true);
@@ -846,6 +852,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_moveAndSetAt(Crx_C_Array * pThis,
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_setAt(Crx_C_Array * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -867,6 +878,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_setAt(Crx_C_Array * pThis, size_t
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_array_get(Crx_C_Array * pThis, size_t pIndex)
 {
@@ -877,20 +889,30 @@ CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_array_get(Crx_C_Array * pThi
 	else
 		{return (pThis->gPrivate_internalBuffer + (pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));}
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_copyGet(Crx_C_Array const * pThis, unsigned char * pReturn, size_t pIndex)
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_copyGetTo(Crx_C_Array const * pThis, 
+		unsigned char * pReturn, size_t pIndex)
 {
 	assert(pIndex < pThis->gPrivate_length);
+
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+		{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(pReturn);}
 
 	if(pThis->gPrivate_elements != NULL)
 	{
 		if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
 		{
 			(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT)(pReturn, 
-					pThis->gPrivate_elements + (pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+					pThis->gPrivate_elements + 
+					(pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
 		}
 		else
 		{
-			memcpy(pReturn, pThis->gPrivate_elements + (pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
+			memcpy(pReturn, 
+					pThis->gPrivate_elements + 
+					(pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
 					pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 		}
 	}
@@ -899,11 +921,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_copyGet(Crx_C_Array const * pThis
 		if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
 		{
 			(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT)(pReturn, 
-					pThis->gPrivate_internalBuffer + (pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+					pThis->gPrivate_internalBuffer + 
+					(pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
 		}
 		else
 		{
-			memcpy(pReturn, pThis->gPrivate_internalBuffer + (pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
+			memcpy(pReturn, 
+					pThis->gPrivate_internalBuffer + 
+					(pIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
 					pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 		}
 	}
@@ -951,6 +976,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_tryMoveAndPush(Crx_C_Array * pThi
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_push(Crx_C_Array * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 	bool vReturn;
 
@@ -972,12 +1002,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_push(Crx_C_Array * pThis, void * 
 			{vReturn = crx_c_array_tryMoveAndPush(pThis, pElement);}
 	}
 	
-	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
-			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)) &&
-			vReturn)
-		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	if(((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL))&& 
+			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || 
+			(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
+	{
+		if(vReturn)
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(vElement);}
+		}
+	}
 
 	return vReturn;	
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_moveAndFastPush(Crx_C_Array * pThis, void * pElement)
 {
@@ -1012,6 +1055,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_moveAndFastPush(Crx_C_Array * pTh
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastPush(Crx_C_Array * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1035,6 +1083,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastPush(Crx_C_Array * pThis, voi
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_pop(Crx_C_Array * pThis)
 {
@@ -1086,6 +1135,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_tryMoveAndInsertElementAt(Crx_C_A
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_insertElementAt(Crx_C_Array * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 	bool vReturn;
 
@@ -1107,12 +1161,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_insertElementAt(Crx_C_Array * pTh
 			{vReturn = crx_c_array_tryMoveAndInsertElementAt(pThis, pIndex, pElement);}
 	}
 
-	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
-			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)) &&
-			vReturn)
-		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	if(((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)) && 
+			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || 
+			(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
+	{
+		if(vReturn)
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(vElement);}
+		}
+	}
 		
 	return vReturn;
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_moveAndFastInsertElementAt(Crx_C_Array * pThis, size_t pIndex,
 		void * pElement)
@@ -1145,6 +1212,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_moveAndFastInsertElementAt(Crx_C_
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertElementAt(Crx_C_Array * pThis, size_t pIndex, 
 		void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1168,13 +1240,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertElementAt(Crx_C_Array *
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_insertElementsAt(Crx_C_Array * pThis, size_t pIndex,
 		Crx_C_Array * pArray, size_t pStartIndex, size_t pWidth)
 {
 	CRX_SCOPE_META
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return true;}
 
 	CRX_SCOPE
@@ -1243,7 +1318,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertElementsAt(Crx_C_Array 
 	CRX_SCOPE_META
 	assert(!CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis, pArray, false));
 
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -1282,7 +1359,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertElementsAt(Crx_C_Array 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_insertCArrayAt(Crx_C_Array * pThis, size_t pIndex,
 		void * pArray, size_t pWidth)
 {
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return true;}
 	
 	if(crx_c_array_private_insertSpaceAt(pThis, pIndex, pWidth))
@@ -1315,7 +1394,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertCArrayAt(Crx_C_Array * 
 		void * pArray, size_t pWidth)
 {
 	CRX_SCOPE_META
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -1345,7 +1426,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertCArrayAt(Crx_C_Array * 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_array_insertElementCopiesAt(Crx_C_Array * pThis, size_t pIndex,
 		void * pElement, size_t pNumberOfCopies)
 {
-	if(pNumberOfCopies == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pNumberOfCopies == 0)
 		{return true;}
 
 	if(crx_c_array_private_insertSpaceAt(pThis, pIndex, pNumberOfCopies))
@@ -1404,7 +1487,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_fastInsertElementCopiesAt(Crx_C_A
 		void * pElement, size_t pNumberOfCopies)
 {
 	CRX_SCOPE_META
-	if(pNumberOfCopies == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pNumberOfCopies == 0)
 		{return;}
 
 	crx_c_array_private_fastInsertSpaceAt(pThis, pIndex, pNumberOfCopies);

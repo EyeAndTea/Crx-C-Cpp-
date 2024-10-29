@@ -6,6 +6,8 @@
 #else
 
 
+
+
 #if(defined(BOOST_VERSION))
 	#if((BOOST_VERSION >= 104700) || defined(__cplusplus) || defined(BOOST_NO_STDLIB_CONFIG))
 		#include "boost/config.hpp"
@@ -110,6 +112,14 @@ NOTES ABOUT BOOST:
 				- BOOST_NO_CXX11_UNRESTRICTED_UNION: THIS WAS DEFINED IN 1.73.0 OR POSSIBLE 1.72.0 WHICH I WAS
 						UNABLE TO CHECK FROM THE ONLINE DOCS, AND DID NOT BOTHER TO CHECK THE ITS CODE EITHER.
 				- BOOST_HAS_STDINT_H: THIS WAS FIRST DEFINED IN 1.25.0
+				- BOOST_HAS_LONG_LONG: THIS WAS FIRST DEFINED IN 1.25.1. 
+						V1.82.0 WAS NO LONGER DOING CORRECT DETECTING FOR OLDER MSVC WHEN COMPARED
+						TO V1.48.0. I DO NOT KNOW WHEN THIS STARTED. CURRENTLY CODE BELOW
+						DOES NOT ACCOUNT FOR THAT.
+				- BOOST_HAS_MS_INT64: THIS WAS FIRST DEFINED IN 1.28.0
+						V1.82.0 WAS NO LONGER DOING CORRECT DETECTING FOR OLDER MSVC WHEN COMPARED
+						TO V1.48.0. I DO NOT KNOW WHEN THIS STARTED. CURRENTLY CODE BELOW
+						DOES NOT ACCOUNT FOR THAT.
 		- PREDEF:
 			- THIS ALLOWS NORMALIZATION ACROSS 
 		- ASSERT:
@@ -159,6 +169,8 @@ NOTES ABOUT BOOST:
 	- C++: CPP AND CPP.H FILES BECAUSE THE C++ LANGUAGE DOES NOT ALLOW DEFINING THE DEFAULT
 			VARIABLES OF THE PARAMETES IN BOTH THE DECLERATION AND DEFINITION.
 	- C: C AND H FILES BECAUSE THE C LANGUAGE DOES NOT ALLOW SPECIFYING DEAULTS AT ALL.
+			THIS IS REQUIRED WHEN THE DEFAULT VALUE, 'T', LEADS TO A BEHAVIOR THAT IS NOT
+			EQUIVILANT TO EXPLICITLY PASSING 'T'
 */
 #define CRX_DEFAULT(...)
 /*
@@ -172,6 +184,10 @@ NOTE: THS WAS REJECTED BECAUSE IT INTRODUCES A COGNITIVE LOAD WHEN TRYING TO PRO
 		KEEPING THIS HERE, HOWEVER, IN CASE I FORGET AGAIN WHY I REJECTED THIS APPROACH.
 */
 //#define CRX_REGION(...) 1
+/*
+- INDICATES FRIEND CLASSES, AS CLASS AND FRIEND CLASS ARE DEFINED IN MY STANDARD.
+*/
+#define CRX_FRIEND_CLASS(T)
 /*
 FOR C ONLY
 
@@ -239,12 +255,721 @@ EXAMPLE. INSTEAD OF
 #define CRX_SCOPE {
 #define CRX_SCOPE_END }}
 
-#pragma region BOOST //{
-//CRX__BOOST_NO_INT64_T
-#if(!defined(BOOST_VERSION) || ((BOOST_VERSION < 102102) || defined(BOOST_NO_INT64_T)))
-	#define CRX__BOOST_NO_INT64_T
+//CRX_REGISTER
+//CRX_AUTO
+#if(defined(__cplusplus) && (__cplusplus >= 201103L))
+	#define CRX_REGISTER 
+	#define CRX_AUTO
+#else
+	#define CRX_REGISTER register
+	/*
+		THE FOLLOWING MIGHT NEED RECHECKING AFTER C23 WHERE auto MIGHT BECOME USED FOR TYPE
+		INFERENCE, WHICH IS FORBIDDEN IN MY STANDARD.
+	*/
+	#define CRX_AUTO auto
 #endif
+
+#pragma region COMPILER //{
+//THE FOLLOWING IS MEANT FOR NORMALIZING CODE ONLY, AND IS NOT MEANT CURRENTLY FOR CLIENT CODE.
+
+//REFERENCE: https://sourceforge.net/p/predef/wiki/Compilers/
+//BOOST V1.82.0
+//CMakeCXXCompilerId.cpp
+#define CRX__COMPILER__TYPE__NULL 0
+#define CRX__COMPILER__TYPE__NVIDIA_CUDA 1
+#define CRX__COMPILER__TYPE__GCC_XML 2
+#define CRX__COMPILER__TYPE__CRAY 3
+#define CRX__COMPILER__TYPE__COMEAU 4
+#define CRX__COMPILER__TYPE__PATH_SCALE 5
+#define CRX__COMPILER__TYPE__INTEL 6
+#define CRX__COMPILER__TYPE__CLANG_ARM 7
+#define CRX__COMPILER__TYPE__APPLE_CLANG 8
+#define CRX__COMPILER__TYPE__CLANG 9
+#define CRX__COMPILER__TYPE__DIGITAL_MARS 10
+#define CRX__COMPILER__TYPE__DIAB 11
+#define CRX__COMPILER__TYPE__PGI 12
+#define CRX__COMPILER__TYPE__GCC 13
+#define CRX__COMPILER__TYPE__KAI 14
+#define CRX__COMPILER__TYPE__SGI_MIPSPRO 15
+#define CRX__COMPILER__TYPE__COMPAQ_TRU64 16
+#define CRX__COMPILER__TYPE__GREEN_HILL 17
+#define CRX__COMPILER__TYPE__CODE_GEAR 18
+#define CRX__COMPILER__TYPE__EMBARCADERO 19
+#define CRX__COMPILER__TYPE__BORLAND 20
+#define CRX__COMPILER__TYPE__WATCOM 21
+#define CRX__COMPILER__TYPE__OPEN_WATCOM 22
+#define CRX__COMPILER__TYPE__CODE_WARRIOR 23
+#define CRX__COMPILER__TYPE__SUN_PRO 24
+#define CRX__COMPILER__TYPE__HP_ACC 25
+#define CRX__COMPILER__TYPE__MPW 26
+#define CRX__COMPILER__TYPE__SYMANTEC 27
+#define CRX__COMPILER__TYPE__IBM_ZOS 28
+#define CRX__COMPILER__TYPE__IBM_XL_CLANG 29
+#define CRX__COMPILER__TYPE__IBM_XL 30
+#define CRX__COMPILER__TYPE__TEXAS_INSTRUMENTS 31
+#define CRX__COMPILER__TYPE__USL 32
+#define CRX__COMPILER__TYPE__ARMCC 33
+#define CRX__COMPILER__TYPE__ADSP 34
+#define CRX__COMPILER__TYPE__IAR 35
+#define CRX__COMPILER__TYPE__MICROSOFT 36
+
+#define CRX__COMPILER__UNKOWN_VERSION 399999999
+
+/*
+STRICTLY, THE CHECKING BELOW NEEDS TO CASCADE, SUCH AS IF THE COMPILER IS 'X' AND IT
+PRETENDS TO BE 'Y', THEN IF THE CHECK FOR 'X' IS EXPLICITLY MADE TO FAIL, THE CHECK OF
+'Y' IS WHAT SUCCEEDS. IF THE CONDITION FOR X IS COND(X) AND THE CONDITION FOR Y IS COND(Y),
+THEN WHEN THE COMPILER IS 'X', BOTH CONDITIONS MUST EVALUATE TO TRUE. HENCE THE FOLLOWING IS
+WRONG,
+		if(COND(Y))
+			.
+		elseif(COND(X))
+BECAUSE IT DOES NOT CASCADE CORRECTLY AS REQUIRED. INSTEAD, THE ORDER SHOULD BE
+		if(COND(X))
+			.
+		else if(COND(Y))
+NOW IF THE FIRST 'if' IS DELIBRATELY MADE TO FAIL WHEN THE COMPILER IS 'X', SUCH AS WITH
+		if(false && COND(X))
+			.
+THE SECOND if SUCCEEDS. HOWEVER THIS IS NOT ALWAYS THIS SIMPLE. CONSIDER IF 'Z' ALSO PRETENDS TO
+BE 'Y', THEN THE ORDER MUST BE
+		if(COND(X))
+			.
+		else if(COND(Z))
+			.
+		else if(COND(Y))
+OR
+		if(COND(Z))
+			.
+		else if(COND(X))
+			.
+		else if(COND(Y))
+IN OTHER WORDS, COND(Z) IS ONLY TRUE IF THE COMPILER IS Z, AND COND(X) IS ONLY TRUE IF THE COMPILER
+IS X, BUT COND(Y) MUST EVALUATE TRUE FOR ALL THREE COMPILERS.
+
+THIS CASCADING BEHAVIOR IS ENCOURAGED BECAUSE IN THE FUTURE THE SAME EXACT CODE BELOW COULD
+BE REPEATED TO DETECT THE 'FAKE' COMPILERS LIKE 'Y' ABOVE. FOR NOW, THE CODE BELOW IS NOT PROVEN
+TO CASCADE AS EXPLAINED ABOVE. ALSO NOTE THAT CASCADING MIGHT BE IMPOSSIBLE.
+*/
+#if(defined(__CUDACC__))
+	//THIS COULD HAVE __clang__, OR _MSC_VER DEFINED.
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__NVIDIA_CUDA
+	
+	#if(defined(__CUDACC_VER_MAJOR__))
+		#define CRX__COMPILER__MAJOR_VERSION __CUDACC_VER_MAJOR__
+	#endif
+	#if(defined(__CUDACC_VER_MINOR__))
+		#define CRX__COMPILER__MINOR_VERSION __CUDACC_VER_MINOR__
+	#endif
+	#if(defined(__CUDACC_VER_BUILD__))
+		#define CRX__COMPILER__BUILD_VERSION __CUDACC_VER_BUILD__
+	#endif
+#elif(defined(__GCCXML__))
+	//THIS COULD HAVE __MINGW32__, _MSC_VER, linux, __linux, __linux__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__GCC_XML
+
+	#if(defined(__GCCXML_GNUC__))
+		#define CRX__COMPILER__MAJOR_VERSION __GCCXML_GNUC__
+	#endif
+	#if(defined(__GCCXML_GNUC_MINOR__))
+		#define CRX__COMPILER__MINOR_VERSION __GCCXML_GNUC_MINOR__
+	#endif
+	#define CRX__COMPILER__BUILD_VERSION 0
+#elif(defined(_CRAYC))
+	//THIS COULD HAVE __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__, __EDG__, __EDG_VERSION__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__CRAY
+
+	#define CRX__COMPILER__PRIVATE__CRAY__x 9867657 // Arbitrary number
+	#define CRX__COMPILER__PRIVATE__CRAY__APPEND(MACRO) CRX__COMPILER__PRIVATE__CRAY__APPEND__DO(MACRO)
+	#define CRX__COMPILER__PRIVATE__CRAY__APPEND__DO(MACRO) CRX__COMPILER__PRIVATE__CRAY__##MACRO
+	
+	#if(defined(_RELEASE_MAJOR))
+		#define CRX__COMPILER__MAJOR_VERSION _RELEASE_MAJOR
+	#endif
+	#if(defined(_RELEASE_MINOR))
+		#define CRX__COMPILER__MINOR_VERSION _RELEASE_MINOR
+	#endif
+
+	#if(CRX__COMPILER__PRIVATE__CRAY__x == CRX__COMPILER__PRIVATE__CRAY__APPEND(_RELEASE_PATCHLEVEL))
+		// This is a developer build.
+		// _RELEASE_PATCHLEVEL IS DEFINED AS x, AND x IS NOT DEFINED AS A MACRO.
+		// _RELEASE_MAJOR AND _RELEASE_MINOR CONTINUE TO BE DEFINED
+		#define CRX__COMPILER__BUILD_VERSION 0
+	#else
+		#define CRX__COMPILER__BUILD_VERSION _RELEASE_PATCHLEVEL
+	#endif
+	
+	#undef CRX__COMPILER__PRIVATE__CRAY__x
+	#undef CRX__COMPILER__PRIVATE__CRAY__APPEND
+	#undef CRX__COMPILER__PRIVATE__CRAY__APPEND__DO
+#elif(defined(__COMO__))
+	//THIS COULD HAVE _MSC_VER, __EDG__, __EDG_VERSION__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__COMEAU
+	
+	//__COMO_VERSION__ IS FOUR DIGITS FROM WHAT I HAVE SEEN.
+	#if(defined(__COMO_VERSION__))
+		#define CRX__COMPILER__MAJOR_VERSION (__COMO_VERSION__ / 100)
+	#endif
+	#if(defined(__COMO_VERSION__))
+		#define CRX__COMPILER__MINOR_VERSION (__COMO_VERSION__ % 100)
+	#endif
+	#define CRX__COMPILER__BUILD_VERSION 0
+#elif(defined(__PATHSCALE__) && defined(__PATHCC__))
+	//THIS COULD HAVE _MSC_VER, __clang_major__, __GNUC__, __GNU__, _CRAYC, __CUDACC__, __CYGWIN__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__PATH_SCALE
+	
+	#if(defined(__PATHCC__))
+		#define CRX__COMPILER__MAJOR_VERSION __PATHCC__
+	#endif
+	#if(defined(__PATHCC_MINOR__))
+		#define CRX__COMPILER__MINOR_VERSION __PATHCC_MINOR__
+	#endif
+	#if(defined(__PATHCC_PATCHLEVEL__))
+		#define CRX__COMPILER__BUILD_VERSION __PATHCC_PATCHLEVEL__
+	#endif
+#elif(defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC))
+	//THIS COULD HAVE DEFINED _MSC_VER, __GNUC__, __GNUC_MINOR__, __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__INTEL
+	
+	#if(defined(__INTEL_COMPILER))
+		#if __INTEL_COMPILER == 9999
+			#define CRX__COMPILER__PRIVATE__INTEL_VERSION 1200 // FROM BOOST: Intel bug in 12.1.
+		#else
+			#define CRX__COMPILER__PRIVATE__INTEL_VERSION __INTEL_COMPILER
+		#endif
+	#elif defined(__ICL)
+		#define CRX__COMPILER__PRIVATE__INTEL_VERSION __ICL
+	#elif defined(__ICC)
+		#define CRX__COMPILER__PRIVATE__INTEL_VERSION __ICC
+	#elif defined(__ECC)
+		#define CRX__COMPILER__PRIVATE__INTEL_VERSION __ECC
+	#endif
+	
+	//SOMETHING IS WRONG HERE. INVESTIGATE
+	#if(defined(CRX__COMPILER__PRIVATE__INTEL_VERSION))
+		#define CRX__COMPILER__MAJOR_VERSION (CRX__COMPILER__PRIVATE__INTEL_VERSION / 100)
+	#endif
+	#if(defined(CRX__COMPILER__PRIVATE__INTEL_VERSION))
+		#define CRX__COMPILER__MINOR_VERSION (CRX__COMPILER__PRIVATE__INTEL_VERSION/10 % 10)
+	#endif
+	#if(defined(__INTEL_COMPILER_UPDATE))
+		#define CRX__COMPILER__BUILD_VERSION __INTEL_COMPILER_UPDATE
+	#elif(defined(CRX__COMPILER__PRIVATE__INTEL_VERSION))
+		#define CRX__COMPILER__BUILD_VERSION (CRX__COMPILER__PRIVATE__INTEL_VERSION % 10)
+	#endif
+#elif(defined(__clang__) && defined(__ARMCOMPILER_VERSION) && !defined(__ibmxl__) && \
+		!defined(__CODEGEARC__))
+	//THIS COULD HAVE _MSC_VER, __GNUC__, __GNU__, _CRAYC, __CUDACC__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__CLANG_ARM
+
+	#define CRX__COMPILER__MAJOR_VERSION (__ARMCOMPILER_VERSION/1000000)
+	#define CRX__COMPILER__MINOR_VERSION (__ARMCOMPILER_VERSION/10000 % 100)
+	#define CRX__COMPILER__BUILD_VERSION (__ARMCOMPILER_VERSION % 10000)
+#elif(defined(__clang__) && defined(__apple_build_version__) && !defined(__ibmxl__))
+	//THIS COULD HAVE _MSC_VER
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__APPLE_CLANG
+
+	#if(defined(__clang_major__))
+		#define CRX__COMPILER__MAJOR_VERSION __clang_major__
+	#endif
+	#if(defined(__clang_minor__))
+		#define CRX__COMPILER__MINOR_VERSION __clang_minor__
+	#endif
+	#if(defined(__clang_patchlevel__))
+		#define CRX__COMPILER__BUILD_VERSION (__clang_patchlevel__ % 100)
+	#endif
+#elif(defined(__clang__) && !defined(__ibmxl__) && defined(__ARMCOMPILER_VERSION) && \
+		!defined(__apple_build_version__))
+	//THIS COULD HAVE _MSC_VER, __GNUC__, __GNU__, _CRAYC, __CUDACC__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__CLANG
+
+	#if(defined(__clang_major__))
+		#define CRX__COMPILER__MAJOR_VERSION __clang_major__
+	#endif
+	#if(defined(__clang_minor__))
+		#define CRX__COMPILER__MINOR_VERSION __clang_minor__
+	#endif
+	#if(defined(__clang_patchlevel__))
+		#define CRX__COMPILER__BUILD_VERSION (__clang_patchlevel__ % 100)
+	#endif
+#elif(defined(__DMC__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__DIGITAL_MARS
+	
+	#define CRX__COMPILER__MAJOR_VERSION (__DMC__ / 256)
+	#define CRX__COMPILER__MINOR_VERSION ((__DMC__ % 256) / 16)
+	#define CRX__COMPILER__BUILD_VERSION (__DMC__ % 16)
+#elif(defined(__DCC__))
+	//THIS COULD HAVE __EDG__, __EDG_VERSION__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__DIAB
+
+	#if(defined(__EDG_VERSION__))
+		#define CRX__COMPILER__MAJOR_VERSION (__EDG_VERSION__ / 100)
+		#define CRX__COMPILER__MINOR_VERSION (__EDG_VERSION__ % 100)
+		#define CRX__COMPILER__BUILD_VERSION 0
+	#endif
+#elif(defined(__PGI))
+	//THIS COULD HAVE __GNUC__, __GNUC_MINOR__ DEFINED
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__PGI
+	
+	#if(defined(__PGIC__))
+		#define CRX__COMPILER__MAJOR_VERSION __PGIC__
+	#endif
+	#if(defined(__PGIC_MINOR__))
+		#define CRX__COMPILER__MINOR_VERSION __PGIC_MINOR__
+	#endif
+	#if(defined(__PGIC_PATCHLEVEL__))
+		#define CRX__COMPILER__BUILD_VERSION __PGIC_PATCHLEVEL__
+	#endif
+#elif((defined(__GNUC__) || defined(__GNUG__)) && !defined(__ibmxl__))
+	//THIS COULD HAVE __PATHSCALE__, __CUDACC__, __MINGW32__, __MINGW64__, __CYGWIN__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__GCC
+
+	#if(defined(__GNUC__))
+		#define CRX__COMPILER__MAJOR_VERSION __GNUC__
+	#elif(defined(__GNUG__))
+		#define CRX__COMPILER__MAJOR_VERSION __GNUG__
+	#endif
+	#if(defined(__GNUC_MINOR__))
+		#define CRX__COMPILER__MINOR_VERSION __GNUC_MINOR__
+	#endif
+	#if(defined(__GNUC_PATCHLEVEL__))
+		#define CRX__COMPILER__BUILD_VERSION __GNUC_PATCHLEVEL__
+	#endif
+#elif(defined(__KCC))
+	//THIS COULD HAVE DEFINED __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__KAI
+	
+	//FORMAT 0xVRPP
+	#if(defined(__KCC_VERSION))
+		#define CRX__COMPILER__MAJOR_VERSION (__KCC_VERSION / 4096)
+		#define CRX__COMPILER__MINOR_VERSION ((__KCC_VERSION % 4096) / 256)
+		#define CRX__COMPILER__BUILD_VERSION (__KCC_VERSION % 256)
+	#endif
+#elif(defined(__sgi) || defined(sgi))
+	//THIS COULD HAVE DEFINED __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__SGI_MIPSPRO
+		
+	//FORMAT VRP
+	#if(defined(_COMPILER_VERSION))
+		#define CRX__COMPILER__MAJOR_VERSION (_COMPILER_VERSION / 100)
+		#define CRX__COMPILER__MINOR_VERSION ((_COMPILER_VERSION % 100) / 10)
+		#define CRX__COMPILER__BUILD_VERSION (_COMPILER_VERSION % 10)
+	#endif
+#elif(defined(__DECCXX) || defined(__DECC))
+	//THIS COULD HAVE DEFINED __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__COMPAQ_TRU64
+		
+	//FORMAT VVRRTPPPP		T: TYPE
+	#if(defined(__DECC_VER))
+		#define CRX__COMPILER__MAJOR_VERSION (__DECC_VER / 10000000)
+		#define CRX__COMPILER__MINOR_VERSION ((__DECC_VER % 10000000) / 100000)
+		#define CRX__COMPILER__BUILD_VERSION (__DECC_VER % 10000)
+	#endif
+#elif(defined(__ghs))
+	//THIS COULD HAVE DEFINED __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__GREEN_HILL
+		
+	//FORMAT VRP
+	#if(defined(__GHS_VERSION_NUMBER))
+		#define CRX__COMPILER__MAJOR_VERSION (__GHS_VERSION_NUMBER / 100)
+		#define CRX__COMPILER__MINOR_VERSION ((__GHS_VERSION_NUMBER % 100) / 10)
+		#define CRX__COMPILER__BUILD_VERSION (__GHS_VERSION_NUMBER % 10)
+	#endif
+#elif(defined(__CODEGEARC__))
+	//THIS COULD HAVE DEFINED _MSC_VER
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__CODE_GEAR
+
+	
+	//FORMAT 0xVRR
+	#if(defined(__CODEGEARC__))
+		#define CRX__COMPILER__MAJOR_VERSION (__CODEGEARC__ / 256)
+		#define CRX__COMPILER__MINOR_VERSION (__CODEGEARC__ % 256)
+		#define CRX__COMPILER__BUILD_VERSION 0
+	#endif
+#elif(defined(__BORLANDC__) && defined(__CODEGEARC_VERSION__))
+	//THIS COULD HAVE DEFINED _MSC_VER
+	//UNCLEAR HOW THIS IS DIFFERENT FROM THE ONE ABOVE
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__EMBARCADERO
+	
+	//FORMAT ?
+	#define CRX__COMPILER__MAJOR_VERSION (__CODEGEARC_VERSION__ >>24 & 0x00FF)
+	#define CRX__COMPILER__MINOR_VERSION (__CODEGEARC_VERSION__ >>16 & 0x00FF)
+	#define CRX__COMPILER__BUILD_VERSION (__CODEGEARC_VERSION__ & 0xFFFF)
+#elif(defined(__BORLANDC__))
+	//THIS COULD HAVE DEFINED _MSC_VER
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__BORLAND
+
+	//FORMAT 0xVRR
+	
+	#define CRX__COMPILER__MAJOR_VERSION (__BORLANDC__ / 256)
+	#define CRX__COMPILER__MINOR_VERSION (__BORLANDC__ % 256)
+	#define CRX__COMPILER__BUILD_VERSION 0
+#elif(defined(__WATCOMC__) && (__WATCOMC__ < 1200))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__WATCOM
+	//FORMAT VVRR
+	#define COMPILER_VERSION_MAJOR (__WATCOMC__ / 100)
+	#define COMPILER_VERSION_MINOR ((__WATCOMC__ / 10) % 10)
+	#define COMPILER_VERSION_PATCH 0
+#elif(defined(__WATCOMC__) && (__WATCOMC__ >= 1200))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__OPEN_WATCOM
+	//FORMAT VVRR BUT AFTER SUBTRACTING 1100
+	#define COMPILER_VERSION_MAJOR ((__WATCOMC__ - 1100) / 100)
+	#define COMPILER_VERSION_MINOR ((__WATCOMC__ / 10) % 10)
+	#define COMPILER_VERSION_PATCH 0
+#elif(defined(__MWERKS__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__CODE_WARRIOR
+
+	//FORMAT 0xVRPP
+	#if(defined(__CWCC__))
+		#define CRX__COMPILER__MAJOR_VERSION (__CWCC__ / 4096)
+		#define CRX__COMPILER__MINOR_VERSION ((__CWCC__ % 4096) / 256)
+		#define CRX__COMPILER__BUILD_VERSION (__CWCC__ % 256)
+	#elif(__MWERKS__ > 1)
+		#define CRX__COMPILER__MAJOR_VERSION (__MWERKS__ / 4096)
+		#define CRX__COMPILER__MINOR_VERSION ((__MWERKS__ % 4096) / 256)
+		#define CRX__COMPILER__BUILD_VERSION (__MWERKS__ % 256)
+	#endif
+#elif(defined(__SUNPRO_CC))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__SUN_PRO
+
+	#if(__SUNPRO_CC >= 0x5100)
+		//FORMAT 0xVRRP
+		#define CRX__COMPILER__MAJOR_VERSION (__SUNPRO_CC / 4096)
+		#define CRX__COMPILER__MINOR_VERSION ((__SUNPRO_CC % 4096) / 16)
+		#define CRX__COMPILER__BUILD_VERSION (__SUNPRO_CC % 16)
+	#else
+	   //FORMAT 0xVRP
+		#define CRX__COMPILER__MAJOR_VERSION (__SUNPRO_CC / 256)
+		#define CRX__COMPILER__MINOR_VERSION ((__SUNPRO_CC % 256) / 16)
+		#define CRX__COMPILER__BUILD_VERSION (__SUNPRO_CC % 16)
+	#endif
+#elif(defined(__HP_aCC))
+	//THIS COULD HAVE DEFINED __EDG__, __EDG_VERSION__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__HP_ACC
+	
+	//FORMAT VVRRPP
+	#if(__HP_aCC > 1)
+		#define CRX__COMPILER__MAJOR_VERSION (__HP_aCC / 10000)
+		#define CRX__COMPILER__MINOR_VERSION ((__HP_aCC % 10000) / 100)
+		#define CRX__COMPILER__BUILD_VERSION (__HP_aCC % 100)
+	#endif
+#elif(defined(__MRC__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__MPW
+
+	//FORMAT 0xVVRR
+	#define CRX__COMPILER__MAJOR_VERSION (__MRC__ / 256)
+	#define CRX__COMPILER__MINOR_VERSION (__MRC__ % 256)
+	#define CRX__COMPILER__BUILD_VERSION 0
+#elif(defined(__SC__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__SYMANTEC
+
+	//FORMAT 0xVVRR
+	#define CRX__COMPILER__MAJOR_VERSION (__SC__ / 256)
+	#define CRX__COMPILER__MINOR_VERSION (__SC__ % 256)
+	#define CRX__COMPILER__BUILD_VERSION 0
+//#elif(defined(__IBMCPP__) && defined(__COMPILER_VER__) && defined(__MVS__))
+#elif((defined(__IBMCPP__) || defined(__IBMC__)) && defined(__COMPILER_VER__) && defined(__MVS__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__IBM_ZOS
+
+	//FORMAT NVRRM
+	#if(defined(__IBMCPP__))
+		#define CRX__COMPILER__MAJOR_VERSION ((__IBMCPP__ % 10000) / 1000)
+		#define CRX__COMPILER__MINOR_VERSION ((__IBMCPP__ % 1000) / 10)
+		#define CRX__COMPILER__BUILD_VERSION (__IBMCPP__ % 10)
+	#else
+		#define CRX__COMPILER__MAJOR_VERSION ((__IBMC__ % 10000) / 1000)
+		#define CRX__COMPILER__MINOR_VERSION ((__IBMC__ % 1000) / 10)
+		#define CRX__COMPILER__BUILD_VERSION (__IBMC__ % 10)
+	#endif
+#elif(defined(__ibmxl__) && defined(__clang__))
+	//THIS COULD HAVE DEFINED _MSC_VER, __GNUC__
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__IBM_XL_CLANG
+
+	#if(defined(__ibmxl_version__))
+		#define CRX__COMPILER__MAJOR_VERSION __ibmxl_version__
+	#endif
+	#if(defined(__ibmxl_release__))
+		#define CRX__COMPILER__MINOR_VERSION __ibmxl_release__
+	#endif
+	#if(defined(__ibmxl_modification__))
+		#define CRX__COMPILER__BUILD_VERSION __ibmxl_modification__
+	#endif
+#elif((defined(__IBMCPP__) || defined(__IBMC__)) && !defined(__COMPILER_VER__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__IBM_XL
+
+	//FORMAT 0xVVRRMM
+	#if(defined(__IBMCPP__))
+		#define CRX__COMPILER__MAJOR_VERSION (__IBMCPP__ % 65536)
+		#define CRX__COMPILER__MINOR_VERSION (__IBMCPP__ % 65536) / 256)
+		#define CRX__COMPILER__BUILD_VERSION (__IBMCPP__ % 256)
+	#else
+		#define CRX__COMPILER__MAJOR_VERSION (__IBMC__ % 65536)
+		#define CRX__COMPILER__MINOR_VERSION (__IBMC__ % 65536) / 256)
+		#define CRX__COMPILER__BUILD_VERSION (__IBMC__ % 256)
+	#endif
+#elif(defined(__TI_COMPILER_VERSION__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__TEXAS_INSTRUMENTS
+  
+	//FORMAT VVVRRRPPP
+	#define CRX__COMPILER__MAJOR_VERSION (__TI_COMPILER_VERSION__/1000000)
+	#define CRX__COMPILER__MINOR_VERSION (__TI_COMPILER_VERSION__/1000   % 1000)
+	#define CRX__COMPILER__BUILD_VERSION (__TI_COMPILER_VERSION__        % 1000)
+#elif(defined(__USLC__) && defined(__SCO_VERSION__))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__USL
+  
+	//FORMAT VRRYYYYMM
+	#define CRX__COMPILER__MAJOR_VERSION (__SCO_VERSION__ / 100000000)
+	#define CRX__COMPILER__MINOR_VERSION ((__SCO_VERSION__ % 100000000) / 1000000)
+	//	CURRENTLY ONLY 4 DIGITS ALLOWED FOR PATCH VERSION.
+	#define CRX__COMPILER__BUILD_VERSION (__SCO_VERSION__ % 10000000) / 100
+#elif(defined(__ARMCC_VERSION) && defined(__CC_ARM))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__ARMCC
+  
+	//FORMAT VRRYYYYMM
+	#if __ARMCC_VERSION >= 1000000
+		//FORMAT VRRPBBB	TREATING B AS P
+		#define CRX__COMPILER__MAJOR_VERSION (__ARMCC_VERSION / 1000000)
+		#define CRX__COMPILER__MINOR_VERSION ((__ARMCC_VERSION / 10000) % 100)
+		#define CRX__COMPILER__BUILD_VERSION (__ARMCC_VERSION % 10000)
+	#else
+		//FORMAT VRPBBB	TREATING B AS P
+		#define CRX__COMPILER__MAJOR_VERSION (__ARMCC_VERSION / 100000)
+		#define CRX__COMPILER__MINOR_VERSION ((__ARMCC_VERSION / 10000) % 10)
+		#define CRX__COMPILER__BUILD_VERSION (__ARMCC_VERSION  % 10000)
+	#endif	
+#elif defined(__VISUALDSPVERSION__) || defined(__ADSPBLACKFIN__) || defined(__ADSPTS__) || defined(__ADSP21000__)
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__ADSP
+
+	#if defined(__VISUALDSPVERSION__)
+		//FORMAT 0xVVRRPP00
+		#define CRX__COMPILER__MAJOR_VERSION (__VISUALDSPVERSION__>>24)
+		#define CRX__COMPILER__MINOR_VERSION (__VISUALDSPVERSION__>>16 & 0xFF)
+		#define CRX__COMPILER__BUILD_VERSION (__VISUALDSPVERSION__>>8  & 0xFF)
+	#endif
+#elif defined(__IAR_SYSTEMS_ICC__) || defined(__IAR_SYSTEMS_ICC)
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__IAR
+
+	#if defined(__VER__) && defined(__ICCARM__)
+		#define CRX__COMPILER__MAJOR_VERSION ((__VER__) / 1000000)
+		#define CRX__COMPILER__MINOR_VERSION (((__VER__) / 1000) % 1000)
+		#define CRX__COMPILER__BUILD_VERSION ((__VER__) % 1000)
+	#elif defined(__VER__) && (defined(__ICCAVR__) || defined(__ICCRX__) || \
+			defined(__ICCRH850__) || defined(__ICCRL78__) || defined(__ICC430__) || \
+			defined(__ICCRISCV__) || defined(__ICCV850__) || defined(__ICC8051__))
+		#define CRX__COMPILER__MAJOR_VERSION ((__VER__) / 100)
+		#define CRX__COMPILER__MINOR_VERSION ((__VER__) - (((__VER__) / 100)*100))
+		#define CRX__COMPILER__BUILD_VERSION (__SUBVERSION__)
+	#endif
+#elif(defined(_MSC_VER))
+	#define CRX__COMPILER__TYPE CRX__COMPILER__TYPE__MICROSOFT
+
+	//FORMAT VVRR
+	#define CRX__COMPILER__MAJOR_VERSION (_MSC_VER / 100)
+	#define CRX__COMPILER__MINOR_VERSION (_MSC_VER % 100)
+
+	#if(defined(_MSC_FULL_VER))
+		#if(_MSC_VER < 1400)
+			//FORMAT VVRRPPPP
+			#define CRX__COMPILER__BUILD_VERSION (_MSC_FULL_VER % 10000)
+		#else
+			//FORMAT VVRRPPPPP
+			//	CURRENTLY ONLY 4 DIGITS ALLOWED FOR PATCH VERSION.
+			#define CRX__COMPILER__BUILD_VERSION ((_MSC_FULL_VER % 100000) / 10)
+		#endif
+	#endif
+#endif
+
+/*
+ABANDONED THE FOLLOWING IDEA BECAUSE SOME COMPILERS EXCEED THE RANGES OF WHAT THE FOLLOWING
+ALLOWED THE MAJOR, MINOR, AND BUILD VERSIONS TO BE.
+#define CRX__COMPILER__VERSION (CRX__COMPILER__PRIVATE __MAJOR_VER * 1000000 + \
+		CRX__COMPILER__PRIVATE __MINOR_VER * 10000 + \
+		CRX__COMPILER__PRIVATE __BUILD_VER) */
+
+//CRX__COMPILER__MAJOR_VERSION
+//CRX__COMPILER__MINOR_VERSION
+//CRX__COMPILER__BUILD_VERSION
+#if(defined(CRX__COMPILER__MAJOR_VERSION))
+	#if(!defined(CRX__COMPILER__MAJOR_VERSION))
+		#define CRX__COMPILER__MAJOR_VERSION 0
+		#undef CRX__COMPILER__MINOR_VERSION
+		#define CRX__COMPILER__MINOR_VERSION 0
+	#elif(!defined(CRX__COMPILER__MINOR_VERSION))
+		#define CRX__COMPILER__MINOR_VERSION 0
+		#define CRX__COMPILER__BUILD_VERSION 0
+	#endif
+#else
+	#define CRX__COMPILER__MAJOR_VERSION CRX__COMPILER__UNKOWN_VERSION
+	#undef CRX__COMPILER__MINOR_VERSION
+	#define CRX__COMPILER__MINOR_VERSION CRX__COMPILER__UNKOWN_VERSION
+	#undef CRX__COMPILER__BUILD_VERSION
+	#define CRX__COMPILER__BUILD_VERSION CRX__COMPILER__UNKOWN_VERSION
+#endif
+#pragma endregion COMPILER //}
+
+#pragma region ARCHITECTURE //{
+#define CRX__ARCHITECTURE__TYPE__UNKNOWN  0
+#define CRX__ARCHITECTURE__TYPE__ALPHA  1
+#define CRX__ARCHITECTURE__TYPE__AMD64  2
+#define CRX__ARCHITECTURE__TYPE__ARM  3
+#define CRX__ARCHITECTURE__TYPE__ARM64  4
+#define CRX__ARCHITECTURE__TYPE__BLACK_FIN  5
+#define CRX__ARCHITECTURE__TYPE__HP_PA_RISC  6
+#define CRX__ARCHITECTURE__TYPE__X86  7
+#define CRX__ARCHITECTURE__TYPE__ITANIUM  8
+#define CRX__ARCHITECTURE__TYPE__MOTOROLA_68K  9
+#define CRX__ARCHITECTURE__TYPE__MIPS  10
+#define CRX__ARCHITECTURE__TYPE__POWER_PC  11
+#define CRX__ARCHITECTURE__TYPE__SPARC  12
+#define CRX__ARCHITECTURE__TYPE__SUPER_H  13
+#define CRX__ARCHITECTURE__TYPE__SYSTEM_Z  14
+#define CRX__ARCHITECTURE__TYPE__TMS320  15
+#define CRX__ARCHITECTURE__TYPE__TMS470  16
+
+#define CRX__ARCHITECTURE__SIZE__UNKNOWN  0
+
+#if(defined(__alpha__) || defined(__alpha) || defined(_M_ALPHA))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__ALPHA
+	#define CRX__ARCHITECTURE__SIZE  64
+#elif(defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || \
+		(defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__AMD64
+	#if(!defined(__ILP32__))
+		#define CRX__ARCHITECTURE__SIZE 64
+	#else
+		#define CRX__ARCHITECTURE__SIZE 32
+	#endif
+#elif(defined(__arm__) || defined(__thumb__) || defined(__TARGET_ARCH_ARM) || \
+		defined(__TARGET_ARCH_THUMB) || defined(_ARM) || defined(_M_ARM) || \
+		defined(_M_ARMT) || defined(__arm))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__ARM
+	#define CRX__ARCHITECTURE__SIZE  32
+#elif(defined(__aarch64__) || defined(_M_ARM64) || defined(__AARCH64EL__) || \
+		defined(__arm64))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__ARM64
+	#define CRX__ARCHITECTURE__SIZE  64
+#elif(defined(__bfin) || defined(__BFIN__) || defined(bfin) || defined(BFIN))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__BLACK_FIN
+	//#define CRX__ARCHITECTURE__SIZE  32
+	//BOOST THINKS  16
+	#define CRX__ARCHITECTURE__SIZE  16
+#elif(defined(__hppa__) || defined(__HPPA__) || defined(__hppa))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__HP_PA_RISC
+	#define CRX__ARCHITECTURE__SIZE  32
+#elif(defined(i386) || defined(__i386) || defined(__i386__) || \
+		defined(_M_I86) || defined(__i486__) || defined(__i586__) || \
+		defined(__i686__) || defined(__IA32__) || defined(_M_IX86) || \
+		defined(__X86__) || defined(_X86_) || defined(__THW_INTEL__) || \
+		defined(__I86__) || defined(__INTEL__) || defined(__386))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__X86
+
+	#if(defined(_M_I86))
+		#define CRX__ARCHITECTURE__SIZE  16
+	#else
+		#define CRX__ARCHITECTURE__SIZE  32
+	#endif
+#elif(defined(__ia64__) || defined(_IA64) || defined(__IA64__) || \
+		defined(__ia64) || defined(_M_IA64) || defined(__itanium__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__ITANIUM
+	#define CRX__ARCHITECTURE__SIZE  64
+#elif(defined(__m68k__) || defined(M68000) || defined(__MC68K__))
+//SEGA
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__MOTOROLA_68K
+	#define CRX__ARCHITECTURE__SIZE  32
+#elif(defined(__mips__) || defined(mips) || defined(_R3000) || \
+		defined(_R4000) || defined(_R5900) || defined(__mips) || \
+		defined(__MIPS__) || defined(__IA32__) || defined(_M_IX86) || \
+		defined(__X86__) || defined(_X86_) || defined(__THW_INTEL__) || \
+		defined(__I86__) || defined(__INTEL__) || defined(__386))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__MIPS
+	#if((defined(__mips) && (__mips >= 3)) || defined(_MIPS_ISA_MIPS3) || \
+			defined(__MIPS_ISA3__) || defined(_MIPS_ISA_MIPS4) || defined(__MIPS_ISA4__))
+		#define CRX__ARCHITECTURE__SIZE  64
+	#else
+		#define CRX__ARCHITECTURE__SIZE 32
+	#endif
+#elif(defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || \
+		defined(__POWERPC__) || defined(__ppc__) || defined(__ppc64__) || \
+		defined(__PPC__) || defined(__PPC64__) || defined(_ARCH_PPC) || \
+		defined(_ARCH_PPC64) || defined(_M_PPC) || defined(__ppc) || \
+		defined(_XENON) || defined(__PPCGECKO__) || defined(__PPCBROADWAY__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__POWER_PC
+	#if(defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) || \
+			defined(_ARCH_PPC64))
+		#define CRX__ARCHITECTURE__SIZE  64
+	#else
+		#define CRX__ARCHITECTURE__SIZE  32
+	#endif
+#elif(defined(__sparc__) || defined(__sparc) || defined(__sparc_v8__) || \
+		defined(__sparc_v9__) || defined(__sparcv8) || defined(__sparcv9))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__SPARC
+	#if(defined(__sparcv9) || defined(__sparc_v9__))
+		//BOOST THINKS 64
+		#define CRX__ARCHITECTURE__SIZE  64
+	#else
+		#define CRX__ARCHITECTURE__SIZE  32
+	#endif
+#elif(defined(__sh__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__SUPER_H
+//	#define CRX__ARCHITECTURE__SIZE  32
+	#if(defined(__SH5__))
+		//BOOST THINKS 64
+		#define CRX__ARCHITECTURE__SIZE  64
+	#elif(defined(__sh3__) || defined(__SH3__) || defined(__SH4__))
+		#define CRX__ARCHITECTURE__SIZE  32
+	#elif(defined(__sh1__) || defined(__sh2__))
+		//BOOST THINKS 16
+		#define CRX__ARCHITECTURE__SIZE  16
+	#endif
+#elif(defined(__370__) || defined(__THW_370__) || defined(__s390__) || \
+		defined(__s390x__) || defined(__zarch__) || defined(__SYSC_ZARCH__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__SYSTEM_Z
+	#if(defined(__SYSC_ZARCH__))
+	//BOOST THINKS 64
+		#define CRX__ARCHITECTURE__SIZE  64
+	#endif
+#elif(defined(_TMS320C2XX) || defined(__TMS320C2000__) || defined(_TMS320C5X) || \
+		defined(__TMS320C55X__) || defined(_TMS320C6X) || defined(__TMS320C6X__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__TMS320
+	#if(defined(_TMS320C2XX) || defined(__TMS320C2000__))
+		#define CRX__ARCHITECTURE__SIZE  16
+	#else
+		#define CRX__ARCHITECTURE__SIZE  32
+	#endif
+#elif(defined(__TMS470__))
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__TMS470
+	#define CRX__ARCHITECTURE__SIZE  32
+#else
+	#define CRX__ARCHITECTURE__TYPE  CRX__ARCHITECTURE__TYPE__UNKNOWN
+#endif
+
+#if(!defined(CRX__ARCHITECTURE__SIZE))
+	#if(defined(UINTPTR_MAX) && (UINTPTR_MAX == 0xffffffff))
+		#define CRX__ARCHITECTURE__SIZE 32
+	#elif(defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 8))
+		#define CRX__ARCHITECTURE__SIZE 64
+	#else
+		#define CRX__ARCHITECTURE__SIZE CRX__ARCHITECTURE__SIZE__UNKNOWN
+	#endif
+#endif
+
+
+/*FOR DATA MODEL 
+#if _LP64 || __LP64__ || _ILP64 || __ILP64__
+typedef my_u64 unsigned long;
+#elif _ILP32 || __ILP32__
+typedef my_u64 unsigned long long;
+#endif*/
+
+#pragma endregion ARCHITECTURE //}
+
+#pragma region BOOST //{
 //CRX__BOOST_FORCEINLINE
+//	THIS SHOULD BE SAFE TO USE WITH CRX LIB UNDER C++ ONLY. HOWEVER, TEMPLATE FUNCTIONS MUST NOT
+//		CALL FUNCTIONS MARKED WITH THIS MACRO BECAUSE THIS MIGHT LEAD TO UNRESOLVED SYMBOL ERRORS
+//		AT LEAST UNDER VC6. AND ONLY USE THIS WITH FUNCTIONS THAT ARE PRIVATE, AS DEFINED IN 
+//		CRX LIB, WHETHER CLASS MEMBER FUNCTIONS, OR GLOBAL FUNCTIONS. HOWEVER, FURTHER WORK IS
+//		REQUIRED TOP PROVE THIS IS CORRECT. IT MIGHT BE BEST NOT TO USE THIS WITH CRX LIB AT ALL.
 #if(defined(BOOST_VERSION) && (BOOST_VERSION >= 104900))
 	#define CRX__BOOST_FORCEINLINE BOOST_FORCEINLINE
 #else
@@ -672,6 +1397,246 @@ namespace Crx
 			#endif
 		#elif defined(__CloudABI__)
 			#define CRX__BOOST_HAS_STDINT_H
+		#endif
+	#endif
+#endif
+//CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+//		THE VISIBILITY ON THIS MACRO IS CURRENTLY ILL DEFINED. IT IS MEANT FOR stdint.h WORK ONLY.
+#if(defined(BOOST_VERSION) && (BOOST_VERSION >= 102501))
+	#if(defined(BOOST_HAS_LONG_LONG))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#endif
+#else
+	//BASED ON BOOST V1.82.0 AND CROSS EXAMINED AGAINST V1.48.0. 
+	#if(defined(__CUDACC__))
+	#elif(defined(__GCCXML__))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif(defined(_CRAYC))
+		#define CRX__PRIVATE__CRAY__x 9867657 // FROM BOOST: Arbitrary number
+		#define CRX__PRIVATE__CRAY__APPEND(MACRO) CRX__PRIVATE__CRAY__APPEND__DO(MACRO)
+		#define CRX__PRIVATE__CRAY__APPEND__DO(MACRO) CRX__PRIVATE__CRAY__##MACRO
+
+		
+		#if(CRX__PRIVATE__CRAY__x == CRX__PRIVATE__CRAY__APPEND(_RELEASE_PATCHLEVEL))
+			//FROM BOOAST: - _RELEASE_PATCHLEVEL is defined as x, and x is not defined as a macro.
+			//#define CRX__PRIVATE__CRAY__IS_DEVELOPER_BUILD 1
+
+			
+			//FROM BOOST: Pretend _RELEASE_PATCHLEVEL is 99, so we get the configuration for the
+			// 				most recent patch level in this release.
+			#define CRX__PRIVATE__CRAY__VERSION (_RELEASE_MAJOR * 10000 + _RELEASE_MINOR * 100 + 99)
+
+		#else
+			//FROM BOOST: _RELEASE_PATCHLEVEL is not defined as x, or x is defined as a macro.
+			//#define CRX__PRIVATE__CRAY__IS_DEVELOPER_BUILD 0
+			#define CRX__PRIVATE__CRAY__VERSION (_RELEASE_MAJOR * 10000 + _RELEASE_MINOR * 100 + _RELEASE_PATCHLEVEL)
+		#endif
+		
+		#if((CRX__PRIVATE__CRAY__VERSION >= 80500) && defined(__EDG__) && defined(__cplusplus) && \
+				(__cplusplus >= 201103L))
+			#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+		
+		#undef CRX__PRIVATE__CRAY__x
+		#undef CRX__PRIVATE__CRAY__APPEND
+		#undef CRX__PRIVATE__CRAY__APPEND__DO
+	#elif(defined(__CUDACC__))
+	#elif(defined(__COMO__))
+		#if(defined(__EDG_VERSION__) && !defined(__NO_LONG_LONG))
+			#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+	#elif(defined(__PATHSCALE__) && (__PATHCC__ >= 4))
+		// PathScale EKOPath compiler (has to come before clang and gcc)
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif(defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC))
+		#if(defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1500) && \
+				(defined(_MSC_VER) || defined(__GNUC__)))
+			#if(defined(_MSC_VER))
+				//NOTE: THE FOLLOWING IS ESSENTIALY DOING MSVC CHECKS, BUT BECAUSE THIS IS FOR INTEL
+				//		I DO NOT CARE FOR VS6.
+				#if(defined(_MSC_EXTENSIONS) || (_MSC_VER >= 1400))
+					#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+				#endif
+			#else
+				//THIS IS ESSENTIALLY GCC CHECK
+				#if(!defined(__DARWIN_NO_LONG_LONG))
+					#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+				#endif
+			#endif
+		#elif(defined(__INTEL_COMPILER) && (__INTEL_COMPILER < 1500))
+			//THIS IS EXTRAPOLATION FROM V1.48.0 BUT COMMENTED OUT FOR NOW
+			#if(defined(__EDG_VERSION__))
+				#if(!defined(__NO_LONG_LONG))
+					//#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+				#endif
+			#endif
+		#endif
+	#elif(defined(__clang__) && !defined(__ibmxl__) && !defined(__CODEGEARC__))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif defined __DMC__
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif(defined(__DCC__))
+		#if(defined(__EDG_VERSION__))
+			#if(!defined(__NO_LONG_LONG))
+				#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+			#endif
+		#endif
+	#elif(defined(__PGI) || (defined(__GNUC__) && !defined(__ibmxl__)))
+		#if(!defined(__DARWIN_NO_LONG_LONG))
+			# define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+	#elif((defined(__KCC)) || (defined(__sgi)) || defined(__DECCXX) || defined(__ghs))
+		#if(defined(__EDG_VERSION__))
+			#if(!defined(__NO_LONG_LONG))
+				#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+			#endif
+		#endif
+	#elif(defined(__CODEGEARC__))
+		//FROM BOOST: CodeGear - must be checked for before Borland
+		#if(!defined(__clang__))
+			#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+	#elif(defined(__BORLANDC__))
+		#if(__BORLANDC__ >= 0x561)
+			#if(!defined(__NO_LONG_LONG))
+				#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+			#endif
+		#endif
+	#elif(defined(__MWERKS__))
+	#elif(defined(__SUNPRO_CC))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif(defined(__HP_aCC))
+		#if(defined(__EDG__) && defined(__EDG_VERSION__))
+			#if(!defined(__NO_LONG_LONG))
+				#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+			#endif
+		#elif(__HP_aCC >= 33900)
+			#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+	#elif(defined(__MRC__) || defined(__SC__))
+	#elif(defined(__IBMCPP__) && defined(__COMPILER_VER__) && defined(__MVS__))
+		#if(__COMPILER_VER__ < 0x42010000)
+			#if(defined(_LONG_LONG) || defined(__IBMCPP_C99_LONG_LONG) || defined(__LL))
+				#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+			#endif
+		#endif
+	#elif(defined(__ibmxl__))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+	#elif(defined(__IBMCPP__))
+	#elif defined _MSC_VER
+		//MUST REMAIN THE LAST CHECK BECAUSE OTHER VENDORS DEFINE _MSC_VER
+		//# if(defined(_MSC_EXTENSIONS) || (_MSC_VER >= 1400)) //<= FROM V1.82.0
+		#if(_MSC_VER >= 1310) && (defined(_MSC_EXTENSIONS) || (_MSC_VER >= 1400))
+			//IMPORTANT: THIS IS FROM V1.48.0. I DID NOT FIND THE ABOVE CHECK IN V1.82.0
+			#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#endif
+	#endif
+#endif
+//CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+//		THE VISIBILITY ON THIS MACRO IS CURRENTLY ILL DEFINED. IT IS MEANT FOR stdint.h WORK ONLY.
+#if(defined(BOOST_VERSION) && (BOOST_VERSION >= 102800))
+	#if(defined(BOOST_HAS_MS_INT64))
+		#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+	#endif
+#else
+	//BASED ON BOOST V1.82.0 AND PARTIALLY CROSS EXAMINED AGAINST V1.48.0. 
+	#if(defined(__CUDACC__) || defined(__GCCXML__) || defined(_CRAYC) || \
+			defined(__CUDACC__))
+	#elif(defined(__COMO__))
+		#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+			#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+		#endif
+	#elif(defined(__PATHSCALE__) && (__PATHCC__ >= 4))
+		#if(__PATHCC__ >= 6)
+			#ifdef __is_identifier
+				#if !__is_identifier(__int64) && !defined(__GNUC__)
+					#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+				#endif
+			#endif
+		#endif
+	#elif(defined(__INTEL_COMPILER) || defined(__ICL) || defined(__ICC) || defined(__ECC))
+		#if(defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1500) && \
+				(defined(_MSC_VER) || defined(__GNUC__)))
+		#elif(defined(__INTEL_COMPILER) && (__INTEL_COMPILER < 1500))
+			//THIS IS BACK FROM V1.82.0
+			#if defined(_MSC_VER) && (_MSC_VER+0 >= 1000)
+				#if(_MSC_VER >= 1200)
+					#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+				#endif
+			#endif
+		#endif
+	#elif(defined(__clang__) && !defined(__ibmxl__) && !defined(__CODEGEARC__))
+		#define CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG
+		#ifdef __is_identifier
+			#if !__is_identifier(__int64) && !defined(__GNUC__)
+				#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+			#endif
+		#endif
+	#elif(defined(__DMC__) || defined(__DCC__) || \
+			(defined(__PGI) || (defined(__GNUC__) && !defined(__ibmxl__))) || \
+			((defined(__KCC)) || (defined(__sgi)) || defined(__DECCXX) || defined(__ghs)))
+	#elif(defined(__CODEGEARC__))
+		#if(!defined(__clang__))
+			#if !defined(__STRICT_ANSI__)
+				#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+			#endif
+		#endif
+	#elif(defined(__BORLANDC__))
+		#if (__BORLANDC__ >= 0x530) && !defined(__STRICT_ANSI__)
+			#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+		#endif
+	#elif(defined(__MWERKS__) || defined(__SUNPRO_CC) || defined(__HP_aCC) || \
+			(defined(__MRC__) || defined(__SC__)))
+	#elif(defined(__IBMCPP__) && defined(__COMPILER_VER__) && defined(__MVS__))
+		#if(__COMPILER_VER__ < 0x42010000)
+			#if(defined(_LONG_LONG) || defined(__IBMCPP_C99_LONG_LONG) || defined(__LL) || \
+					defined(_LP64))
+				#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+			#endif
+		#endif
+	#elif(defined(__ibmxl__))
+		#if defined(__int64) && !defined(__GNUC__)
+			#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+		#endif
+	#elif(defined(__IBMCPP__))
+	#elif defined _MSC_VER
+		//MUST REMAIN THE LAST CHECK BECAUSE OTHER VENDORS DEFINE _MSC_VER
+		#if(_MSC_VER >= 1200) 
+			//IMPORTANT: THIS IS FROM V1.48.0. I DID NOT FIND THE ABOVE CHECK IN V1.82.0
+			#define CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64
+		#endif
+	#endif
+#endif
+//CRX__BOOST_NO_INT64_T
+#if(defined(BOOST_VERSION) && (BOOST_VERSION >= 102102))
+	#if(defined(BOOST_NO_INT64_T))
+		#define CRX__BOOST_NO_INT64_T
+	#endif
+#else
+	#if(defined(CRX__BOOST_HAS_STDINT_H) && (!defined(__GLIBC__) || \
+			defined(__GLIBC_HAVE_LONG_LONG) || \
+			(defined(__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && \
+			(__GLIBC_MINOR__ >= 17))))))
+		#ifdef __hpux
+			#ifdef __STDC_32_MODE__
+				#define CRX__PRIVATE__BOOST_NO_INT64_T
+			#endif
+		#endif
+	#elif(!defined(__FreeBSD__) && (__FreeBSD__ <= 4) || defined(__osf__) || defined(__VMS) || \
+			defined(__SOLARIS9__) || defined(__NetBSD__))
+		//EDUCATED GUESS. REPLACING
+		//		!defined(BOOST_MSVC) && !defined(BOOST_BORLANDC)
+		//	WITH
+		//		!defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64)
+		#if(!(defined(CRX__FOR_CRX_ONLY__BOOST_HAS_LONG_LONG) && \
+						!defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64) && \
+						(!defined(__GLIBCPP__) || defined(_GLIBCPP_USE_LONG_LONG)) && \
+						(defined(ULLONG_MAX) || defined(ULONG_LONG_MAX) || \
+						defined(ULONGLONG_MAX))) && \
+				!(ULONG_MAX != 0xffffffff) && \
+				!(defined(__GNUC__) && defined(BOOST_HAS_LONG_LONG)) && \
+				!(defined(CRX__FOR_CRX_ONLY__PRIVATE__BOOST_HAS_MS_INT64)))
+			#define CRX__PRIVATE__BOOST_NO_INT64_T
 		#endif
 	#endif
 #endif
@@ -2050,6 +3015,11 @@ THE FOLLOWING IS LIKE CRXM__REPEAT_MACRO, BUT ALLOWS NESTED LOOPING.
 
 #pragma region CRX //{
 
+/*
+	REMEMBER THAT USING NON FUNCTION MACROS THAT EVALUATE TO C/C++ FUNCTION NAMES IS ILL DEFINED 
+	BECAUSE OF THE RESULTING AMBIGUITY FOR WHEN THE MACRO IS USED. HOWEVER, KEEPING THIS FOR THE 
+	ALLOCATOR MACROS FOR NOW.
+*/
 #if(defined(FEATURE_PAL))
 	#if(!defined(alloca))
 		#if(!defined(_alloca))
@@ -2075,6 +3045,11 @@ THE FOLLOWING IS LIKE CRXM__REPEAT_MACRO, BUT ALLOWS NESTED LOOPING.
 		#define CRX__ALLOCA(T)	<-- ALLOCA WAS NOT FOUND IN THIS ENVIRONMENT -->; 
 	#endif
 #endif
+
+#define CRX__MALLOC  crx_c_crxRt_malloc
+#define CRX__FREE  crx_c_crxRt_free
+#define CRX__CALLOC  crx_c_crxRt_calloc
+#define CRX__REALLOC  crx_c_crxRt_realloc
 
 #if(defined(FEATURE_PAL))
 	#if(!defined(alloca))
@@ -2968,6 +3943,18 @@ IN THE ".cpp.h" FILES TO BE MOVED TO THE BOTTOM OF THESE FILES.
 */
 #define CRX__LIB__PUBLIC_FUNCTION() CRXM__IFELSE2(CRXM__NOT(CRX__LIB__IS_CPP_INCLUDING), inline, )
 
+/* 
+DLL SUPPORT IS NOT POSSIBLE BECAUSE OF THE CONDITION OF NOT REQUIRING THE LINE
+			#pragma pop_macro("CRX__LIB__IS_CPPH_INCLUDING")
+	IN THE ".cpp.h" FILES TO BE MOVED TO THE BOTTOM OF THESE FILES.
+	WITHOUT THE CONDITION, THE DEFINITION WOULD BE THE FOLLOWING:
+	
+#define CRX__LIB__PUBLIC_EXPORT_FUNCTION() CRXM__IFELSE2(CRX__LIB__IS_CPP_INCLUDING, \
+		CRXM__IFELSE2(CRX__LIB__IS_DLL, extern "C" CRX_DLL_EXPORT_C_FUNCTION, ), \
+		CRXM__IFELSE2(CRX__LIB__IS_CPPH_INCLUDING, inline, \
+		CRXM__IFELSE2(CRX__LIB__IS_DLL, extern "C" CRX_DLL_IMPORT_C_FUNCTION, )))
+*/
+
 /*
 WARNING: THE USE OF THE FOLLOWING IS NOT ADOPTED YET. THIS IS BECAUSE OF NEEDING
 TO CHANGE THE POSITION OF #pragma pop_macro("CRX__LIB__IS_CPPH_INCLUDING") IN THE
@@ -3839,6 +4826,31 @@ THE FOLLOWING ASSUMES THAT GLOBAL FUNCTIONS ARE AUTOMATICALLY extern.
 #define CRX__LIB__PUBLIC_FUNCTION() CRXM__IFELSE2( \
 		CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__HEADER_ONLY), inline, )
 
+/*
+PUBLIC EXPORT FUNCTIONS THAT GLOBAL C++ FUNCTIONS THAT ARE EXPOSED IN A DLL. THESE FUNCTIONS MUST
+NOT EXPOSE ANY C++ STUFF, SUCH AS THROWING AN EXCEPTION, OR RETURNING A C++ TYPE. THESE ARE
+ESSENTIALLY C GLOBAL FUNCTIONS IN C++ CODE.
+*/
+#define CRX__LIB__PUBLIC_EXPORT_FUNCTION() \
+		CRXM__SWITCH(5) \
+		( \
+			(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__HEADER_ONLY), \
+				inline \
+			) \
+			(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__STAND_ALONE), \
+				extern \
+			) \
+			(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__INTERFACE), \
+				extern \
+			) \
+			(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__DLL_STAND_ALONE), \
+				extern "C" CRX_DLL_EXPORT_C_FUNCTION \
+			) \
+			(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__DLL_INTERFACE), \
+				extern "C" CRX_DLL_IMPORT_C_FUNCTION \
+			) \
+		)
+
 #define CRX__LIB__PRIVATE_CONSTANT(pIS_DEFINITION) \
 		CRXM__IFELSE2(CRXM__NOT(pIS_DEFINITION), extern, )
 #define CRX__LIB__PUBLIC_CONSTANT(pIS_DEFINITION) CRXM__IFELSE2( \
@@ -4286,14 +5298,36 @@ Defne offsetof if not defined using
 		or to account for NULL not necessarily being zero,
 				#define offsetof(st, m) ((size_t)((char *)&((st *)0)->m - (char *)0))
 		or if a special compiler thing exists, such as __builtin_offsetof(st, m), using instead.
+		Or to avoid compiler optimization, and possibly other issues
+		#if(__STDC_VERSION__ >= 199901L)
+			//C99
+			#define	offsetof(st, m) ((size_t)(uintptr_t)((volatile void const *)&(((st *)0)->m)))
+		#else
+			#define	offsetof(st, m) ((size_t)((volatile void const *)&(((st *)0)->m)))
+		#endif
+		
+		This macro exists on C89 and up. Only later in C99 it was required to be useful as an 
+		integer constant expression. Therefore, do not use it for integer constant expressions.
 
+		VC6 has it, and defined the same way as the first approach above, but it continues to work 
+		as an integer constant expression. However I have seen cases from 2009 where it failed as a 
+		constant expression for some other compilers.
+
+		I have seen code use 65536 instead of 0. And I have read of compilers needing 1024. However,
+		because the macro is only useful to runtime code, never compile time code, choose to rely on
+		creating an instance of the type on the stack, instead, which would guarantee a valid 
+		address for it, and use that to calculate the offset to a member.
 
 Define alignof for 'C' if not defined using
 				#define ALIGNOF(type) offsetof (struct { char c; type member; }, member)
 		and for 'C++' using
 				template<typename T> struct alignment_trick { char c; T member; };
 				#define ALIGNOF(type) offsetof (alignment_trick<type>, member)
-		but this will not work with non POD types because offsetof does not work with non POD types.
+		but this will not work with non POD types because offsetof is not guaranteed to work with 
+		non POD types. This is becuase of multiple inheritance, and virtual inheritance. GCC 4,
+		and MSVC use a compiler intrinsic. GCC 3 did not if I am not wrong. When the implementation
+		uses a compiler intrinsic, offsetof might work for non POD types, but do not rely on that.
+		per the C++ standard.
 		One could use the following:
 				    template <typename T>
 					struct alignof2
@@ -4566,8 +5600,228 @@ PROBLEMS:
 #define CRX__ALIGNMENT__END(pALIGNMENT)	CRX__MEMBER_ALIGNMENT__END(pALIGNMENT)
 #define CRX__ALIGNMENT2(pALIGNMENT, pI_SHOULD_BE_TYPEDEF_OR_NOTHING, pCODE) typedef CRX__ALIGNMENT__START(pALIGNMENT) pCODE CRX__ALIGNMENT__END(pALIGNMENT)
 */
+/*
+One could use a maximmally aligned type to align.
+			union Crx_MaximallyAlignedType
+			{
+				int	_gInt;
+				long _gLong;
+				long long _glongLong;
+				long double _gLongDoube;
+				double _gDouble;
+				void * _gPointer;
+				void (* _gFunc)();
+				Crx_MaximallyAlignedType * _gSelf;
+			};
+	Usage:
+			union
+			{
+				Crx_MaximallyAlignedType _fghfhgf;
+				unsigned char memory[sizeof(T)];
+			} rawT;
+	
+Or if c++, and to avoid wasting memory
+			template<typename T, bool isSmaller>
+			struct AlignTypeDetail;
+
+			template<typename T>
+			struct AlignTypeDetail<T, false>
+			{
+				typedef T type;
+			};
+
+			template<typename T>
+			struct AlignTypeDetail<T, true>
+			{
+				typedef char type;
+			};
+
+			template<typename T, typename U>
+			struct AlignType
+			{
+				typedef typename AlignTypeDetail<U, (sizeof(T) < sizeof( U ))>::type type;
+			};
+
+			template<typename T>
+			union MaxAlignFor
+			{
+				typename MyPrivate::AlignType<T, char>::type c;
+				typename MyPrivate::AlignType<T, short>::type s;
+				typename MyPrivate::AlignType<T, int>::type i;
+				typename MyPrivate::AlignType<T, long>::type l;
+				typename MyPrivate::AlignType<T, long long>::type ll;
+				typename MyPrivate::AlignType<T, float>::type f;
+				typename MyPrivate::AlignType<T, double>::type d;
+				typename MyPrivate::AlignType<T, long double>::type ld;
+				typename MyPrivate::AlignType<T, void*>::type pc;
+				typename MyPrivate::AlignType<T, Crx_MaximallyAlignedType *>::type ps;
+				typename MyPrivate::AlignType<T, void (*)()>::type pf;
+			} ;
+	
+	usage:
+			union
+			{
+				MaxAlignFor<T> _fghfhgf;
+				unsigned char memory[sizeof(T)];
+			} rawT;
+	
+PROBLEMS:
+	- THE C++ ONLY APPRAOCH ABOVE WILL NOT WORK IN VC6 BECAUSE VC6 DOES NOT SUPPORT PARTIAL 
+			TEMPLATE SPECIALIZATION.
+	- BOTH APPROACHES REQUIRE THE USE OF UNIONS, WHICH WOULD LEAD TO FORMALLY INCORRECT SYNTAX
+			WHEN ACCESSING THE TYPE. ALTERNATIVELY, ONE COULD EXPLOIT THE SYNTAX OF ANONYMOUS NESTED
+			STRUCTURES AND UNION, AND USE:
+					#define CRX__MEMBER_ALIGNMENT__START(pALIGNMENT) \
+							union{Crx_MaximallyAlignedType _f;
+					#define CRX__MEMBER_ALIGNMENT__END(pALIGNMENT)	}
+			BUT THIS TO BE CLEAN, ANONYMOUS NESTED STRUCTURES AND UNIONS NEEDS TO BE SUPPORTED
+			BY THE COMPILER. FURTHERE MORE, THIS WOULD ONLY WORK FOR DATA MEMBERS.
+			THIS WOULD ALSO SHARE THE SAME OTHER PROBLEMS MENTIONED EARLIER ABOUT 
+			CRX__MEMBER_ALIGNMENT__START AND CRX__MEMBER_ALIGNMENT__END
+*/
 
 //
+
+/*
+CRX__PRIVATE__IS_FARWARD_DECLERATION_OF_ENUMS_AVAILABLE
+		IT IS NOT VALID UNDER C, NOR UNDER (< C++11), TO FARWARD DECLARE ENUMS. SOME COMPILERS
+		HAVE AN EXTENSION FOR THIS. HOWEVER, OVERALL, THIS DOES NOT APPEAR TO BE COMMON. NOTE
+		THAT THE CODE BELOW CURRENTLY DOES NOT HANDLE THE C++ FARWARD DECLARATION SYNTAX
+		CORRECTLY. 
+CRX__PRIVATE__IS_SETTING_ENUM_TYPE_AVAILABLE_AND_RELIABLE: 
+		THIS IS FOR C23 AND UP. IT IS THE FEATURE
+		THAT ALLOWS SETTING THE UNDERLYING TYPE OF THE ENUM. THE FEATURE IS RELIABLE IF THE TYPE
+		SET BECOMES THE TYPE OF THE ENUM AND THE TYPE OF ITS CONSTANTS.
+CRX__PRIVATE__IS_ENUM_CONSTANT_USEFUL_DETERMINER:
+		THIS MEANS THAT AT LEAST ONE OF THE FALLBACK OF SETTING EXTRA ENUM CONSTANTS TO CONTROL
+		THE TYPE OF THE ENUM ITSELF, AND POSSIBLY THE ENUM CONSTANTS, WORKS.
+CRX__PRIVATE__IS_ENUM_CONSTANT_RELIABLE_DETERMINER
+		THIS MEANS THAT SETTING EXTRA ENUM CONSTANTS TO CONTROL THE TYPE OF THE ENUM IS SUFFICIENT
+		TO ENSURE THAT THE TYPE OF THE ENUM SHALL BE int32_t
+CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES
+		THIS MEANS THAT int IS 2 BYTES, AND THAT NO FALLBACK EXISTS TO FORCE ENUM TYPE TO BE LARGER
+		THAN 2 BYTES, MEANING THE SIZE OF int.
+*/
+/*#define CRX__PRIVATE__IS_FARWARD_DECLERATION_OF_ENUMS_AVAILABLE*/
+#define CRX__PRIVATE__IS_SETTING_ENUM_TYPE_AVAILABLE_AND_RELIABLE CRXM__FALSE
+#define CRX__PRIVATE__IS_ENUM_CONSTANT_USEFUL_DETERMINER CRXM__TRUE
+#define CRX__PRIVATE__IS_ENUM_CONSTANT_RELIABLE_DETERMINER CRXM__FALSE
+#define CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES CRXM__FALSE
+/*
+APPROACH 1
+
+CRX_ENUM(OLD):
+	- BOUNDED TO 32 DISTINCT VALUES CURRENTLY.
+	- HAS TYPE int32_t. CAN NOT BE USED FOR MASKS FOR EXAMPLE.
+	- FIRST ENUM CONSTANT MAY NOT HAVE AN EXPLICIT VALUE SET FOR IT.
+	- VALUES OF ENUMS MAY NOT EXCEED THE RANGE OF int16_t
+	- EXAMPLE:
+			CRX_ENUM(MY_ENUM)
+			(
+				MY_ENUM__NULL,
+				MY_ENUM__Z = 12,
+				MY_ENUM__X = 10,
+				MY_ENUM__Y = 5
+			);
+
+#if(defined(__cplusplus))
+	#if(__cplusplus >= 201103L)
+		#define CRX__PRIVATE__FARWARD_DECLARE_ENUM(pENUM) enum pNAME : int32_t;
+	#else
+		#define CRX__PRIVATE__FARWARD_DECLARE_ENUM(pENUM) enum pNAME;
+	#endif
+#else
+	#define CRX__PRIVATE__FARWARD_DECLARE_ENUM(pENUM) enum pNAME;
+#endif
+
+#if(CRX__AND(CRX__PRIVATE__IS_FARWARD_DECLERATION_OF_ENUMS_AVAILABLE, \
+		CRX__PRIVATE__IS_SETTING_ENUM_TYPE_AVAILABLE_AND_RELIABLE))
+	#define CRX_ENUM(pNAME) \
+			CRX__PRIVATE__FARWARD_DECLARE_ENUM(pNAME); \
+			typedef enum pNAME pNAME; \
+			enum pNAME : int32_t \
+			CRX_ENUM__DO
+	#define CRX_ENUM__DO(...) \
+			{ \
+				__VA_ARGS__ \
+			};
+#elif(CRX__PRIVATE__IS_ENUM_CONSTANT_USEFUL_DETERMINER)
+	#define CRX_ENUM(pNAME) \
+			CRXM__IFELSE2(CRX__AND(CRX__PRIVATE__IS_FARWARD_DECLERATION_OF_ENUMS_AVAILABLE, \
+					CRXM__AND(CRX__PRIVATE__IS_ENUM_CONSTANT_RELIABLE_DETERMINER, \
+					CRX_NOT(CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES))), \
+			CRX__PRIVATE__FARWARD_DECLARE_ENUM(pNAME); \
+			typedef enum pNAME pNAME; \
+			typedef enum pNAME, \
+			typedef int32_t pNAME; \
+			enum _crx_enum_ ## pNAME) \
+			CRX_ENUM__DO
+	#define CRX_ENUM__DO(...) \
+			{ \
+				__VA_ARGS__, \
+				CRX_ENUM__DO__CONCAT(_crx_, CRX_ENUM__DO__GET_FIRST( \
+						__VA_ARGS__), __f) = CRXM__IFELSE2( \
+								CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES, 32000, 40000000), \
+				CRX_ENUM__DO__CONCAT(_crx_, CRX_ENUM__DO__GET_FIRST( \
+						__VA_ARGS__), __s) = CRXM__IFELSE2( \
+								CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES, -32000, -40000000) \
+			};
+	#define CRX_ENUM__DO__GET_FIRST(pA, ...) pA
+	#define CRX_ENUM__DO__CONCAT(pA, pB, pC) \
+			CRX_ENUM__DO__CONCAT__DO(pA, pB, pC)
+	#define CRX_ENUM__DO__CONCAT__DO(pA, pB, pC) \
+			pA ## pB ## pC
+#endif
+*/
+/*
+APPROACH 2
+
+CRX_ENUM:
+	- BOUNDED TO 32 DISTINCT VALUES CURRENTLY.
+	- HAS TYPE int32_t. CAN NOT BE USED FOR MASKS FOR EXAMPLE.
+	- VALUES OF ENUMS MAY NOT EXCEED THE RANGE OF int16_t
+	- EXAMPLE:
+			CRX_ENUM(MY_ENUM,
+			(
+				MY_ENUM__NULL,
+				MY_ENUM__Z = 12,
+				MY_ENUM__X = 10,
+				MY_ENUM__Y = 5
+			));
+*/
+#if(CRX__PRIVATE__IS_SETTING_ENUM_TYPE_AVAILABLE_AND_RELIABLE)
+	#define CRX_ENUM(pNAME, pBODY) \
+			typedef enum pNAME : int32_t \
+			{ \
+				CRX_ENUM__DO pBODY, \
+			} pNAME \
+	#define CRX_ENUM__DO(...) __VA_ARGS__
+#else
+	#if(CRXM__AND(CRX__PRIVATE__IS_ENUM_CONSTANT_RELIABLE_DETERMINER, \
+			CRX_NOT(CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES)))
+		#define CRX_ENUM(pNAME, pBODY) \
+				typedef enum pNAME \
+				{ \
+					CRX_ENUM__DO pBODY, \
+					_crx_ ## pNAME ## __f = 40000000, \
+					_crx_ ## pNAME ## __s = -40000000 \
+				} pNAME
+		#define CRX_ENUM__DO(...) __VA_ARGS__
+	#else
+		#define CRX_ENUM(pNAME, pBODY) \
+				typedef enum _crx_ ## pNAME \
+				{ \
+					CRX_ENUM__DO pBODY, \
+					_crx_ ## pNAME ## __f = CRXM__IFELSE2( \
+							CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES, 32000, 40000000), \
+					_crx_ ## pNAME ## __s = CRXM__IFELSE2( \
+							CRX__PRIVATE__IS_ENUM_TYPE_BOUND_TO_2_BYTES, -32000, -40000000) \
+				} _crx_ ## pNAME; \
+				typedef int32_t pNAME
+		#define CRX_ENUM__DO(...) __VA_ARGS__
+	#endif
+#endif
+
 
 #ifndef __cplusplus
 	#if(defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))
@@ -4582,6 +5836,8 @@ typedef unsigned char bool;
 		#include <stdbool.h>
 	#endif
 #endif
+
+typedef char CRX__ERROR__SIZE_OF_BOOL_MUST_BE_ONE[(2 * ((sizeof(bool) == 1) ? 1 : 0)) - 1];
 
 #endif
 #endif

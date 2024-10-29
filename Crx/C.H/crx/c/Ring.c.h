@@ -980,6 +980,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndSetAt(Crx_C_Ring * pThis, s
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_setAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1001,6 +1006,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_setAt(Crx_C_Ring * pThis, size_t p
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_ring_get(Crx_C_Ring * pThis, size_t pIndex)
 {
@@ -1017,22 +1023,29 @@ CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_ring_get(Crx_C_Ring * pThis,
 				pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
 	}
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyGet(Crx_C_Ring const * pThis, unsigned char * pReturn, size_t pIndex)
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyGetTo(Crx_C_Ring const * pThis, unsigned char * pReturn, size_t pIndex)
 {
 	assert(pIndex < pThis->gPrivate_length);
+
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+		{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(pReturn);}
 
 	if(pThis->gPrivate_elements != NULL)
 	{
 		if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
 		{
 			(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT)(pReturn,
-					pThis->gPrivate_elements + (((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1)) * 
-					pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+					pThis->gPrivate_elements + (((pThis->gPrivate_startIndex + pIndex) & 
+					(pThis->gPrivate_capacity - 1)) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
 		}
 		else
 		{
-			memcpy(pReturn, pThis->gPrivate_elements + (((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1)) * 
-					pThis->gPrivate_typeBluePrint->gBYTE_SIZE), pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+			memcpy(pReturn, pThis->gPrivate_elements + (((pThis->gPrivate_startIndex + pIndex) & 
+					(pThis->gPrivate_capacity - 1)) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
+					pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 		}
 	}
 	else
@@ -1040,13 +1053,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyGet(Crx_C_Ring const * pThis, 
 		if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
 		{
 			(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT)(pReturn,
-					pThis->gPrivate_internalBuffer + (((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1)) * 
-					pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+					pThis->gPrivate_internalBuffer + (((pThis->gPrivate_startIndex + pIndex) & 
+					(pThis->gPrivate_capacity - 1)) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
 		}
 		else
 		{
-			memcpy(pReturn, pThis->gPrivate_internalBuffer + (((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1)) * 
-					pThis->gPrivate_typeBluePrint->gBYTE_SIZE), pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+			memcpy(pReturn, pThis->gPrivate_internalBuffer + (((pThis->gPrivate_startIndex + pIndex) & 
+					(pThis->gPrivate_capacity - 1)) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), 
+					pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 		}
 	}
 }
@@ -1097,6 +1111,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPush(Crx_C_Ring * pThis,
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_push(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 	bool vReturn;
 
@@ -1118,12 +1137,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_push(Crx_C_Ring * pThis, void * pE
 			{vReturn = crx_c_ring_tryMoveAndPush(pThis, pElement);}
 	}
 	
-	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
-			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)) &&
-			vReturn)
-		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	if(((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL))&& 
+			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || 
+			(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
+	{
+		if(vReturn)
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(vElement);}
+		}
+	}
 
 	return vReturn;	
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPush(Crx_C_Ring * pThis, void * pElement)
 {
@@ -1162,6 +1194,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPush(Crx_C_Ring * pThis
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPush(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1184,6 +1221,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPush(Crx_C_Ring * pThis, void 
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPush(Crx_C_Ring * pThis, void * pElement)
 {
@@ -1249,6 +1287,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPush(Crx_C_Ring * pThi
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPush(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1271,6 +1314,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPush(Crx_C_Ring * pThis, void
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_pop(Crx_C_Ring * pThis)
 {
@@ -1344,6 +1388,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPushToFront(Crx_C_Ring *
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_pushToFront(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 	bool vReturn;
 
@@ -1364,12 +1413,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_pushToFront(Crx_C_Ring * pThis, vo
 			{vReturn = crx_c_ring_tryMoveAndPushToFront(pThis, pElement);}
 	}
 	
-	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
-			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)) &&
-			vReturn)
-		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	if(((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)) && 
+			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || 
+			(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
+	{
+		if(vReturn)
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(vElement);}
+		}
+	}
 		
 	return vReturn;
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPushToFront(Crx_C_Ring * pThis, void * pElement)
 {
@@ -1413,6 +1475,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPushToFront(Crx_C_Ring 
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPushToFront(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1435,6 +1502,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPushToFront(Crx_C_Ring * pThis
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPushToFront(Crx_C_Ring * pThis, void * pElement)
 {
@@ -1498,6 +1566,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPushToFront(Crx_C_Ring
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPushToFront(Crx_C_Ring * pThis, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1520,6 +1593,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPushToFront(Crx_C_Ring * pThi
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_popFromFront(Crx_C_Ring * pThis)
 {
@@ -1534,7 +1608,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_popFromFront(Crx_C_Ring * pThis)
 	if(pThis->gPrivate_startIndex == pThis->gPrivate_capacity - 1)
 		{pThis->gPrivate_startIndex = 0;}
 	else
-		{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - 1;}
+		{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex + 1;}
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
 	{
@@ -1591,6 +1665,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndInsertElementAt(Crx_C_Ri
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 	bool vReturn;
 
@@ -1612,12 +1691,25 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementAt(Crx_C_Ring * pThis
 			{vReturn = crx_c_ring_tryMoveAndInsertElementAt(pThis, pIndex, pElement);}
 	}
 
-	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
-			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)) &&
-			vReturn)
-		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	if(((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)) && 
+			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || 
+			(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
+	{
+		if(vReturn)
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT != NULL)
+				{(pThis->gPrivate_typeBluePrint->gFUNC__DESTRUCT)(vElement);}
+		}
+	}
 		
 	return vReturn;
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastInsertElementAt(Crx_C_Ring * pThis, size_t pIndex,
 		void * pElement)
@@ -1653,6 +1745,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastInsertElementAt(Crx_C_R
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1675,6 +1772,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementAt(Crx_C_Ring * p
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundInsertElementAt(Crx_C_Ring * pThis, size_t pIndex,
 		void * pElement)
@@ -1711,6 +1809,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundInsertElementAt(Crx_C_
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vElement = (unsigned char *) CRX__ALLOCA(pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 	if(pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL)
@@ -1733,6 +1836,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementAt(Crx_C_Ring * 
 	if((pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL) && 
 			((pThis->gPrivate_typeBluePrint->gFUNC__COPY_CONSTRUCT != NULL) || (pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vElement);}
+	CRX_SCOPE_END
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementsAt(Crx_C_Ring * pThis, size_t pIndex,
@@ -1817,8 +1921,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementsAt(Crx_C_Ring *
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertCArrayAt(Crx_C_Ring * pThis, size_t pIndex,
 		void * pArray, size_t pWidth)
 {
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return true;}
+	
 
 	if(crx_c_ring_private_insertSpaceAt(pThis, pIndex, pWidth))
 	{
@@ -1865,7 +1972,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertCArrayAt(Crx_C_Ring * pT
 		void * pArray, size_t pWidth)
 {
 	CRX_SCOPE_META
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -1912,7 +2021,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertCArrayAt(Crx_C_Ring * p
 		void * pArray, size_t pWidth)
 {
 	CRX_SCOPE_META
-	if(pWidth == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pWidth == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -1960,7 +2071,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertCArrayAt(Crx_C_Ring * p
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementCopiesAt(Crx_C_Ring * pThis, size_t pIndex,
 		void * pElement, size_t pNumberOfCopies)
 {
-	if(pNumberOfCopies == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pNumberOfCopies == 0)
 		{return true;}
 
 	if(crx_c_ring_private_insertSpaceAt(pThis, pIndex, pNumberOfCopies))
@@ -2092,7 +2205,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementCopiesAt(Crx_C_Ri
 		void * pElement, size_t pNumberOfCopies)
 {
 	CRX_SCOPE_META
-	if(pNumberOfCopies == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pNumberOfCopies == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -2221,7 +2336,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementCopiesAt(Crx_C_R
 		void * pElement, size_t pNumberOfCopies)
 {
 	CRX_SCOPE_META
-	if(pNumberOfCopies == 0)
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+	else if(pNumberOfCopies == 0)
 		{return;}
 
 	CRX_SCOPE
@@ -2378,7 +2495,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_removeElements(Crx_C_Ring * pThis,
 	{
 		if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)
 		{
-			if((pThis->gPrivate_length >> 1) < pIndex)
+			if((pThis->gPrivate_length >> 1) > pIndex)
 			{
 				CRX_FOR(size_t tI = 0, tI < pIndex, tI++)
 				{
@@ -2418,7 +2535,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_removeElements(Crx_C_Ring * pThis,
 		}
 		else
 		{
-			if((pThis->gPrivate_length >> 1) < pIndex)
+			if((pThis->gPrivate_length >> 1) > pIndex)
 			{
 				CRX_FOR(size_t tI = 0, tI < pIndex, tI++)
 				{
@@ -2454,7 +2571,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_removeElements(Crx_C_Ring * pThis,
 	}
 	else
 	{
-		if((pThis->gPrivate_length >> 1) < pIndex)
+		if((pThis->gPrivate_length >> 1) > pIndex)
 		{
 			crx_c_ring_private_rawRotateRight(pThis, tTarget,
 					pThis->gPrivate_startIndex, ((pThis->gPrivate_startIndex + pIndex - 1) & (pThis->gPrivate_capacity - 1)),
@@ -2464,10 +2581,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_removeElements(Crx_C_Ring * pThis,
 		}
 		else
 		{
-			crx_c_ring_private_rawRotateLeft(pThis, tTarget,
-					((pThis->gPrivate_startIndex + pIndex + pWidth) & (pThis->gPrivate_capacity - 1)),
-					((pThis->gPrivate_startIndex + pThis->gPrivate_length - 1) & (pThis->gPrivate_capacity - 1)),
-					pWidth);
+			if(pIndex + pWidth < pThis->gPrivate_length)
+			{
+				crx_c_ring_private_rawRotateLeft(pThis, tTarget,
+						((pThis->gPrivate_startIndex + pIndex + pWidth) & (pThis->gPrivate_capacity - 1)),
+						((pThis->gPrivate_startIndex + pThis->gPrivate_length - 1) & (pThis->gPrivate_capacity - 1)),
+						pWidth);
+			}
 		}
 	}
 
@@ -2572,13 +2692,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_ring_getElementsPointer(Crx_
 	}
 }
 
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Ring * pThis, size_t pIndex, size_t pWidth)
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Ring * pThis,
+		size_t pIndex, size_t pWidth)
 {
 	assert(pWidth <= (pThis->gPrivate_capacity - pThis->gPrivate_length));
 
 	if(pIndex == 0)
 	{
-		if(pThis->gPrivate_startIndex > pWidth)
+		if(pThis->gPrivate_startIndex >= pWidth)
 			{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - pWidth;}
 		else
 			{pThis->gPrivate_startIndex = pThis->gPrivate_capacity - (pWidth - pThis->gPrivate_startIndex);}
@@ -2607,38 +2728,199 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Rin
 		{
 			if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT != NULL)
 			{
-				CRX_FOR(size_t tI = pThis->gPrivate_length - 1, tI >= pIndex, tI--)
+				if((pThis->gPrivate_length >> 1) < pIndex)
 				{
-					(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT)(
-							vTarget + (((pThis->gPrivate_startIndex + tI + pWidth) & (pThis->gPrivate_capacity - 1)) * 
-									pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-							vTarget + (((pThis->gPrivate_startIndex + tI) & (pThis->gPrivate_capacity - 1)) * 
-									pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
-
-					if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+					CRX_FOR(size_t tI = pThis->gPrivate_length - 1, tI >= pIndex, tI--)
 					{
-						(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
-							(((pThis->gPrivate_startIndex + tI) & (pThis->gPrivate_capacity - 1)) * 
-							pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+						(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT)(
+								vTarget + (((pThis->gPrivate_startIndex + tI + pWidth) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+								vTarget + (((pThis->gPrivate_startIndex + tI) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+
+						if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+						{
+							(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+								(((pThis->gPrivate_startIndex + tI) & 
+								(pThis->gPrivate_capacity - 1)) * 
+								pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+						}
+					}
+					CRX_ENDFOR
+				}
+				else
+				{
+					if(pThis->gPrivate_startIndex >= pWidth)
+					{
+						CRX_FOR(size_t tI = 0, tI < pIndex, tI++)
+						{
+							(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT)(
+									vTarget + (((pThis->gPrivate_startIndex - pWidth + tI) &											
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									vTarget + (((pThis->gPrivate_startIndex + tI) & 
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+
+							if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+							{
+								(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+										(((pThis->gPrivate_startIndex + tI) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+							}
+						}
+						CRX_ENDFOR
+
+						pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - pWidth;
+					}
+					else
+					{
+						size_t tUpperIndex = (((pWidth - pThis->gPrivate_startIndex) >
+								pIndex) ? pIndex : (pWidth - pThis->gPrivate_startIndex));
+
+						CRX_FOR(size_t tI = 0, tI < tUpperIndex, tI++)
+						{
+							(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT)(
+									vTarget + ((pThis->gPrivate_capacity -
+											(pWidth - pThis->gPrivate_startIndex) + tI) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									vTarget + (((pThis->gPrivate_startIndex + tI) & 
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+
+							if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+							{
+								(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+										(((pThis->gPrivate_startIndex + tI) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+							}
+						}
+						CRX_ENDFOR
+
+						if(tUpperIndex < pIndex)
+						{
+							CRX_FOR(size_t tI = tUpperIndex, tI < pIndex, tI++)
+							{
+								(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_CONSTRUCT)(
+										vTarget + (((pThis->gPrivate_startIndex + tI - pWidth) &
+												(pThis->gPrivate_capacity - 1)) * 
+												pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+										vTarget + (((pThis->gPrivate_startIndex + tI) &
+												(pThis->gPrivate_capacity - 1)) * 
+												pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+
+								if(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT != NULL)
+								{
+									(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+											(((pThis->gPrivate_startIndex + tI) & 
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+								}
+							}
+							CRX_ENDFOR
+						}
+
+						pThis->gPrivate_startIndex = pThis->gPrivate_capacity -
+								(pWidth - pThis->gPrivate_startIndex);
 					}
 				}
-				CRX_ENDFOR
 			}
 			else
 			{
-				CRX_FOR(size_t tI = pThis->gPrivate_length - 1, tI > pIndex, tI--)
+				if((pThis->gPrivate_length >> 1) < pIndex)
 				{
-					memmove(vTarget + (((pThis->gPrivate_startIndex + tI + pWidth) & (pThis->gPrivate_capacity - 1)) * 
-									pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-							vTarget + (((pThis->gPrivate_startIndex + tI) & (pThis->gPrivate_capacity - 1)) * 
-									pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-							pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+					CRX_FOR(size_t tI = pThis->gPrivate_length - 1, tI >= pIndex, tI--)
+					{
+						memmove(vTarget + (((pThis->gPrivate_startIndex + tI + pWidth) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+								vTarget + (((pThis->gPrivate_startIndex + tI) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+								pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
-					(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
-							(((pThis->gPrivate_startIndex + tI) & (pThis->gPrivate_capacity - 1)) * 
-							pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+						(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+								(((pThis->gPrivate_startIndex + tI) & 
+								(pThis->gPrivate_capacity - 1)) * 
+								pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+					}
+					CRX_ENDFOR
 				}
-				CRX_ENDFOR
+				else
+				{
+					if(pThis->gPrivate_startIndex >= pWidth)
+					{
+						CRX_FOR(size_t tI = 0, tI < pIndex, tI++)
+						{
+							memmove(vTarget + (((pThis->gPrivate_startIndex - pWidth + tI) &
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									vTarget + (((pThis->gPrivate_startIndex + tI) &
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+
+							(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+									(((pThis->gPrivate_startIndex + tI) & 
+									(pThis->gPrivate_capacity - 1)) * 
+									pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+						} 
+						CRX_ENDFOR 
+
+						pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - pWidth;
+					}
+					else
+					{
+						size_t tUpperIndex = (((pWidth - pThis->gPrivate_startIndex) >
+								pIndex) ? pIndex : (pWidth - pThis->gPrivate_startIndex));
+
+						CRX_FOR(size_t tI = 0, tI < tUpperIndex, tI++)
+						{
+							memmove(vTarget +
+											((pThis->gPrivate_capacity -
+											(pWidth - pThis->gPrivate_startIndex) + tI) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									vTarget + (((pThis->gPrivate_startIndex + tI) &
+											(pThis->gPrivate_capacity - 1)) * 
+											pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+									pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+
+							(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+									(((pThis->gPrivate_startIndex + tI) & 
+									(pThis->gPrivate_capacity - 1)) * 
+									pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+						}
+						CRX_ENDFOR
+
+						if(tUpperIndex < pIndex)
+						{
+							CRX_FOR(size_t tI = tUpperIndex, tI < pIndex, tI++)
+							{
+								memmove(vTarget +
+												(((pThis->gPrivate_startIndex + tI - pWidth) &
+												(pThis->gPrivate_capacity - 1)) * 
+												pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+										vTarget + (((pThis->gPrivate_startIndex + tI) &
+												(pThis->gPrivate_capacity - 1)) * 
+												pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+
+								(pThis->gPrivate_typeBluePrint->gFUNC__MOVE_DESTRUCT)(vTarget +
+										(((pThis->gPrivate_startIndex + tI) & 
+										(pThis->gPrivate_capacity - 1)) * 
+										pThis->gPrivate_typeBluePrint->gBYTE_SIZE));
+							}
+							CRX_ENDFOR
+						}
+
+						pThis->gPrivate_startIndex = pThis->gPrivate_capacity -
+								(pWidth - pThis->gPrivate_startIndex);
+					}
+				}
 			}
 		}
 		else
@@ -2753,6 +3035,11 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Rin
 CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_copyFromRingRange(Crx_C_Ring * pThis, size_t pIndex,
 		Crx_C_Ring const * pArray, size_t pStartIndex, size_t pWidth)
 {
+	CRX_SCOPE_META
+	if(!pThis->gPrivate_typeBluePrint->gIS_COPYABLE)
+		{abort();}
+
+	CRX_SCOPE
 	unsigned char * vTarget = ((pThis->gPrivate_internalBuffer != NULL) ? 
 			((pThis->gPrivate_elements != NULL) ? pThis->gPrivate_elements : pThis->gPrivate_internalBuffer) : 
 			pThis->gPrivate_elements);
@@ -2773,16 +3060,16 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_copyFromRingRange(Crx_C_R
 	{
 		size_t tTargetStartIndex = ((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1));
 		size_t tTargetSegmentLength = ((tTargetStartIndex >= pThis->gPrivate_startIndex) ?
-				((((pThis->gPrivate_startIndex + pIndex + pWidth - 1) & (pThis->gPrivate_capacity - 1)) > tTargetStartIndex) ?
+				((((pThis->gPrivate_startIndex + pIndex + pWidth - 1) & (pThis->gPrivate_capacity - 1)) >= tTargetStartIndex) ?
 						pWidth : (pThis->gPrivate_capacity - tTargetStartIndex)) :
 				pWidth);
 		size_t tSourceStartIndex = ((pArray->gPrivate_startIndex + pStartIndex) & (pArray->gPrivate_capacity - 1));
-		size_t tSourceLength = ((tSourceStartIndex >= pArray->gPrivate_startIndex) ?
-				((((pArray->gPrivate_startIndex + pIndex + pWidth - 1) & (pArray->gPrivate_capacity - 1)) > tSourceStartIndex) ?
+		size_t tSourceSegmentLength = ((tSourceStartIndex >= pArray->gPrivate_startIndex) ?
+				((((pArray->gPrivate_startIndex + pStartIndex + pWidth - 1) & (pArray->gPrivate_capacity - 1)) >= tSourceStartIndex) ?
 						pWidth : (pArray->gPrivate_capacity - tSourceStartIndex)) :
 				pWidth);
 
-		if(tTargetSegmentLength <= tSourceLength)
+		if(tTargetSegmentLength <= tSourceSegmentLength)
 		{
 			memcpy(vTarget + (tTargetStartIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), vSource + (tSourceStartIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
 					tTargetSegmentLength * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
@@ -2792,36 +3079,37 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_copyFromRingRange(Crx_C_R
 				assert(((pThis->gPrivate_startIndex + pIndex + tTargetSegmentLength) & (pThis->gPrivate_capacity - 1)) == 0);
 
 				memcpy(vTarget, vSource + ((tSourceStartIndex + tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-						(tSourceLength - tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+						(tSourceSegmentLength - tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
-				if(tSourceLength < pWidth)
+				if(tSourceSegmentLength < pWidth)
 				{
-					assert(((pArray->gPrivate_startIndex + tSourceStartIndex + tSourceLength) & (pThis->gPrivate_capacity - 1)) == 0);
+					assert(((pArray->gPrivate_startIndex + tSourceStartIndex + tSourceSegmentLength) & (pThis->gPrivate_capacity - 1)) == 0);
 
-					memcpy(vTarget + ((tTargetStartIndex + tSourceLength - tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-							vSource, (pWidth - tSourceLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+					memcpy(vTarget + ((tSourceSegmentLength - tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+							vSource, (pWidth - tSourceSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 				}
 			}
 		}
 		else
 		{
 			memcpy(vTarget + (tTargetStartIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), vSource + (tSourceStartIndex * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
-					tSourceLength * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+					tSourceSegmentLength * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
-			assert(((pArray->gPrivate_startIndex + pIndex + tSourceLength) & (pThis->gPrivate_capacity - 1)) == 0);
+			assert(((pArray->gPrivate_startIndex + pStartIndex + tSourceSegmentLength) & (pThis->gPrivate_capacity - 1)) == 0);
 
-			memcpy(vTarget + ((tTargetStartIndex + tSourceLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), vSource,
-					(tTargetSegmentLength - tSourceLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
+			memcpy(vTarget + ((tTargetStartIndex + tSourceSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE), vSource,
+					(tTargetSegmentLength - tSourceSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 
 			if(tTargetSegmentLength < pWidth)
 			{
 				assert(((pThis->gPrivate_startIndex + pIndex + tTargetSegmentLength) & (pThis->gPrivate_capacity - 1)) == 0);
 
-				memcpy(vTarget, vSource + ((tTargetSegmentLength - tSourceLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
+				memcpy(vTarget, vSource + ((tTargetSegmentLength - tSourceSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE),
 						(pWidth - tTargetSegmentLength) * pThis->gPrivate_typeBluePrint->gBYTE_SIZE);
 			}
 		}
 	}
+	CRX_SCOPE_END
 }
 
 /*WARNING: THE FOLLOWING ASSUMES THAT THE REMAINING SPACE IS LARGER THAN pWIDTH. THIS MEANS THAT
@@ -2843,7 +3131,8 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateRight(Crx_C_Ring
 	if(pRawEndIndex < pRawStartIndex)
 	{
 		memmove(pElements + (pWidth * pThis->gSIZE_OF_INTERNAL_BUFFER), pElements,
-				pRawEndIndex * pThis->gSIZE_OF_INTERNAL_BUFFER);
+				/*pRawEndIndex * pThis->gSIZE_OF_INTERNAL_BUFFER);*/
+				(pRawEndIndex + 1) * pThis->gSIZE_OF_INTERNAL_BUFFER);
 	}
 
 	if(pWidth <= tEmptySpaceBeforeEnd)
@@ -2910,7 +3199,8 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateLeft(Crx_C_Ring 
 	{
 		memcpy(pElements + ((pRawStartIndex - pWidth) * pThis->gSIZE_OF_INTERNAL_BUFFER),
 				pElements + (pRawStartIndex * pThis->gSIZE_OF_INTERNAL_BUFFER),
-				(pRawStartIndex + 1 - pRawStartIndex) * pThis->gSIZE_OF_INTERNAL_BUFFER);
+				/*(pRawStartIndex + 1 - pRawStartIndex) * pThis->gSIZE_OF_INTERNAL_BUFFER);*/
+				(pRawEndIndex + 1 - pRawStartIndex) * pThis->gSIZE_OF_INTERNAL_BUFFER);
 
 		/*CRXM__IFELSE2(pNEW_RAW_START_INDEX,
 		pNEW_RAW_START_INDEX = pRawStartIndex - pWidth;, )*/

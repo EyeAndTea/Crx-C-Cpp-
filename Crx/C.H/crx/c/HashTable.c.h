@@ -86,31 +86,39 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_hashTable_computeSafer32BitsHash(
 }
 
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint8sEqual(void * pUint8,
-		void * pUint8__2)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint8sEqual(void const * pUint8,
+		void const * pUint8__2)
 	{return *((uint8_t *)pUint8) == *((uint8_t *)pUint8__2);}
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint8(void * pUint8)
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint8(void const * pUint8)
 	{return *((uint8_t *)pUint8);}
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint16sEqual(void * pUint16,
-		void * pUint16__2)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint16sEqual(void const * pUint16,
+		void const * pUint16__2)
 	{return *((uint16_t *)pUint16) == *((uint16_t *)pUint16__2);}
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint16(void * pUint16)
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint16(void const * pUint16)
 	{return *((uint16_t *)pUint16);}
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint32sEqual(void * pUint32,
-		void * pUint32__2)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint32sEqual(void const * pUint32,
+		void const * pUint32__2)
 	{return ((*((uint32_t *)pUint32)) == (*((uint32_t *)pUint32__2)));}
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint32(void * pUint32)
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint32(void const * pUint32)
 	{return *((uint32_t *)pUint32);}
 
+#if(!defined(CRX__BOOST_NO_INT64_T))
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_areUint64sEqual(void const * pUint64,
+		void const * pUint64__2)
+	{return ((*((uint64_t *)pUint64)) == (*((uint64_t *)pUint64__2)));}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getHashKeyForUint64(void const * pUint64)
+	{return (size_t)(*((uint64_t *)pUint64));}
+#endif
+	
 ////////////
 ////////////
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_construct(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	crx_c_hashTable_private_doInit(pThis, pTypeBluePrint__key, pAreKeysEqual,
@@ -118,7 +126,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_construct(Crx_C_HashTable * p
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_construct2(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	crx_c_hashTable_private_doInit(pThis, pTypeBluePrint__key, pAreKeysEqual,
@@ -162,7 +170,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyConstruct(
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_new(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element,
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	Crx_C_HashTable * vReturn = (Crx_C_HashTable *)(calloc(1,
@@ -178,7 +186,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_new(
 }
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_new2(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	Crx_C_HashTable * vReturn = (Crx_C_HashTable *)(calloc(1,
@@ -226,7 +234,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_HashTable * crx_c_hashTable_copyNew(
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_destruct(Crx_C_HashTable * pThis)
 {
 	if((pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL) ||
-			(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL))
+			((pThis->gPrivate_typeBluePrint__element != NULL) &&
+			(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)))
 		{crx_c_hashTable_empty(pThis);}
 
 	free((void *) pThis->gPrivate_keys);
@@ -239,6 +248,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_destruct(Crx_C_HashTable * pT
 		free((void *) pThis->gPrivate_elements);
 		pThis->gPrivate_elements = NULL;
 	}
+	
+	CRX__C__TYPE_BLUE_PRINT__GENERIC__FINALIZE(pThis->gPrivate_typeBluePrint__key);
+	if(pThis->gPrivate_typeBluePrint__element != NULL)
+		{CRX__C__TYPE_BLUE_PRINT__GENERIC__FINALIZE(pThis->gPrivate_typeBluePrint__element);}
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_free(Crx_C_HashTable * pThis)
 	{free(pThis);}
@@ -256,7 +269,7 @@ CRX__C__TYPE_BLUE_PRINT__GENERIC__DEFINE_GET_BLUE_PRINT(
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_private_doInit(Crx_C_HashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey,
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element)
 {
@@ -1758,7 +1771,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndElementAndSet(
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndSet(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * pElement)
+		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void const * pElement)
 {
 	CRX_SCOPE_META
 	if((pThis->gPrivate_typeBluePrint__element == NULL) || (pElement == NULL))
@@ -1802,15 +1815,27 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndSet(
 				vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, pKey, vElement);
 			}
 			else
-				{vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, pKey, pElement);}
+			{
+				vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, pKey, 
+						((void *)pElement));
+			}
 		}
 
-		if((pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT != NULL) &&
+		if(((pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT != NULL) ||
+				(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)) &&
 				((pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT != NULL) ||
 				(pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_CONSTRUCT != NULL)))
 		{
 			if(vReturn)
-				{pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT(vElement);}
+			{
+				if(pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT != NULL)
+					{pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT(vElement);}
+			}
+			else
+			{
+				if(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)
+					{pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT(vElement);}
+			}
 		}
 	}
 	else
@@ -1853,7 +1878,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveKeyAndSet(
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveElementAndSet(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * CRX_NOT_NULL pElement)
+		Crx_C_HashTable * pThis, void const * CRX_NOT_NULL pKey, void * CRX_NOT_NULL pElement)
 {
 	CRX_SCOPE_META
 	if(pThis->gPrivate_typeBluePrint__element == NULL)
@@ -1882,15 +1907,24 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveElementAndSet(
 			vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, vKey, pElement);
 		}
 		else
-			{vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, pKey, pElement);}
+			{vReturn = crx_c_hashTable_tryMoveKeyAndElementAndSet(pThis, ((void *)pKey), pElement);}
 	}
 
-	if((pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_DESTRUCT != NULL) &&
+	if(((pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_DESTRUCT != NULL) ||
+			(pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL)) &&
 			((pThis->gPrivate_typeBluePrint__key->gFUNC__COPY_CONSTRUCT != NULL) ||
 			(pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_CONSTRUCT != NULL)))
 	{
 		if(vReturn)
-			{pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_DESTRUCT(vKey);}
+		{
+			if(pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_DESTRUCT != NULL)
+				{pThis->gPrivate_typeBluePrint__key->gFUNC__MOVE_DESTRUCT(vKey);}
+		}
+		else
+		{
+			if(pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL)
+				{pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT(vKey);}
+		}
 	}
 
 	return vReturn;
@@ -1898,7 +1932,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_tryMoveElementAndSet(
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_set(
-		Crx_C_HashTable * pThis, void * CRX_NOT_NULL pKey, void * pElement)
+		Crx_C_HashTable * pThis, void const * CRX_NOT_NULL pKey, void const * pElement)
 {
 	CRX_SCOPE_META
 	if((pThis->gPrivate_typeBluePrint__element == NULL) || (pElement == NULL))
@@ -1943,6 +1977,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_set(
 				(pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT != NULL))
 			{pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT(vElement);}
 	}
+	else
+	{
+		if(pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL)
+			{pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT(vKey);}
+
+		if((pThis->gPrivate_typeBluePrint__element != NULL) &&
+				(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL))
+			{pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT(vElement);}
+	}
 
 	return vReturn;
 	CRX_SCOPE_END
@@ -1958,13 +2001,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_hashTable_get(Crx_C_HashTable * pThis
 	CRX_SCOPE
 	size_t vBucketIndex = crx_c_hashTable_private_get(pThis, pKey);
 
-	if(vBucketIndex != pThis->gPrivate_numberOfBuckets)
-	{
-		return (pThis->gPrivate_elements + 
-				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
-	}
-	else
-		{return NULL;}
+	assert(vBucketIndex != pThis->gPrivate_numberOfBuckets);
+
+	return (pThis->gPrivate_elements + 
+			(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
 	CRX_SCOPE_END
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_constantGet(
@@ -1975,7 +2015,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_constantGet(
 
 	return crx_c_hashTable_get(((Crx_C_HashTable *)pThis), pKey);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyGet(Crx_C_HashTable const * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyGetTo(Crx_C_HashTable const * pThis,
 		void * CRX_NOT_NULL pReturn, void const * CRX_NOT_NULL pKey)
 {
 	CRX_SCOPE_META
@@ -1986,20 +2026,22 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_copyGet(Crx_C_HashTable const
 	CRX_SCOPE
 	size_t vBucketIndex = crx_c_hashTable_private_get(pThis, pKey);
 
-	if(vBucketIndex != pThis->gPrivate_numberOfBuckets)
+	assert(vBucketIndex != pThis->gPrivate_numberOfBuckets);
+	
+	if(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)
+		{(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT)(pReturn);}
+
+	if(pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT != NULL)
 	{
-		if(pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT != NULL)
-		{
-			pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT(pReturn, 
-					pThis->gPrivate_elements + 
-					(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
-		}
-		else
-		{
-			memcpy(pReturn, pThis->gPrivate_elements + 
-					(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE),
-					pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE);
-		}
+		pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT(pReturn, 
+				pThis->gPrivate_elements + 
+				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
+	}
+	else
+	{
+		memcpy(pReturn, pThis->gPrivate_elements + 
+				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE),
+				pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE);
 	}
 	CRX_SCOPE_END
 }
@@ -2051,14 +2093,19 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getEndIndex(Crx_C_HashTable
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getNextIndex(Crx_C_HashTable const * pThis,
 		size_t pIndex)
 {
+	CRX_SCOPE_META
+	if(pIndex >= pThis->gPrivate_numberOfBuckets)
+		{return pThis->gPrivate_numberOfBuckets;}
+
+	CRX_SCOPE
 	size_t vIndex = pIndex + 1;
 
 	while((vIndex < pThis->gPrivate_numberOfBuckets) &&
 			CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
 		{vIndex = vIndex + 1;}
 
-	return ((vIndex < pThis->gPrivate_numberOfBuckets) ? vIndex :
-			pThis->gPrivate_numberOfBuckets);
+	return vIndex;
+	CRX_SCOPE_END
 }
 
 CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_hashTable_private_prepareSeedForHash(

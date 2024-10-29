@@ -49,7 +49,16 @@ NOTE:
 			WILL ALWAYS HAVE A copyConstruct() EVEN IF Crx_C_TypeBluePrint::gIS_COPYABLE
 			IS FALSE, AND WHILE THE EXISTANCE OF copyConstruct() IS KNOWN AT COMPILE TIME
 			THE VALUE OF Crx_C_TypeBluePrint::gIS_COPYABLE IS NOT KNOWN UNTIL RUNTIME.
+	- CURRENTLY, TEMPLATES, UNLIKE GENERICS, DO NOT ACCOMADE TYPES THAT ARE NOT OF A FIXED SIZE, 
+			MEANING THEY DO NOT ASK FOR getByteSizeFor(). WHILE THE TEMPLATES DO NOT ACCOMODATE
+			TYPES THAT ARE NOT OF A FIXED SIZE, THEY CAN GENERATE TYPES THAT ARE NOT OF A FIXED
+			SIZE, AND THESE TYPES SHOULD BE USABLE IN GENERICS. A CONTRADICTION TO THIS, HOWEVER,
+			IS THAT WHENEVER A GENERIC EXISTS, A TEMPLATE SHOULD EXIST, AND VICE VERSA, THEREFORE,
+			CURRENTLY GENERICS CAN NOT WORK WITH TYPES THAT DO NOT HAVE A FIXED SIZE EITHER, BUT
+			USER ARE STILL REQURED TO FILL THAT PART OF THE TYPE BLUE PRINT, MEANING
+			TypeBluePrint::gFUNC__GET_BYTE_SIZE_OF.
 */
+
 typedef struct Crx_C_TypeBluePrint
 {
 	size_t gBYTE_SIZE; 	//MUST BE EQUAL TO VALUE OF sizeof() IF THE TYPE HAS A FIXED SIZE, 
@@ -68,6 +77,21 @@ typedef struct Crx_C_TypeBluePrint
 	//size_t (* gFUNC__GET_BYTE_SIZE_OF)(unsigned char * pElement); //MUST BE LARGER THAN, OR EQUAL TO, gBYTE_SIZE
 	size_t (* gFUNC__GET_BYTE_SIZE_OF)(void const * pElement); //MUST BE LARGER THAN, OR EQUAL TO, gBYTE_SIZE
 } Crx_C_TypeBluePrint;
+
+/*IMPORTANT: THESE ARE AS DEFINED IN MY STANDARD.*/
+typedef void (* Crx_C_TypeBluePrint_Destruct)(void * pElement);
+typedef void (* Crx_C_TypeBluePrint_CopyConstruct)(void * pElement__to, 
+		void const * CRX_NOT_NULL pElement__from);
+typedef void (* Crx_C_TypeBluePrint_MoveConstruct)(void * pElement__to, 
+		void * CRX_NOT_NULL pElement__from);
+typedef void (* Crx_C_TypeBluePrint_MoveDestruct)(void * pElement);
+typedef size_t (* Crx_C_TypeBluePrint_GetByteSizeOf)(void const * pElement);
+typedef void (* Crx_C_TypeBluePrint_Free)(void * pElement);
+
+typedef bool (* Crx_C_TypeBluePrint_AreObjectsEqual)(void const * pObject, void const * pObject2);
+typedef int32_t (* Crx_C_TypeBluePrint_GetOrderOfObjects)(void const * pObject, 
+		void const * pObject2); /*VALID RETURNS: -1, 0, 1*/
+typedef size_t (* Crx_C_TypeBluePrint_GetHash)(size_t pSeed, void const * CRX_NOT_NULL pObject);
 
 #define CRX__C__TYPE_BLUE_PRINT__IS_CORRECT_FORM(pTYPE_BLUE_PRINT) \
 		(((pTYPE_BLUE_PRINT)->gIS_COPYABLE || \
@@ -92,6 +116,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForUint16();
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForUint32();
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForUint64();
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForVoidPointer();
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForVoidFunctionPointer();
 
 
 /*-------------------*/
@@ -301,7 +327,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		if(pTYPE_BLUE_PRINT->gIS_GENERIC) \
 			{free((void *)pTYPE_BLUE_PRINT);} \
 		pTYPE_BLUE_PRINT = NULL;
-
+		
 CRX__LIB__C_CODE_END()
 
 #if(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__HEADER_ONLY))

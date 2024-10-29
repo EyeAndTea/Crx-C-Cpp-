@@ -635,7 +635,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_CrxCss_BlockElement * CRX_PASSING crx_c_crxC
 			Crx_C_CrxCss_AtRuleElement tAtRuleElement /*= ?*/;
 
 			crx_c_crxCss_atRuleElement_construct(&tAtRuleElement);
-			//crx_c_string_appendString2(&(tAtRuleElement.gName), "crx_root");
+			//crx_c_string_appendCString(&(tAtRuleElement.gName), "crx_root");
 
 			crx_c_crxCss_parseBlock(&vParserData, tAtRuleElement.gBlock);
 
@@ -702,14 +702,14 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_pushErrorTraceToParserData(
 			tCurrentChar++;
 		}
 
-		crx_c_string_appendString2(&tString, "Error at [line: ");
+		crx_c_string_appendCString(&tString, "Error at [line: ");
 		crx_c_string_appendInt(&tString, tLineNumber);
-		crx_c_string_appendString2(&tString, ", Byte: ");
+		crx_c_string_appendCString(&tString, ", Byte: ");
 		crx_c_string_appendInt(&tString, tCharacterNumber);
-		crx_c_string_appendString2(&tString, "] After:\n");
+		crx_c_string_appendCString(&tString, "] After:\n");
 		crx_c_string_appendChars(&tString, tCurrentChar__error, tCount);
-		crx_c_string_appendString2(&tString, "\n With Message \n");
-		crx_c_string_appendString2(&tString, pString);
+		crx_c_string_appendCString(&tString, "\n With Message \n");
+		crx_c_string_appendCString(&tString, pString);
 
 		crx_c_error_error_pushTrace2(pParserData->gError, pCode, &tString);
 		

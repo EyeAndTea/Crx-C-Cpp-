@@ -88,6 +88,44 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 
 	return &vReturn;
 }
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForVoidPointer()
+{
+	static bool vIsNotFirstTime = false;
+	static Crx_C_TypeBluePrint vReturn;
+
+	if(!vIsNotFirstTime)
+	{
+		vReturn.gBYTE_SIZE = sizeof(void *);
+		vReturn.gIS_COPYABLE = true;
+		vReturn.gIS_GENERIC = false;
+		vReturn.gFUNC__DESTRUCT = NULL;
+		vReturn.gFUNC__COPY_CONSTRUCT = NULL;
+		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
+		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
+		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+	}
+
+	return &vReturn;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrintForVoidFunctionPointer()
+{
+	static bool vIsNotFirstTime = false;
+	static Crx_C_TypeBluePrint vReturn;
+
+	if(!vIsNotFirstTime)
+	{
+		vReturn.gBYTE_SIZE = sizeof(void(*)(void));
+		vReturn.gIS_COPYABLE = true;
+		vReturn.gIS_GENERIC = false;
+		vReturn.gFUNC__DESTRUCT = NULL;
+		vReturn.gFUNC__COPY_CONSTRUCT = NULL;
+		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
+		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
+		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+	}
+
+	return &vReturn;
+}
 
 
 

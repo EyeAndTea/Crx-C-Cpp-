@@ -824,35 +824,37 @@ _CRX__C__Ring__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	\
 	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getCorrectCapacityBoundFor(size_t pCapacity); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeOf(pARRAY_TYPE_NAME const * pArray), ); \
+	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeOf( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeFor(size_t pSizeOfInternalBuffer); \
+	PUBLIC size_t pARRAY_MEMBER_FUNCTIONS_PREFIX ## getByteSizeFor(size_t pSizeOfInternalBuffer);, ) \
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_ALIGN_FACTOR_FIELD),  \
 			CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, size_t pCapacity), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, size_t pCapacity, \
-			size_t pSizeOfInternalBuffer)), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, \
+			size_t pCapacity), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, \
+			size_t pCapacity, size_t pSizeOfInternalBuffer)), \
 			CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, size_t pCapacity, \
-			size_t pSizeOfInternalBuffer, signed char pStartIndexAlignFactor), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, size_t pCapacity, \
-			signed char pStartIndexAlignFactor))), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, \
+			size_t pCapacity, size_t pSizeOfInternalBuffer, signed char pStartIndexAlignFactor), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## construct(pARRAY_TYPE_NAME * pThis, \
+			size_t pCapacity, signed char pStartIndexAlignFactor))); \
 	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveConstruct(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME * pArray), ); \
+			pARRAY_TYPE_NAME * CRX_NOT_NULL pArray), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyConstruct(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_ALIGN_FACTOR_FIELD),  \
 			CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct (pARRAY_TYPE_NAME * pThis, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct(pARRAY_TYPE_NAME * pThis, \
 			size_t pCapacity), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct (pARRAY_TYPE_NAME * pThis, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct(pARRAY_TYPE_NAME * pThis, \
 			size_t pSizeOfInternalBuffer, size_t pCapacity)), \
 			CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct (pARRAY_TYPE_NAME * pThis, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct(pARRAY_TYPE_NAME * pThis, \
 			size_t pSizeOfInternalBuffer, size_t pCapacity, signed char pStartIndexAlignFactor), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct (pARRAY_TYPE_NAME * pThis, \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_construct(pARRAY_TYPE_NAME * pThis, \
 			size_t pCapacity, signed char pStartIndexAlignFactor))), ); \
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_ALIGN_FACTOR_FIELD),  \
 			CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD), \
@@ -861,28 +863,33 @@ _CRX__C__Ring__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 			size_t pSizeOfInternalBuffer)), \
 			CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
 	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## new(size_t pCapacity CRX_DEFAULT(0), \
-			size_t pSizeOfInternalBuffer CRX_DEFAULT(0), signed char pStartIndexAlignFactor CRX_DEFAULT(0)), \
+			size_t pSizeOfInternalBuffer CRX_DEFAULT(0), \
+			signed char pStartIndexAlignFactor CRX_DEFAULT(0)), \
 	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## new(size_t pCapacity CRX_DEFAULT(0), \
 			signed char pStartIndexAlignFactor CRX_DEFAULT(0)))); \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveNew(pARRAY_TYPE_NAME * pArray); \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyNew(pARRAY_TYPE_NAME const * pArray); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveNew( \
+			pARRAY_TYPE_NAME * CRX_NOT_NULL pArray); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyNew( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_new2(pARRAY_TYPE_NAME const * pArray, \
-			size_t pStartIndex, size_t pWidth), ); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_new2( \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_ALIGN_FACTOR_FIELD),  \
 			CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD), \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new(size_t pCapacity CRX_DEFAULT(0)), \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new(size_t pCapacity CRX_DEFAULT(0), \
-			size_t pSizeOfInternalBuffer)), \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new( \
+			size_t pCapacity CRX_DEFAULT(0)), \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new( \
+			size_t pCapacity CRX_DEFAULT(0), size_t pSizeOfInternalBuffer)), \
 			CRXM__IFELSE2(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD, \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new(size_t pCapacity CRX_DEFAULT(0), \
-			size_t pSizeOfInternalBuffer CRX_DEFAULT(0), signed char pStartIndexAlignFactor CRX_DEFAULT(0)), \
-	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new(size_t pCapacity CRX_DEFAULT(0), \
-			signed char pStartIndexAlignFactor CRX_DEFAULT(0)))), ); \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new( \
+			size_t pCapacity CRX_DEFAULT(0), size_t pSizeOfInternalBuffer CRX_DEFAULT(0), \
+			signed char pStartIndexAlignFactor CRX_DEFAULT(0)), \
+	PUBLIC pARRAY_TYPE_NAME * pARRAY_MEMBER_FUNCTIONS_PREFIX ## threadPossible_new( \
+			size_t pCapacity CRX_DEFAULT(0), signed char pStartIndexAlignFactor CRX_DEFAULT(0)))), ); \
 	CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
-	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_unsafeCallElementsDestruct(pARRAY_TYPE_NAME * pThis, \
-			size_t pStartIndex, size_t pEndIndex), ); \
+	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_unsafeCallElementsDestruct( \
+			pARRAY_TYPE_NAME * pThis, size_t pStartIndex, size_t pEndIndex), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## destruct(pARRAY_TYPE_NAME * pThis); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## free(pARRAY_TYPE_NAME * pThis); \
 	\
@@ -895,42 +902,44 @@ _CRX__C__Ring__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	PUBLIC pSIZE_T pARRAY_MEMBER_FUNCTIONS_PREFIX ## getLength(pARRAY_TYPE_NAME const * pThis); \
 	PUBLIC pSIZE_T pARRAY_MEMBER_FUNCTIONS_PREFIX ## getCapacity(pARRAY_TYPE_NAME const * pThis); \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## isThreadPossible(pARRAY_TYPE_NAME * pThis); \
-	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_moveElements(pELEMENT_TYPE * pSourceBuffer, \
-			size_t pStartIndex, size_t pLength, size_t pCapacity, pELEMENT_TYPE * pTargetBuffer); \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## ensureCapacity(pARRAY_TYPE_NAME * pThis, size_t pCapacity); \
+	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_moveElements( \
+			pELEMENT_TYPE * CRX_NOT_NULL pSourceBuffer, size_t pStartIndex, size_t pLength, \
+			size_t pCapacity, pELEMENT_TYPE * CRX_NOT_NULL pTargetBuffer); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## ensureCapacity(pARRAY_TYPE_NAME * pThis, \
+			size_t pCapacity); \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## emptyAndEnsureCapacity(pARRAY_TYPE_NAME * pThis, \
 			size_t pCapacity); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## empty(pARRAY_TYPE_NAME * pThis); \
-	PRIVATE bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_insertSpaceAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth); \
-	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_fastInsertSpaceAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth); \
+	PRIVATE bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_insertSpaceAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, size_t pWidth); \
+	PRIVATE void pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_fastInsertSpaceAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, size_t pWidth); \
 	PRIVATE Crx_C_Ring_Private_IndexTransform pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_roundInsertSpaceAt( \
 			pARRAY_TYPE_NAME * pThis, size_t pIndex, size_t pWidth); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyAssignFrom2(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyAssignFrom(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME const * pArray), ); \
+			pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray), ); \
 	CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_TO_ENABLE_SIZE_OF_INTERNAL_BUFFER_FIELD), \
 			CRXM__OR(pHAS_INTERNAL_BUFFER, pIS_TO_ENABLE_COPY_ON_RIGHT)), \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryToPilferSwapContentWith(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME * pArray), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryToPilferSwapContentWith( \
+			pARRAY_TYPE_NAME * pThis, pARRAY_TYPE_NAME * CRX_NOT_NULL pArray), ); \
 	CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pHAS_INTERNAL_BUFFER), CRXM__NOT(pIS_TO_ENABLE_COPY_ON_RIGHT)), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pilferSwapContentWith(pARRAY_TYPE_NAME * pThis, \
-			pARRAY_TYPE_NAME * pArray), ); \
+			pARRAY_TYPE_NAME * CRX_NOT_NULL pArray), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndSetAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement)); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndSetAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement)); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement)), ); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement)), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
@@ -938,133 +947,161 @@ _CRX__C__Ring__DECLARE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 			pELEMENT_TYPE pElement), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## setAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement)), ); \
-	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
-	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex), \
-	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, size_t pIndex)); \
+	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_COPY_ON_RIGHT), \
+	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex), \
+	PRIVATE pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_get(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex)); \
+	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet( \
+			pARRAY_TYPE_NAME const * pThis, size_t pIndex); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
-			pELEMENT_TYPE * pReturn, size_t pIndex), \
-	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex)), ); \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGetTo(pARRAY_TYPE_NAME const * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pReturn, size_t pIndex), \
+	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
+			size_t pIndex)), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## push(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE const * pElement), );\
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## push(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE const * pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPush(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPush(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPush(pARRAY_TYPE_NAME * pThis, \
-			pELEMENT_TYPE const * pElement), ); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## push2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## push2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPush2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pop(pARRAY_TYPE_NAME * pThis); \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## pushToFront(pARRAY_TYPE_NAME * pThis, \
-			pELEMENT_TYPE const * pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPushToFront(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPushToFront(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPushToFront(pARRAY_TYPE_NAME * pThis, \
-			pELEMENT_TYPE const * pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPushToFront(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE * pElement); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPushToFront(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPushToFront(pARRAY_TYPE_NAME * pThis, \
-			pELEMENT_TYPE const * pElement), ); \
+			pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## pushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## pushToFront2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPushToFront2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPushToFront2(pARRAY_TYPE_NAME * pThis, \
+			pELEMENT_TYPE pElement), ); \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## popFromFront(pARRAY_TYPE_NAME * pThis); \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt(pARRAY_TYPE_NAME * pThis, \
-			size_t pIndex, pELEMENT_TYPE * pElement); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), ); \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundInsertElementAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * CRX_NOT_NULL pElement); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementAt2(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementAt2(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE pElement), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementsAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, \
+			size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementsAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, \
+			size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pARRAY_TYPE_NAME const * pArray, size_t pStartIndex, size_t pWidth), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementsAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pARRAY_TYPE_NAME const * CRX_NOT_NULL pArray, size_t pStartIndex, \
+			size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertCArrayAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pArray, size_t pWidth), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertCArrayAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pArray, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertCArrayAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pArray, size_t pWidth), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertCArrayAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pArray, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertCArrayAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pArray, size_t pWidth), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertCArrayAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pArray, size_t pWidth), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementCopiesAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement, size_t pNumberOfCopies), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementCopiesAt(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement, size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement, \
+			size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementCopiesAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE const * pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementCopiesAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE const * CRX_NOT_NULL pElement, \
+			size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementCopiesAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementCopiesAt2(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementCopiesAt2( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementCopiesAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementCopiesAt2( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE pElement, size_t pNumberOfCopies), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
-	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth), \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			size_t pWidth)); \
-	PRIVATE pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_doGetElementsPointer(pARRAY_TYPE_NAME * pThis); \
+	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, size_t pWidth), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## removeElements(pARRAY_TYPE_NAME * pThis, \
+			size_t pIndex, size_t pWidth)); \
+	PRIVATE pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_doGetElementsPointer( \
+			pARRAY_TYPE_NAME * pThis); \
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_COPY_ON_RIGHT), \
-	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## getElementsPointer(pARRAY_TYPE_NAME * pThis), ); \
-	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGetElementsPointer(pARRAY_TYPE_NAME const * pThis);
+	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## getElementsPointer( \
+			pARRAY_TYPE_NAME * pThis), ); \
+	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGetElementsPointer( \
+			pARRAY_TYPE_NAME const * pThis);
 //#END_DEFINE	
 	
+
 
 
 #if(!CRX_ARE_VARIADIC_MACROS_EMULATED)
@@ -2323,7 +2360,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 								} \
 							) \
 							( \
-								for(size_t tI = tSegmentStartIndex; tI <= tSegmentEndIndex; tI++) \
+								CRX_FOR(size_t tI = tSegmentStartIndex; tI <= tSegmentEndIndex; tI++) \
 								{ \
 									/*THE FOLLOWING IS SUBTRACTING pWidth*/ \
 									memmove(vTarget + ((tOldStartIndex + tI + pThis->gPrivate_capacity - pWidth) & (pThis->gPrivate_capacity - 1)), \
@@ -2757,8 +2794,14 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			if(vReturn) \
 			{ \
 				CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-								CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
-						pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+						CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_DESTRUCTOR, \
+						CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
+				pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
 			} \
 	\
 			return vReturn; \
@@ -2774,15 +2817,33 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 	{ \
 		CRXM__IFELSE(pIS_TO_ENABLE_COPY_ON_RIGHT) \
 		( \
-			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndSetAt(pThis, pIndex, &pElement); \
+			CRXM__IFELSE(pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
+			( \
+				if(return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndSetAt(pThis, pIndex, \
+						&pElement)) \
+				{ \
+					pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement); \
+		\
+					return true; \
+				} \
+				else \
+					{return false;} \
+			) \
+			( \
+				return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndSetAt(pThis, pIndex, \
+						&pElement); \
+			) \
 		) \
 		( \
 			pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndSetAt(pThis, pIndex, &pElement); \
+	\
+			CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+			pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 		) \
 	}, ) \
-	CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
-	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex), \
-	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, size_t pIndex)) \
+	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_COPY_ON_RIGHT), \
+	PUBLIC pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## get(pARRAY_TYPE_NAME * pThis, size_t pIndex), \
+	PRIVATE pELEMENT_TYPE * pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_get(pARRAY_TYPE_NAME * pThis, size_t pIndex)) \
 	{ \
 		assert(pIndex < pThis->gPrivate_length); \
 	 \
@@ -2801,52 +2862,108 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 					((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
 		) \
 	} \
+	PUBLIC pELEMENT_TYPE const * pARRAY_MEMBER_FUNCTIONS_PREFIX ## constantGet( \
+			pARRAY_TYPE_NAME const * pThis, size_t pIndex) \
+	{ \
+		CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_COPY_ON_RIGHT) \
+		( \
+			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## get((pARRAY_TYPE_NAME *) pThis, pIndex); \
+		) \
+		( \
+			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## private_get((pARRAY_TYPE_NAME *) pThis, \
+					pIndex); \
+		) \
+	} \
 	\
 	CRXM__IFELSE2(pIS_COPYABLE, \
-	CRXM__IFELSE2(pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, \
+	CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR), \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGetTo(pARRAY_TYPE_NAME const * pThis, \
 			pELEMENT_TYPE * pReturn, size_t pIndex), \
 	PUBLIC pELEMENT_TYPE pARRAY_MEMBER_FUNCTIONS_PREFIX ## copyGet(pARRAY_TYPE_NAME const * pThis, size_t pIndex)) \
 	{ \
 		assert(pIndex < pThis->gPrivate_length); \
-	 \
+	\
 		CRXM__IFELSE(pHAS_INTERNAL_BUFFER) \
 		( \
 			if(pThis->gPrivate_externalBuffer != NULL) \
 			{ \
-				CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+				CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 				( \
-					pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
-							pThis->gPrivate_externalBuffer->gPrivate_buffer + \
-							((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+					CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+					pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
+	\
+					CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+					( \
+						pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
+								pThis->gPrivate_externalBuffer->gPrivate_buffer + \
+								((pThis->gPrivate_startIndex + pIndex) & \
+								(pThis->gPrivate_capacity - 1))); \
+					) \
+					( \
+						memcpy(pReturn, \
+								pThis->gPrivate_externalBuffer->gPrivate_buffer + \
+								((pThis->gPrivate_startIndex + pIndex) & \
+								(pThis->gPrivate_capacity - 1)), sizeof(pELEMENT_TYPE)); \
+					) \
 				) \
 				( \
 					return *(pThis->gPrivate_externalBuffer->gPrivate_buffer + \
-							((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+							((pThis->gPrivate_startIndex + pIndex) & \
+							(pThis->gPrivate_capacity - 1))); \
 				) \
 			} \
 			else \
 			{ \
-				CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+				CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 				( \
-					pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
-							pThis->gPrivate_buffer + ((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+					CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+					pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
+	\
+					CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+					( \
+						pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
+								pThis->gPrivate_buffer + \
+								((pThis->gPrivate_startIndex + pIndex) & \
+								(pThis->gPrivate_capacity - 1))); \
+					) \
+					( \
+						memcpy(pReturn, \
+								pThis->gPrivate_buffer + \
+								((pThis->gPrivate_startIndex + pIndex) & \
+								(pThis->gPrivate_capacity - 1)), sizeof(pELEMENT_TYPE)); \
+					) \
 				) \
 				( \
-					return *(pThis->gPrivate_buffer + ((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+					return *(pThis->gPrivate_buffer + \
+							((pThis->gPrivate_startIndex + pIndex) & \
+							(pThis->gPrivate_capacity - 1))); \
 				) \
 			} \
 		) \
 		( \
-			CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+			CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 			( \
-				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
-						pThis->gPrivate_externalBuffer->gPrivate_buffer + \
-						((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+				CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+				pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
+	\
+				CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+				( \
+					pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, \
+							pThis->gPrivate_externalBuffer->gPrivate_buffer + \
+							((pThis->gPrivate_startIndex + pIndex) & \
+							(pThis->gPrivate_capacity - 1))); \
+				) \
+				( \
+					memcpy(pReturn, \
+							pThis->gPrivate_externalBuffer->gPrivate_buffer + \
+							((pThis->gPrivate_startIndex + pIndex) & \
+							(pThis->gPrivate_capacity - 1)), sizeof(pELEMENT_TYPE)); \
+				) \
 			) \
 			( \
 				return *(pThis->gPrivate_externalBuffer->gPrivate_buffer + \
-						((pThis->gPrivate_startIndex + pIndex) & (pThis->gPrivate_capacity - 1))); \
+						((pThis->gPrivate_startIndex + pIndex) & \
+						(pThis->gPrivate_capacity - 1))); \
 			) \
 		) \
 	}, ) \
@@ -2914,7 +3031,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 	{ \
 		CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR), \
 		unsigned char * vElement = (unsigned char *) CRX__ALLOCA(sizeof(pELEMENT_TYPE));, ) \
-		CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE2(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
 		bool vReturn;, )\
 	\
@@ -2922,7 +3039,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 		( \
 			pFUNC_ELEMENT_COPY_CONSTRUCTOR(((pELEMENT_TYPE *)vElement), pElement); \
 	\
-			CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+			CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pThis, ((pELEMENT_TYPE *)vElement)); \
 		) \
 		( \
@@ -2930,7 +3047,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			( \
 				memcpy(vElement, pElement, sizeof(pELEMENT_TYPE)); \
 	\
-				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 						vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pThis, ((pELEMENT_TYPE *)vElement)); \
 			) \
 			( \
@@ -2938,11 +3055,19 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			) \
 		) \
 	\
-		CRXM__IFELSE(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR))) \
 		( \
 			if(vReturn) \
-				{pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));} \
+			{ \
+				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+				pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
 	\
 			return vReturn; \
 		)() \
@@ -3125,19 +3250,38 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## push2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
-		return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pThis, &pElement); \
+		CRXM__IFELSE(pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
+		( \
+			if(pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pThis, &pElement)) \
+			{ \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement); \
+	\
+				return true; \
+			} \
+			else \
+				{return false;} \
+		) \
+		( \
+			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPush(pThis, &pElement); \
+		) \
 	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPush(pThis, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPush2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPush(pThis, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## pop(pARRAY_TYPE_NAME * pThis) \
 	{ \
@@ -3244,7 +3388,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 	{ \
 		CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR), \
 		unsigned char * vElement = (unsigned char *) CRX__ALLOCA(sizeof(pELEMENT_TYPE));, ) \
-		CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE2(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
 		bool vReturn;, )\
 	\
@@ -3252,7 +3396,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 		( \
 			pFUNC_ELEMENT_COPY_CONSTRUCTOR(((pELEMENT_TYPE *)vElement), pElement); \
 	\
-			CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+			CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pThis, ((pELEMENT_TYPE *)vElement)); \
 		) \
 		( \
@@ -3260,7 +3404,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			( \
 				memcpy(vElement, pElement, sizeof(pELEMENT_TYPE)); \
 	\
-				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pThis, ((pELEMENT_TYPE *)vElement)); \
 			) \
 			( \
@@ -3268,11 +3412,19 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			) \
 		) \
 	\
-		CRXM__IFELSE(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR))) \
 		( \
 			if(vReturn) \
-				{pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));} \
+			{ \
+				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE(pFUNC_ELEMENT_DESTRUCTOR, \
+				pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
 	\
 			return vReturn; \
 		)() \
@@ -3465,19 +3617,38 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## pushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
-		return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pThis, &pElement); \
+		CRXM__IFELSE(pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
+		( \
+			if(pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pThis, &pElement)) \
+			{ \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement); \
+	\
+				return true; \
+			} \
+			else \
+				{return false;} \
+		) \
+		( \
+			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndPushToFront(pThis, &pElement); \
+		) \
 	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastPushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastPushToFront(pThis, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundPushToFront2(pARRAY_TYPE_NAME * pThis, pELEMENT_TYPE pElement) \
 	{ \
 		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundPushToFront(pThis, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
 	}, ) \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## popFromFront(pARRAY_TYPE_NAME * pThis) \
 	{ \
@@ -3490,7 +3661,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 		if(pThis->gPrivate_startIndex == pThis->gPrivate_capacity - 1) \
 			{pThis->gPrivate_startIndex = 0;} \
 		else \
-			{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex - 1;} \
+			{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex + 1;} \
 	\
 		CRXM__IFELSE(pHAS_INTERNAL_BUFFER) \
 		( \
@@ -3577,7 +3748,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 	{ \
 		CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR), \
 		unsigned char * vElement = (unsigned char *) CRX__ALLOCA(sizeof(pELEMENT_TYPE));, ) \
-		CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE2(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR)), \
 		bool vReturn;, )\
 	\
@@ -3585,7 +3756,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 		( \
 			pFUNC_ELEMENT_COPY_CONSTRUCTOR(((pELEMENT_TYPE *)vElement), pElement); \
 	\
-			CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+			CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt( \
 							pThis, pIndex, ((pELEMENT_TYPE *)vElement)); \
 		) \
@@ -3594,7 +3765,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			( \
 				memcpy(vElement, pElement, sizeof(pELEMENT_TYPE)); \
 	\
-				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				CRXM__IFELSE2(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 					vReturn = , return) pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt( \
 							pThis, pIndex, ((pELEMENT_TYPE *)vElement)); \
 			) \
@@ -3604,17 +3775,25 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			) \
 		) \
 	\
-		CRXM__IFELSE(CRXM__AND(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		CRXM__IFELSE(CRXM__AND(CRXM__OR(pFUNC_ELEMENT_DESTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR), \
 				CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_CONSTRUCTOR))) \
 		( \
 			if(vReturn) \
-				{pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));} \
+			{ \
+				CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
+			else \
+			{ \
+				CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
+				pFUNC_ELEMENT_DESTRUCTOR(((pELEMENT_TYPE *)vElement));, ) \
+			} \
 	\
 			return vReturn; \
 		)() \
 	}, ) \
-	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
-			pELEMENT_TYPE * pElement) \
+	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt( \
+			pARRAY_TYPE_NAME * pThis, size_t pIndex, pELEMENT_TYPE * pElement) \
 	{ \
 		assert(pIndex <= pSIZE_T_MAX); \
 		CRXM__IFELSE2(pIS_TO_ENABLE_COPY_ON_RIGHT, \
@@ -3775,17 +3954,44 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement) \
-		{return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt(pThis, pIndex, &pElement);}, ) \
+	{ \
+		CRXM__IFELSE(pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
+		( \
+			if(pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt(pThis, pIndex, \
+					&pElement)) \
+			{ \
+				pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement); \
+	\
+				return true; \
+			} \
+			else \
+				{return false;} \
+		) \
+		( \
+			return pARRAY_MEMBER_FUNCTIONS_PREFIX ## tryMoveAndInsertElementAt(pThis, pIndex, \
+					&pElement); \
+		) \
+	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## fastInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement) \
-		{pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pThis, pIndex, &pElement);}, ) \
+	{ \
+		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndFastInsertElementAt(pThis, pIndex, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
+	}, ) \
 	CRXM__IFELSE2(CRXM__AND(pIS_COPYABLE, CRXM__AND(CRXM__NOT(pFUNC_ELEMENT_COPY_CONSTRUCTOR), \
 			CRXM__NOT(pFUNC_ELEMENT_DESTRUCTOR))), \
 	PUBLIC void pARRAY_MEMBER_FUNCTIONS_PREFIX ## roundInsertElementAt2(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
 			pELEMENT_TYPE pElement) \
-		{pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundInsertElementAt(pThis, pIndex, &pElement);}, ) \
+	{ \
+		pARRAY_MEMBER_FUNCTIONS_PREFIX ## moveAndRoundInsertElementAt(pThis, pIndex, &pElement); \
+	\
+		CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+		pFUNC_ELEMENT_MOVE_DESTRUCTOR(&pElement);, ) \
+	}, ) \
 	\
 	CRXM__IFELSE2(pIS_COPYABLE, \
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## insertElementsAt(pARRAY_TYPE_NAME * pThis, size_t pIndex, \
@@ -4616,7 +4822,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 		( \
 			CRXM__IFELSE(pFUNC_ELEMENT_MOVE_CONSTRUCTOR) \
 			( \
-				if((pThis->gPrivate_length >> 1) < pIndex) \
+				if((pThis->gPrivate_length >> 1) > pIndex) \
 				{ \
 					for(size_t tI = 0; tI < pIndex; tI++) \
 					{ \
@@ -4649,7 +4855,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 				} \
 			) \
 			( \
-				if((pThis->gPrivate_length >> 1) < pIndex) \
+				if((pThis->gPrivate_length >> 1) > pIndex) \
 				{ \
 					for(size_t tI = 0; tI < pIndex; tI++) \
 					{ \
@@ -4680,7 +4886,7 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			) \
 		) \
 		( \
-			if((pThis->gPrivate_length >> 1) < pIndex) \
+			if((pThis->gPrivate_length >> 1) > pIndex) \
 			{ \
 				CRX__C__RING__ECHO__RAW_ROTATE_RIGHT(pELEMENT_TYPE, tTarget, \
 						pThis->gPrivate_startIndex, ((pThis->gPrivate_startIndex + pIndex - 1) & (pThis->gPrivate_capacity - 1)), \
@@ -4690,10 +4896,13 @@ _CRX__C__Ring__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMENT
 			} \
 			else \
 			{ \
-				CRX__C__RING__ECHO__RAW_ROTATE_LEFT(pELEMENT_TYPE, tTarget, \
-						((pThis->gPrivate_startIndex + pIndex + pWidth) & (pThis->gPrivate_capacity - 1)), \
-						((pThis->gPrivate_startIndex + pThis->gPrivate_length - 1) & (pThis->gPrivate_capacity - 1)), \
-						pThis->gPrivate_capacity, pWidth, CRXM__FALSE); \
+				if(pIndex + pWidth < pThis->gPrivate_length) \
+				{ \
+					CRX__C__RING__ECHO__RAW_ROTATE_LEFT(pELEMENT_TYPE, tTarget, \
+							((pThis->gPrivate_startIndex + pIndex + pWidth) & (pThis->gPrivate_capacity - 1)), \
+							((pThis->gPrivate_startIndex + pThis->gPrivate_length - 1) & (pThis->gPrivate_capacity - 1)), \
+							pThis->gPrivate_capacity, pWidth, CRXM__FALSE); \
+				} \
 			} \
 		) \
 	\
@@ -4961,7 +5170,7 @@ WARNING:
 	\
 		if(pINDEX == 0) \
 		{ \
-			if(pTHIS->gPrivate_startIndex > pWIDTH) \
+			if(pTHIS->gPrivate_startIndex >= pWIDTH) \
 				{pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_startIndex - pWIDTH));} \
 			else \
 				{pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_capacity - (pWIDTH - pTHIS->gPrivate_startIndex)));} \
@@ -4971,7 +5180,8 @@ WARNING:
 		else \
 		{ \
 			pELEMENT_TYPE * vTarget = NULL; \
-			size_t vInsertIndex = (pTHIS->gPrivate_startIndex + pINDEX) & (pTHIS->gPrivate_capacity - 1); \
+			size_t vInsertIndex = (pTHIS->gPrivate_startIndex + pINDEX) & \
+					(pTHIS->gPrivate_capacity - 1); \
 	\
 			assert(vInsertIndex != pTHIS->gPrivate_startIndex); \
 	\
@@ -4990,27 +5200,168 @@ WARNING:
 			( \
 				CRXM__IFELSE(pFUNC_ELEMENT_MOVE_CONSTRUCTOR) \
 				( \
-					for(size_t tI = pTHIS->gPrivate_length - 1; tI >= pINDEX; tI--) \
+					if((pTHIS->gPrivate_length >> 1) < pINDEX) \
 					{ \
-						pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
-								vTarget + ((pTHIS->gPrivate_startIndex + tI + pWIDTH) & (pTHIS->gPrivate_capacity - 1)), \
-								vTarget + ((pTHIS->gPrivate_startIndex + tI) & (pTHIS->gPrivate_capacity - 1))); \
+						CRX_FOR(size_t tI = pTHIS->gPrivate_length - 1, tI >= pINDEX, tI--) \
+						{ \
+							pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
+									vTarget + ((pTHIS->gPrivate_startIndex + tI + pWIDTH) & \
+											(pTHIS->gPrivate_capacity - 1)), \
+									vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+											(pTHIS->gPrivate_capacity - 1))); \
 	\
-						CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
-						pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
-								((pTHIS->gPrivate_startIndex + tI) & (pTHIS->gPrivate_capacity - 1)));, ) \
+							CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+							pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+									((pTHIS->gPrivate_startIndex + tI) & \
+									(pTHIS->gPrivate_capacity - 1)));, ) \
+						} \
+						CRX_ENDFOR \
+					} \
+					else \
+					{ \
+						if(pTHIS->gPrivate_startIndex >= pWIDTH) \
+						{ \
+							CRX_FOR(size_t tI = 0, tI < pINDEX, tI++) \
+							{ \
+								pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
+										vTarget + ((pTHIS->gPrivate_startIndex - pWIDTH + tI) & \
+												(pTHIS->gPrivate_capacity - 1)), \
+										vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+												(pTHIS->gPrivate_capacity - 1))); \
+	\
+								CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+								pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+										((pTHIS->gPrivate_startIndex + tI) & \
+										(pTHIS->gPrivate_capacity - 1)));, ) \
+							} \
+							CRX_ENDFOR \
+	\
+							pTHIS->gPrivate_startIndex = \
+									((pSIZE_T)(pTHIS->gPrivate_startIndex - pWIDTH)); \
+						} \
+						else \
+						{ \
+							size_t tUpperIndex = (((pWIDTH - pTHIS->gPrivate_startIndex) > \
+									pINDEX) ? pINDEX : (pWIDTH - pTHIS->gPrivate_startIndex)); \
+	\
+							CRX_FOR(size_t tI = 0, tI < tUpperIndex, tI++) \
+							{ \
+								pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
+										vTarget + pTHIS->gPrivate_capacity - \
+												(pWIDTH - pTHIS->gPrivate_startIndex) + tI, \
+										vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+												(pTHIS->gPrivate_capacity - 1))); \
+	\
+								CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+								pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+										((pTHIS->gPrivate_startIndex + tI) & \
+										(pTHIS->gPrivate_capacity - 1)));, ) \
+							} \
+							CRX_ENDFOR \
+	\
+							if(tUpperIndex < pINDEX) \
+							{ \
+								CRX_FOR(size_t tI = tUpperIndex, tI < pINDEX, tI++) \
+								{ \
+									pFUNC_ELEMENT_MOVE_CONSTRUCTOR( \
+											vTarget + ((pTHIS->gPrivate_startIndex + tI - pWIDTH) & \
+													(pTHIS->gPrivate_capacity - 1)), \
+											vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+													(pTHIS->gPrivate_capacity - 1))); \
+	\
+									CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
+									pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+											((pTHIS->gPrivate_startIndex + tI) & \
+											(pTHIS->gPrivate_capacity - 1)));, ) \
+								} \
+								CRX_ENDFOR \
+							} \
+	\
+							pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_capacity - \
+									(pWIDTH - pTHIS->gPrivate_startIndex))); \
+						} \
 					} \
 				) \
 				( \
 					/*THIS CODE IS NOT OPTIMAL.*/ \
-					for(size_t tI = pTHIS->gPrivate_length - 1; tI >= pINDEX; tI--) \
+					if((pTHIS->gPrivate_length >> 1) < pINDEX) \
 					{ \
-						memmove(vTarget + ((pTHIS->gPrivate_startIndex + tI + pWIDTH) & (pTHIS->gPrivate_capacity - 1)), \
-								vTarget + ((pTHIS->gPrivate_startIndex + tI) & (pTHIS->gPrivate_capacity - 1)), \
-								sizeof(pELEMENT_TYPE)); \
+						CRX_FOR(size_t tI = pTHIS->gPrivate_length - 1, tI >= pINDEX, tI--) \
+						{ \
+							memmove(vTarget + ((pTHIS->gPrivate_startIndex + tI + pWIDTH) & \
+											(pTHIS->gPrivate_capacity - 1)), \
+									vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+											(pTHIS->gPrivate_capacity - 1)), \
+									sizeof(pELEMENT_TYPE)); \
 	\
-						pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
-								((pTHIS->gPrivate_startIndex + tI) & (pTHIS->gPrivate_capacity - 1));, ) \
+							pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+									((pTHIS->gPrivate_startIndex + tI) & \
+									(pTHIS->gPrivate_capacity - 1))); \
+						} \
+						CRX_ENDFOR \
+					} \
+					else \
+					{ \
+						if(pTHIS->gPrivate_startIndex >= pWIDTH) \
+						{ \
+							CRX_FOR(size_t tI = 0, tI < pINDEX, tI++) \
+							{ \
+								memmove(vTarget + ((pTHIS->gPrivate_startIndex - pWIDTH + tI) & \
+												(pTHIS->gPrivate_capacity - 1)), \
+										vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+												(pTHIS->gPrivate_capacity - 1)), \
+										sizeof(pELEMENT_TYPE)); \
+	\
+								pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+										((pTHIS->gPrivate_startIndex + tI) & \
+										(pTHIS->gPrivate_capacity - 1))); \
+							} \
+							CRX_ENDFOR \
+	\
+							pTHIS->gPrivate_startIndex = \
+									((pSIZE_T)(pTHIS->gPrivate_startIndex - pWIDTH)); \
+						} \
+						else \
+						{ \
+							size_t tUpperIndex = (((pWIDTH - pTHIS->gPrivate_startIndex) > \
+									pINDEX) ? pINDEX : (pWIDTH - pTHIS->gPrivate_startIndex)); \
+	\
+							CRX_FOR(size_t tI = 0, tI < tUpperIndex, tI++) \
+							{ \
+								memmove(vTarget + \
+												pTHIS->gPrivate_capacity - \
+												(pWIDTH - pTHIS->gPrivate_startIndex) + tI, \
+										vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+												(pTHIS->gPrivate_capacity - 1)), \
+										sizeof(pELEMENT_TYPE)); \
+	\
+								pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+										((pTHIS->gPrivate_startIndex + tI) & \
+										(pTHIS->gPrivate_capacity - 1))); \
+							} \
+							CRX_ENDFOR \
+	\
+							if(tUpperIndex < pINDEX) \
+							{ \
+								CRX_FOR(size_t tI = tUpperIndex, tI < pINDEX, tI++) \
+								{ \
+									memmove(vTarget + \
+													((pTHIS->gPrivate_startIndex + tI - pWIDTH) & \
+													(pTHIS->gPrivate_capacity - 1)), \
+											vTarget + ((pTHIS->gPrivate_startIndex + tI) & \
+													(pTHIS->gPrivate_capacity - 1)), \
+											sizeof(pELEMENT_TYPE)); \
+	\
+									pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+											((pTHIS->gPrivate_startIndex + tI) & \
+											(pTHIS->gPrivate_capacity - 1))); \
+								} \
+								CRX_ENDFOR \
+							} \
+	\
+							pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_capacity - \
+									(pWIDTH - pTHIS->gPrivate_startIndex))); \
+						} \
 					} \
 				) \
 			) \
@@ -5044,7 +5395,8 @@ WARNING:
 							} \
 						} \
 		\
-						pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_startIndex - pWIDTH)); \
+						pTHIS->gPrivate_startIndex = \
+								((pSIZE_T)(pTHIS->gPrivate_startIndex - pWIDTH)); \
 					} \
 					else \
 					{ \
@@ -5062,7 +5414,8 @@ WARNING:
 									vTarget + pTHIS->gPrivate_startIndex, \
 									(vInsertIndex - pTHIS->gPrivate_startIndex) * sizeof(pELEMENT_TYPE)); \
 						} \
-						pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_capacity - (pWIDTH - pTHIS->gPrivate_startIndex))); \
+						pTHIS->gPrivate_startIndex = ((pSIZE_T)(pTHIS->gPrivate_capacity - \
+								(pWIDTH - pTHIS->gPrivate_startIndex))); \
 					} \
 				} \
 				else \
@@ -5125,25 +5478,26 @@ WARNING:
 	{ \
 		CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
 		( \
-			for(size_t tI = 0; tI < pWIDTH; tI++) \
+			CRX_FOR(size_t tI = 0, tI < pWIDTH, tI++) \
 			{ \
 				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pTHIS_ELEMENTS + ((pTHIS_START_INDEX + tI + pINDEX) & (pTHIS_CAPACITY - 1)), \
 						pARRAY_ELEMENTS + ((pARRAY_START_INDEX + tI + pSTART_INDEX) & (pARRAY_CAPACITY - 1))); \
 			} \
+			CRX_ENDFOR \
 		) \
 		( \
 			size_t tTargetStartIndex = ((pTHIS_START_INDEX + pINDEX) & (pTHIS_CAPACITY - 1)); \
 			size_t tTargetSegmentLength = ((tTargetStartIndex >= pTHIS_START_INDEX) ? \
-					((((pTHIS_START_INDEX + pINDEX + pWIDTH - 1) & (pTHIS_CAPACITY - 1)) > tTargetStartIndex) ? \
+					((((pTHIS_START_INDEX + pINDEX + pWIDTH - 1) & (pTHIS_CAPACITY - 1)) >= tTargetStartIndex) ? \
 							pWIDTH : (pTHIS_CAPACITY - tTargetStartIndex)) : \
 					pWIDTH); \
 			size_t tSourceStartIndex = ((pARRAY_START_INDEX + pSTART_INDEX) & (pARRAY_CAPACITY - 1)); \
-			size_t tSourceLength = ((tSourceStartIndex >= pARRAY_START_INDEX) ? \
-					((((pARRAY_START_INDEX + pINDEX + pWIDTH - 1) & (pARRAY_CAPACITY - 1)) > tSourceStartIndex) ? \
+			size_t tSourceSegmentLength = ((tSourceStartIndex >= pARRAY_START_INDEX) ? \
+					((((pARRAY_START_INDEX + pSTART_INDEX + pWIDTH - 1) & (pARRAY_CAPACITY - 1)) >= tSourceStartIndex) ? \
 							pWIDTH : (pARRAY_CAPACITY - tSourceStartIndex)) : \
 					pWIDTH); \
 	\
-			if(tTargetSegmentLength <= tSourceLength) \
+			if(tTargetSegmentLength <= tSourceSegmentLength) \
 			{ \
 				memcpy(pTHIS_ELEMENTS + tTargetStartIndex, pARRAY_ELEMENTS + tSourceStartIndex, \
 						tTargetSegmentLength * sizeof(pELEMENT_TYPE)); \
@@ -5153,32 +5507,32 @@ WARNING:
 					assert(((pTHIS_START_INDEX + pINDEX + tTargetSegmentLength) & (pTHIS_CAPACITY - 1)) == 0); \
 	\
 					memcpy(pTHIS_ELEMENTS, pARRAY_ELEMENTS + tSourceStartIndex + tTargetSegmentLength, \
-							(tSourceLength - tTargetSegmentLength) * sizeof(pELEMENT_TYPE)); \
+							(tSourceSegmentLength - tTargetSegmentLength) * sizeof(pELEMENT_TYPE)); \
 	\
-					if(tSourceLength < pWIDTH) \
+					if(tSourceSegmentLength < pWIDTH) \
 					{ \
-						assert(((pARRAY_START_INDEX + tSourceStartIndex + tSourceLength) & (pTHIS_CAPACITY - 1)) == 0); \
+						assert(((pARRAY_START_INDEX + tSourceStartIndex + tSourceSegmentLength) & (pTHIS_CAPACITY - 1)) == 0); \
 	\
-						memcpy(pTHIS_ELEMENTS + tTargetStartIndex + tSourceLength - tTargetSegmentLength, \
-								pARRAY_ELEMENTS, (pWIDTH - tSourceLength) * sizeof(pELEMENT_TYPE)); \
+						memcpy(pTHIS_ELEMENTS + tSourceSegmentLength - tTargetSegmentLength, \
+								pARRAY_ELEMENTS, (pWIDTH - tSourceSegmentLength) * sizeof(pELEMENT_TYPE)); \
 					} \
 				} \
 			} \
 			else \
 			{ \
 				memcpy(pTHIS_ELEMENTS + tTargetStartIndex, pARRAY_ELEMENTS + tSourceStartIndex, \
-						tSourceLength * sizeof(pELEMENT_TYPE)); \
+						tSourceSegmentLength * sizeof(pELEMENT_TYPE)); \
 	\
-				assert(((pARRAY_START_INDEX + pINDEX + tSourceLength) & (pTHIS_CAPACITY - 1)) == 0); \
+				assert(((pARRAY_START_INDEX + pSTART_INDEX + tSourceSegmentLength) & (pTHIS_CAPACITY - 1)) == 0); \
 	\
-				memcpy(pTHIS_ELEMENTS + tTargetStartIndex + tSourceLength, pARRAY_ELEMENTS, \
-						(tTargetSegmentLength - tSourceLength) * sizeof(pELEMENT_TYPE)); \
+				memcpy(pTHIS_ELEMENTS + tTargetStartIndex + tSourceSegmentLength, pARRAY_ELEMENTS, \
+						(tTargetSegmentLength - tSourceSegmentLength) * sizeof(pELEMENT_TYPE)); \
 	\
 				if(tTargetSegmentLength < pWIDTH) \
 				{ \
 					assert(((pTHIS_START_INDEX + pINDEX + tTargetSegmentLength) & (pTHIS_CAPACITY - 1)) == 0); \
 	\
-					memcpy(pTHIS_ELEMENTS, pARRAY_ELEMENTS + tTargetSegmentLength - tSourceLength, \
+					memcpy(pTHIS_ELEMENTS, pARRAY_ELEMENTS + tTargetSegmentLength - tSourceSegmentLength, \
 							(pWIDTH - tTargetSegmentLength) * sizeof(pELEMENT_TYPE)); \
 				} \
 			} \
@@ -5205,7 +5559,8 @@ WARNING:
 		if(tEndIndex < tStartIndex) \
 		{ \
 			memmove(pELEMENTS + pWIDTH, pELEMENTS, \
-					tEndIndex * sizeof(pELEMENT_TYPE)); \
+					/*tEndIndex * sizeof(pELEMENT_TYPE));*/ \
+					(tEndIndex + 1) * sizeof(pELEMENT_TYPE)); \
 		} \
 \
 		if(pWIDTH <= tEmptySpaceBeforeEnd) \
@@ -5266,7 +5621,8 @@ WARNING:
 		if(pWIDTH <= tIndexOfFirstElementFromLeftSide) \
 		{ \
 			memcpy(pELEMENTS + tStartIndex - pWIDTH, pELEMENTS + tStartIndex, \
-					(tStartIndex + 1 - tStartIndex) * sizeof(pELEMENT_TYPE)); \
+					/*(tStartIndex + 1 - tStartIndex) * sizeof(pELEMENT_TYPE));*/ \
+					(tEndIndex + 1 - tStartIndex) * sizeof(pELEMENT_TYPE)); \
 \
 			CRXM__IFELSE2(pNEW_RAW_START_INDEX, \
 			pNEW_RAW_START_INDEX = tStartIndex - pWIDTH;, ) \
@@ -5314,33 +5670,40 @@ typedef struct Crx_C_Ring
 } Crx_C_Ring;
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getCorrectCapacityBoundFor(size_t pCapacity);
-CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getByteSizeOf(Crx_C_Ring const * pArray);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getByteSizeOf(
+		Crx_C_Ring const * CRX_NOT_NULL pArray);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getByteSizeFor(
-		Crx_C_TypeBluePrint const * pTypeBluePrint, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, 
 		bool pIsInternalBufferExternal, size_t pSizeOfInternalBuffer);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_doInit(Crx_C_Ring * pThis, 
-		Crx_C_TypeBluePrint const * pTypeBluePrint, size_t pSizeOfInternalBuffer, size_t pCapacity, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, 
+		size_t pSizeOfInternalBuffer, size_t pCapacity, 
 		signed char pStartIndexAlignFactor);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_construct(Crx_C_Ring * pThis, 
-		Crx_C_TypeBluePrint const * pTypeBluePrint, size_t pSizeOfInternalBuffer, size_t pCapacity, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL
+		pTypeBluePrint, size_t pSizeOfInternalBuffer, size_t pCapacity, 
 		signed char pStartIndexAlignFactor);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_construct2(Crx_C_Ring * pThis, 
-		Crx_C_TypeBluePrint const * pTypeBluePrint, unsigned char * pBufferOnStack, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, 
+		unsigned char * CRX_NOT_NULL pBufferOnStack, 
 		size_t pSizeOfBufferOnStack, size_t pCapacity, signed char pStartIndexAlignFactor);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveConstruct(Crx_C_Ring * pThis, Crx_C_Ring * pArray);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyConstruct(Crx_C_Ring * pThis, Crx_C_Ring const * pArray);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveConstruct(Crx_C_Ring * pThis, 
+		Crx_C_Ring * CRX_NOT_NULL pArray);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyConstruct(Crx_C_Ring * pThis, 
+		Crx_C_Ring const * CRX_NOT_NULL pArray);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_new(Crx_C_TypeBluePrint const * pTypeBluePrint, 
 		size_t pSizeOfInternalBuffer CRX_DEFAULT(0), size_t pCapacity CRX_DEFAULT(0),
 		signed char pStartIndexAlignFactor CRX_DEFAULT(0));
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_new2(Crx_C_TypeBluePrint const * pTypeBluePrint, 
-		unsigned char * pBufferOnStack, size_t pSizeOfBufferOnStack CRX_DEFAULT(0), 
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_new2(
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, 
+		unsigned char * CRX_NOT_NULL pBufferOnStack, size_t pSizeOfBufferOnStack CRX_DEFAULT(0), 
 		size_t pCapacity CRX_DEFAULT(0), signed char pStartIndexAlignFactor CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_moveNew(Crx_C_Ring * pArray);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_copyNew(Crx_C_Ring const * pArray);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Ring * crx_c_ring_private_new2(Crx_C_Ring * pArray,
 		size_t pStartIndex, size_t pWidth);
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_unsafeCallElementsDestruct(Crx_C_Ring * pThis, 
-		size_t pStartIndex, size_t pEndIndex);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_unsafeCallElementsDestruct(
+		Crx_C_Ring * pThis, size_t pStartIndex, size_t pEndIndex);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_destruct(Crx_C_Ring * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_free(Crx_C_Ring * pThis);
 CRX__C__TYPE_BLUE_PRINT__GENERIC__DECLARE_GET_BLUE_PRINT(
@@ -5350,81 +5713,103 @@ CRX__C__TYPE_BLUE_PRINT__GENERIC__DECLARE_GET_BLUE_PRINT(
 		CRXM__TRUE, CRXM__FALSE);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getLength(Crx_C_Ring * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_ring_getCapacity(Crx_C_Ring * pThis);
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_moveElements(Crx_C_Ring * pThis, void * pSourceBuffer,
-		size_t pStartIndex, size_t pLength, size_t pCapacity, void * pTargetBuffer);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_moveElements(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pSourceBuffer, size_t pStartIndex, size_t pLength, size_t pCapacity, 
+		void * CRX_NOT_NULL pTargetBuffer);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_ensureCapacity(Crx_C_Ring * pThis, size_t pCapacity);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_emptyAndEnsureCapacity(Crx_C_Ring * pThis, size_t pCapacity);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_emptyAndEnsureCapacity(Crx_C_Ring * pThis, 
+		size_t pCapacity);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_empty(Crx_C_Ring * pThis);
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_ring_private_insertSpaceAt(Crx_C_Ring * pThis, size_t pIndex,
-		size_t pWidth);
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_fastInsertSpaceAt(Crx_C_Ring * pThis, size_t pIndex,
-		size_t pWidth);
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_ring_private_insertSpaceAt(Crx_C_Ring * pThis, 
+		size_t pIndex, size_t pWidth);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_fastInsertSpaceAt(Crx_C_Ring * pThis, 
+		size_t pIndex, size_t pWidth);
 CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Ring_Private_IndexTransform crx_c_ring_private_roundInsertSpaceAt(
 		Crx_C_Ring * pThis, size_t pIndex, size_t pWidth);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_copyAssignFrom2(Crx_C_Ring * pThis, Crx_C_Ring * pArray, 
-		size_t pStartIndex, size_t pWidth);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_copyAssignFrom(Crx_C_Ring * pThis, Crx_C_Ring * pArray);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndSetAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_setAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_copyAssignFrom2(Crx_C_Ring * pThis, 
+		Crx_C_Ring * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_copyAssignFrom(Crx_C_Ring * pThis, 
+		Crx_C_Ring * CRX_NOT_NULL pArray);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndSetAt(Crx_C_Ring * pThis, size_t pIndex, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_setAt(Crx_C_Ring * pThis, size_t pIndex, 
+		void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_ring_get(Crx_C_Ring * pThis, size_t pIndex);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyGet(Crx_C_Ring const * pThis, unsigned char * pReturn, size_t pIndex);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPush(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_push(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPush(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPush(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPush(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPush(Crx_C_Ring * pThis, void * pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_copyGetTo(Crx_C_Ring const * pThis, 
+		unsigned char * CRX_NOT_NULL pReturn, size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPush(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_push(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPush(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPush(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPush(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPush(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_pop(Crx_C_Ring * pThis);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPushToFront(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_pushToFront(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPushToFront(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPushToFront(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPushToFront(Crx_C_Ring * pThis, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPushToFront(Crx_C_Ring * pThis, void * pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndPushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_pushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastPushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastPushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundPushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundPushToFront(Crx_C_Ring * pThis, 
+		void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_popFromFront(Crx_C_Ring * pThis);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndInsertElementAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastInsertElementAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementAt(Crx_C_Ring * pThis, size_t pIndex, void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundInsertElementAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementAt(Crx_C_Ring * pThis, size_t pIndex, 
-		void * pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_tryMoveAndInsertElementAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementAt(Crx_C_Ring * pThis, size_t pIndex, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndFastInsertElementAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementAt(Crx_C_Ring * pThis, size_t pIndex, 
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_moveAndRoundInsertElementAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementsAt(Crx_C_Ring * pThis, size_t pIndex,
-		Crx_C_Ring * pArray, size_t pStartIndex, size_t pWidth);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementsAt(Crx_C_Ring * pThis, size_t pIndex,
-		Crx_C_Ring * pArray, size_t pStartIndex, size_t pWidth);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementsAt(Crx_C_Ring * pThis, size_t pIndex,
-		Crx_C_Ring * pArray, size_t pStartIndex, size_t pWidth);
+		Crx_C_Ring * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementsAt(Crx_C_Ring * pThis, 
+		size_t pIndex, Crx_C_Ring * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementsAt(Crx_C_Ring * pThis, 
+		size_t pIndex, Crx_C_Ring * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertCArrayAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pArray, size_t pWidth);
+		void * CRX_NOT_NULL pArray, size_t pWidth);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertCArrayAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pArray, size_t pWidth);
+		void * CRX_NOT_NULL pArray, size_t pWidth);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertCArrayAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pArray, size_t pWidth);
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementCopiesAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement, size_t pNumberOfCopies);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementCopiesAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement, size_t pNumberOfCopies);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementCopiesAt(Crx_C_Ring * pThis, size_t pIndex,
-		void * pElement, size_t pNumberOfCopies);
+		void * CRX_NOT_NULL pArray, size_t pWidth);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_ring_insertElementCopiesAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement, size_t pNumberOfCopies);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_fastInsertElementCopiesAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement, size_t pNumberOfCopies);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_roundInsertElementCopiesAt(Crx_C_Ring * pThis, 
+		size_t pIndex, void * CRX_NOT_NULL pElement, size_t pNumberOfCopies);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_removeElements(Crx_C_Ring * pThis, size_t pIndex,
 		size_t pWidth);
 CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_ring_getElementsPointer(Crx_C_Ring * pThis);
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Ring * pThis, size_t pIndex,
-		size_t pWidth);
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_copyFromRingRange(Crx_C_Ring * pThis, size_t pIndex,
-		Crx_C_Ring const * pArray, size_t pStartIndex, size_t pWidth);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_doInsertSpaceAt(Crx_C_Ring * pThis, 
+		size_t pIndex, size_t pWidth);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_copyFromRingRange(Crx_C_Ring * pThis, 
+		size_t pIndex, Crx_C_Ring const * CRX_NOT_NULL pArray, size_t pStartIndex, size_t pWidth);
 /*WARNING: THE FOLLOWING ASSUMES THAT THE REMAINING SPACE IS LARGER THAN pWIDTH. THIS MEANS THAT
 		IT IS ASSUMED THAT THE TAIL WILL NEVER HIT THE ORIGINAL LOCATION OF THE HEAD AFTER ROTATION.*/
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateRight(Crx_C_Ring * pThis, unsigned char * pElements,
-		size_t pRawStartIndex, size_t pRawEndIndex, size_t pWidth /*, bool pIsToSetNewRawEndIndex*/);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateRight(Crx_C_Ring * pThis, 
+		unsigned char * CRX_NOT_NULL pElements, size_t pRawStartIndex, size_t pRawEndIndex, 
+		size_t pWidth /*, bool pIsToSetNewRawEndIndex*/);
 /*WARNING: THE FOLLOWING ASSUMES THAT THE REMAINING SPACE IS LARGER THAN pWIDTH. THIS MEANS THAT
 		IT IS ASSUMED THAT THE HEAD WILL NEVER HIT THE ORIGINAL LOCATION OF THE TAIL AFTER ROTATION.*/
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateLeft(Crx_C_Ring * pThis, unsigned char * pElements,
-		size_t pRawStartIndex, size_t pRawEndIndex, size_t pWidth /*, bool pIsToSetNewRawStartIndex*/);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_ring_private_rawRotateLeft(Crx_C_Ring * pThis, 
+		unsigned char * CRX_NOT_NULL pElements, size_t pRawStartIndex, size_t pRawEndIndex, 
+		size_t pWidth /*, bool pIsToSetNewRawStartIndex*/);
 
 CRX__LIB__C_CODE_END()
 

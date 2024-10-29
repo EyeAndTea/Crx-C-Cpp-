@@ -12,7 +12,7 @@ CRX__LIB__C_CODE_BEGIN()
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_construct(Crx_C_OrderedHashTable * pThis,
 	Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 	Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__element,
-	Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+	Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 	Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	crx_c_orderedHashTable_private_doInit(pThis, pTypeBluePrint__key, pAreKeysEqual,
@@ -20,7 +20,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_construct(Crx_C_Ordere
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_construct2(Crx_C_OrderedHashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	crx_c_orderedHashTable_private_doInit(pThis, pTypeBluePrint__key, pAreKeysEqual,
@@ -65,7 +65,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_copyConstruct(
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_OrderedHashTable * crx_c_orderedHashTable_new(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element,
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	Crx_C_OrderedHashTable * vReturn = (Crx_C_OrderedHashTable *)(calloc(1,
@@ -81,7 +81,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_OrderedHashTable * crx_c_orderedHashTable_ne
 }
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_OrderedHashTable * crx_c_orderedHashTable_new2(
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey)
 {
 	Crx_C_OrderedHashTable * vReturn = (Crx_C_OrderedHashTable *)(calloc(1,
@@ -130,7 +130,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_OrderedHashTable * crx_c_orderedHashTable_co
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_destruct(Crx_C_OrderedHashTable * pThis)
 {
 	if((pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL) ||
-			(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL))
+			((pThis->gPrivate_typeBluePrint__element != NULL) &&
+			(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)))
 		{crx_c_orderedHashTable_empty(pThis);}
 
 	free((void *) pThis->gPrivate_keyNodes);
@@ -143,6 +144,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_destruct(Crx_C_Ordered
 		free((void *) pThis->gPrivate_elements);
 		pThis->gPrivate_elements = NULL;
 	}
+	
+	CRX__C__TYPE_BLUE_PRINT__GENERIC__FINALIZE(pThis->gPrivate_typeBluePrint__key);
+	if(pThis->gPrivate_typeBluePrint__element != NULL)
+		{CRX__C__TYPE_BLUE_PRINT__GENERIC__FINALIZE(pThis->gPrivate_typeBluePrint__element);}
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_free(Crx_C_OrderedHashTable * pThis)
@@ -161,7 +166,7 @@ CRX__C__TYPE_BLUE_PRINT__GENERIC__DEFINE_GET_BLUE_PRINT(
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_private_doInit(Crx_C_OrderedHashTable * pThis,
 		Crx_C_TypeBluePrint const *  CRX_NOT_NULL pTypeBluePrint__key, 
-		Crx_C_HashTable_AreKeysEqual CRX_NOT_NULL pAreKeysEqual,
+		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pAreKeysEqual,
 		Crx_C_HashTable_GetHashForKey CRX_NOT_NULL pGetHashForKey,
 		Crx_C_TypeBluePrint const *  pTypeBluePrint__element)
 {
@@ -1741,6 +1746,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_orderedHashTable_set(
 				(pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT != NULL))
 			{pThis->gPrivate_typeBluePrint__element->gFUNC__MOVE_DESTRUCT(vElement);}
 	}
+	else
+	{
+		if(pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT != NULL)
+			{pThis->gPrivate_typeBluePrint__key->gFUNC__DESTRUCT(vKey);}
+
+		if((pThis->gPrivate_typeBluePrint__element != NULL) &&
+				(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL))
+			{pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT(vElement);}
+	}
 
 	return vReturn;
 	CRX_SCOPE_END
@@ -1756,13 +1770,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_orderedHashTable_get(Crx_C_OrderedHas
 	CRX_SCOPE
 	size_t vBucketIndex = crx_c_orderedHashTable_private_get(pThis, pKey);
 
-	if(vBucketIndex != pThis->gPrivate_numberOfBuckets)
-	{
-		return (pThis->gPrivate_elements + 
+	assert(vBucketIndex != pThis->gPrivate_numberOfBuckets);
+
+	return (pThis->gPrivate_elements + 
 				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
-	}
-	else
-		{return NULL;}
 	CRX_SCOPE_END
 }
 
@@ -1774,7 +1785,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_orderedHashTable_constantGet(
 
 	return crx_c_orderedHashTable_get(((Crx_C_OrderedHashTable *)pThis), pKey);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_copyGet(
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_copyGetTo(
 		Crx_C_OrderedHashTable const * pThis, void * CRX_NOT_NULL pReturn, 
 		void const * CRX_NOT_NULL pKey)
 {
@@ -1786,20 +1797,22 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_copyGet(
 	CRX_SCOPE
 	size_t vBucketIndex = crx_c_orderedHashTable_private_get(pThis, pKey);
 
-	if(vBucketIndex != pThis->gPrivate_numberOfBuckets)
+	assert(vBucketIndex != pThis->gPrivate_numberOfBuckets);
+
+	if(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT != NULL)
+		{(pThis->gPrivate_typeBluePrint__element->gFUNC__DESTRUCT)(pReturn);}
+
+	if(pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT != NULL)
 	{
-		if(pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT != NULL)
-		{
-			pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT(pReturn, 
-					pThis->gPrivate_elements + 
-					(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
-		}
-		else
-		{
-			memcpy(pReturn, pThis->gPrivate_elements + 
-					(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE),
-					pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE);
-		}
+		pThis->gPrivate_typeBluePrint__element->gFUNC__COPY_CONSTRUCT(pReturn, 
+				pThis->gPrivate_elements + 
+				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
+	}
+	else
+	{
+		memcpy(pReturn, pThis->gPrivate_elements + 
+				(vBucketIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE),
+				pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE);
 	}
 	CRX_SCOPE_END
 }

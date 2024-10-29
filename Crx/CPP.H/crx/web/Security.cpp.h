@@ -70,9 +70,9 @@ namespace crx{namespace web
 				Security * CRX_NOT_NULL pSecurity /*NEEDED IN THE C++ PORT*/) : 
 						gParserObject(pParserObject) //THIS IS A TEMPORARY SOLUTION, UNTIL I THINK OF SOMETHING BETTER.
 		{
-			for(size_t tI = 0; tI < crx_c_stringSmallArray_getLength(&(pParserObject->gReferences)); tI++)
+			for(size_t tI = 0; tI < crx_c_arrays_stringSmall_getLength(&(pParserObject->gReferences)); tI++)
 			{
-				Crx_C_String * tString = crx_c_stringSmallArray_get(&(pParserObject->gReferences), tI);
+				Crx_C_String * tString = crx_c_arrays_stringSmall_get(&(pParserObject->gReferences), tI);
 
 				this->gReferences.push_back(Security_CrxCssReference(::std::string(
 						crx_c_string_constantGetElementsPointer(tString), 
@@ -447,23 +447,23 @@ namespace crx{namespace web
 		CRX_PUBLIC ::std::vector<::std::string> Security::cpp_splitString(::std::string pString, char pChar)
 		{
 			::std::vector<::std::string> vReturn /*= ::std::vector<::std::string>()*/;
-			::std::string::const_iterator tIterator = pString.begin();
-			::std::string::const_iterator tIterator__first = tIterator;
-			::std::string::const_iterator tIterator__end = pString.end();
+			::std::string::const_iterator vIterator = pString.begin();
+			::std::string::const_iterator vIterator__first = vIterator;
+			::std::string::const_iterator vIterator__end = pString.end();
 
-			while(tIterator != tIterator__end)
+			while(vIterator != vIterator__end)
 			{
-				if(*tIterator == pChar)
+				if(*vIterator == pChar)
 				{
-					vReturn.push_back(::std::string(tIterator__first, tIterator));
+					vReturn.push_back(::std::string(vIterator__first, vIterator));
 
-					tIterator__first = tIterator + 1;
+					vIterator__first = vIterator + 1;
 				}
 
-				 ++tIterator;
+				 ++vIterator;
 			}
 
-			vReturn.push_back(::std::string(tIterator__first, tIterator));
+			vReturn.push_back(::std::string(vIterator__first, vIterator));
 
 			return vReturn;
 		}

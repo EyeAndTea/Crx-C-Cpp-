@@ -2306,7 +2306,7 @@ _CRX__C__Array__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## updateLength(pARRAY_TYPE_NAME * pThis, \
 			size_t pLength) \
 	{ \
-		if((pLength <= pThis->gPrivate_capacity) || !pThis->gPrivate_isReadyForCArray) \
+		if((pLength > pThis->gPrivate_capacity) || !pThis->gPrivate_isReadyForCArray) \
 			{return false;} \
 	\
 		pThis->gPrivate_length = pLength; \
@@ -2317,7 +2317,7 @@ _CRX__C__Array__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## unsafeUpdateLength(pARRAY_TYPE_NAME * pThis, \
 			size_t pLength) \
 	{ \
-		if(pLength <= pThis->gPrivate_capacity) \
+		if(pLength > pThis->gPrivate_capacity) \
 			{return false;} \
 	\
 		pThis->gPrivate_length = pLength; \
@@ -2350,7 +2350,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_array_getByteSizeOf(
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_array_getByteSizeFor(
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, bool pIsInternalBufferExternal, 
 		size_t pSizeOfInternalBuffer);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_private_doInit(Crx_C_Array * pThis, 
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_array_private_doInit(Crx_C_Array * pThis, 
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint, size_t pSizeOfInternalBuffer, 
 		size_t pCapacity);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_construct(Crx_C_Array * pThis, 

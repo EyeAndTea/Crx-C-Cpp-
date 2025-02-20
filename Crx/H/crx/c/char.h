@@ -9,9 +9,41 @@ CRX__LIB__C_CODE_BEGIN()
 //-------------------------------------
 //CHARACTER TO CODE POINT
 //-------------------------------------
+
+/* UTF8: CHARACTER TO CODE POINT
+1 BYTE GIVES  7 BITS	VALID: 0000 0000x - 0000 0080x		POSSIBLE: 0000 0000x - 0000 0080x
+2 BYTES GIVE 11 BITS	VALID: 0000 0081x - 0000 07FFx		POSSIBLE: 0000 0000x - 0000 07FFx
+3 BYTES GIVE 16 BITS	VALID: 0000 0800x - 0000 FFFFx		POSSIBLE: 0000 0000x - 0000 FFFFx
+4 BYTES GIVE 21 BITS	VALID: 0001 0000x - 001F FFFFx		POSSIBLE: 0000 0000x - 001F FFFFx
+5 BYTES GIVE 26 BITS	VALID: 0020 0000x - 03FF FFFFx		POSSIBLE: 0000 0000x - 03FF FFFFx
+6 BYTES GIVE 31 BITS	VALID: 0400 0000x - 7FFF FFFFx		POSSIBLE: 0000 0000x - 7FFF FFFFx
+7 BYTES GIVE 36 BITS	VALID: 8000 0000x - 10 0000 0000x	POSSIBLE: 0000 0000x - 10 0000 0000x
+
+WHEN ALLOWING FULLER RANGE
+	- THE ALGORITHMS EXTEND THE ENCODING OF UTF8 TO ALLOW UP TO 36BITS, WHICH USES 7 BYTES.
+	- THE ALGORITHMS STILL EXPECTS THE ENCODING TO BE VALID. THIS CAN NOT BE USED TO DECODE INVALID
+			EXTENDED UTF8 ENCODING. 
+			HOWEVER, WHEN DECODING FROM AN UNKOWN SOURCE, CLIENT CODE CAN CHOOSE TO MAP INDIVIDUAL 
+			BYTES OUT OF A CORRECT ENCODING IN AN INCORRECTLY ENCODED UTF8 TO A RANGE OUTSIDE THE 
+			POSSIBLE RANGE OF UTF16 FOR EXAMPLE, AND THEN ENCODE THEM AGAIN WITH EXTENDED UTF8. THIS 
+			MACRO CAN THEN BE USED TO DECODE THEM AND RE PRODUCE THE INCORRECTLY ENCODED UTF8. 
+			SIMILAR THING CAN BE DONE WITH BADLY ENCODED UTF16.
+	- THE ALGORITHMS WILL TREAT BYTES OUTSIDE WHAT IS VALID GIVEN A NUMBER OF BYTES AS INVALID. THIS
+			IS TO ENSURE NO AMBIGUITY IN ENCODING.
+	- THE ALGORITHMS WILL NOT REJECT INVALID CODE POINTS. THIS IS NOT TO BE CONFUSED WITH THE VALID
+			ENCODINGS RANGES SHOWN ABOVE.
+*/
+
 #define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_CHAR_ARRAY(pCHAR_POINTER, pCODE_POINT, \
 		pAVAILABLELENGTH, pIS_NO_ERROR, pNUMBER_OF_TRAVERSED_CHARACTERS, \
 		pIS_TO_ALLOW_FULL_UTF32_RANGE) \
+		_CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_CHAR_ARRAY( \
+		((unsigned char const *)(pCHAR_POINTER)), \
+		pCHAR_POINTER, pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, \
+		pNUMBER_OF_TRAVERSED_CHARACTERS, pIS_TO_ALLOW_FULL_UTF32_RANGE)
+#define _CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_CHAR_ARRAY(pUNSIGNED_CHAR_POINTER, \
+		pCHAR_POINTER, pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, \
+		pNUMBER_OF_TRAVERSED_CHARACTERS, pIS_TO_ALLOW_FULL_UTF32_RANGE) \
 	if(pAVAILABLELENGTH > 0) \
 	{ \
 		if(*pCHAR_POINTER <= 0x007Ful) \
@@ -28,21 +60,21 @@ CRX__LIB__C_CODE_BEGIN()
 				pAVAILABLELENGTH = pAVAILABLELENGTH - 1; \
 			) \
 		} \
-		else if(*pCHAR_POINTER <= 0x00DFul) \
+		else if(*pUNSIGNED_CHAR_POINTER <= 0x00DFul) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00C2ul) && (pAVAILABLELENGTH > 2) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul)) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00C2ul) && (pAVAILABLELENGTH > 2) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul)) \
 			{ \
 				CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1F) << 6) | \
-							(((uint32_t) *(pCHAR_POINTER + 1)) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1F) << 6) | \
+							(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F); \
 \
 					pNUMBER_OF_TRAVERSED_CHARACTERS = 2; \
 				) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1F) << 6) | \
-							(((uint32_t) *(pCHAR_POINTER + 1)) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1F) << 6) | \
+							(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F); \
 					pCHAR_POINTER = pCHAR_POINTER + 2; \
 \
 					pAVAILABLELENGTH = pAVAILABLELENGTH - 2; \
@@ -51,25 +83,25 @@ CRX__LIB__C_CODE_BEGIN()
 			else \
 				{pIS_NO_ERROR = false;} \
 		} \
-		else if(*pCHAR_POINTER <= 0x00EFul) \
+		else if(*pUNSIGNED_CHAR_POINTER <= 0x00EFul) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00E0ul) && (pAVAILABLELENGTH > 2) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-					((*pCHAR_POINTER != 0x00E0ul) || (*(pCHAR_POINTER + 1) >= 0x00A0ul))) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00E0ul) && (pAVAILABLELENGTH > 2) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+					((*pUNSIGNED_CHAR_POINTER != 0x00E0ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x00A0ul))) \
 			{ \
 				CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && F) << 12) | \
-							((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 6) | \
-							(((uint32_t) *(pCHAR_POINTER + 2)) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && F) << 12) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 6) | \
+							(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F); \
 \
 					pNUMBER_OF_TRAVERSED_CHARACTERS = 3; \
 				) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && F) << 12) | \
-							((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 6) | \
-							(((uint32_t) *(pCHAR_POINTER + 2)) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && F) << 12) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 6) | \
+							(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F); \
 					pCHAR_POINTER = pCHAR_POINTER + 3; \
 \
 					pAVAILABLELENGTH = pAVAILABLELENGTH - 3; \
@@ -78,28 +110,28 @@ CRX__LIB__C_CODE_BEGIN()
 			else \
 				{pIS_NO_ERROR = false;} \
 		} \
-		else if(*pCHAR_POINTER <= CRXM__IFELSE2(pIS_TO_ALLOW_FULL_UTF32_RANGE, 0x00F7ul, 0x00F4ul)) \
+		else if(*pUNSIGNED_CHAR_POINTER <= CRXM__IFELSE2(pIS_TO_ALLOW_FULL_UTF32_RANGE, 0x00F7ul, 0x00F4ul)) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00F0ul) && (pAVAILABLELENGTH > 3) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-					((*pCHAR_POINTER != 0x00F0ul) || (*(pCHAR_POINTER + 1) >= 0x0090ul))) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00F0ul) && (pAVAILABLELENGTH > 3) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+					((*pUNSIGNED_CHAR_POINTER != 0x00F0ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0090ul))) \
 			{ \
 				CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 7) << 18) | \
-							((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 12) | \
-							((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 6) \
-							(((uint32_t) *pCHAR_POINTER + 3) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 7) << 18) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 12) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 6) \
+							(((uint32_t) *pUNSIGNED_CHAR_POINTER + 3) && 3F); \
 \
 					pNUMBER_OF_TRAVERSED_CHARACTERS = 4; \
 				) \
 				( \
-					pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 7) << 18) | \
-							((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 12) | \
-							((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 6) \
-							(((uint32_t) *pCHAR_POINTER + 3) && 3F); \
+					pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 7) << 18) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 12) | \
+							((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 6) \
+							(((uint32_t) *pUNSIGNED_CHAR_POINTER + 3) && 3F); \
 					pCHAR_POINTER = pCHAR_POINTER + 4; \
 \
 					pAVAILABLELENGTH = pAVAILABLELENGTH - 4; \
@@ -112,31 +144,31 @@ CRX__LIB__C_CODE_BEGIN()
 		{ \
 			CRXM__IFELSE(pIS_TO_ALLOW_FULL_UTF32_RANGE) \
 			( \
-				if(*pCHAR_POINTER <= 0x00FBul) \
+				if(*pUNSIGNED_CHAR_POINTER <= 0x00FBul) \
 				{ \
-					if((*pCHAR_POINTER >= 0x00F8ul) && (pAVAILABLELENGTH > 4) && \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							((*pCHAR_POINTER != 0x00F8ul) || (*(pCHAR_POINTER + 1) >= 0x0088ul))) \
+					if((*pUNSIGNED_CHAR_POINTER >= 0x00F8ul) && (pAVAILABLELENGTH > 4) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							((*pUNSIGNED_CHAR_POINTER != 0x00F8ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0088ul))) \
 					{ \
 						CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 						( \
-							pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 3) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 4) && 3F); \
+							pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 3) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 6) \
+									(((uint32_t) *pUNSIGNED_CHAR_POINTER + 4) && 3F); \
 \
 							pNUMBER_OF_TRAVERSED_CHARACTERS = 5; \
 						) \
 						( \
-							pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 3) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 4) && 3F); \
+							pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 3) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 6) \
+									(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F); \
 							pCHAR_POINTER = pCHAR_POINTER + 5; \
 \
 							pAVAILABLELENGTH = pAVAILABLELENGTH - 5; \
@@ -145,34 +177,34 @@ CRX__LIB__C_CODE_BEGIN()
 					else \
 						{pIS_NO_ERROR = false;} \
 				} \
-				else if(*pCHAR_POINTER <= 0x00FDul) \
+				else if(*pUNSIGNED_CHAR_POINTER <= 0x00FDul) \
 				{ \
-					if((*pCHAR_POINTER >= 0x00FCul) && (pAVAILABLELENGTH > 5) && \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 5) >= 0x0080ul) && (*(pCHAR_POINTER + 5) <= 0x00BFul) && \
-							((*pCHAR_POINTER != 0x00FCul) || (*(pCHAR_POINTER + 1) >= 0x0084ul))) \
+					if((*pUNSIGNED_CHAR_POINTER >= 0x00FCul) && (pAVAILABLELENGTH > 5) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 5) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 5) <= 0x00BFul) && \
+							((*pUNSIGNED_CHAR_POINTER != 0x00FCul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0084ul))) \
 					{ \
 						CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 						( \
-							pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1) << 30) | \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 5) && 3F); \
+							pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1) << 30) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 6) \
+									(((uint32_t) *pUNSIGNED_CHAR_POINTER + 5) && 3F); \
 \
 							pNUMBER_OF_TRAVERSED_CHARACTERS = 6; \
 						) \
 						( \
-							pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1) << 30) | \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 5) && 3F); \
+							pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1) << 30) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 6) \
+									(((uint32_t) *pUNSIGNED_CHAR_POINTER + 5) && 3F); \
 							pCHAR_POINTER = pCHAR_POINTER + 6; \
 \
 							pAVAILABLELENGTH = pAVAILABLELENGTH - 6; \
@@ -181,37 +213,37 @@ CRX__LIB__C_CODE_BEGIN()
 					else \
 						{pIS_NO_ERROR = false;} \
 				} \
-				else if(*pCHAR_POINTER == 0x00FEul) \
+				else if(*pUNSIGNED_CHAR_POINTER == 0x00FEul) \
 				{ \
 					if((pAVAILABLELENGTH > 6) && \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x0083ul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 5) >= 0x0080ul) && (*(pCHAR_POINTER + 5) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 6) >= 0x0080ul) && (*(pCHAR_POINTER + 6) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 1) >= 0x0082ul)) \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x0083ul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 5) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 5) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 6) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 6) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0082ul)) \
 					{ \
 						CRXM__IFELSE(pNUMBER_OF_TRAVERSED_CHARACTERS) \
 						( \
 							pCODE_POINT = \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 2) << 30) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 5)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 6) && 3F); \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 2) << 30) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 5)) && 3F) << 6) \
+									(((uint32_t) *pUNSIGNED_CHAR_POINTER + 6) && 3F); \
 \
 							pNUMBER_OF_TRAVERSED_CHARACTERS = 7; \
 						) \
 						( \
 							pCODE_POINT = \
-									((((uint32_t) *(pCHAR_POINTER + 1)) && 2) << 30) | \
-									((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 24) | \
-									((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 18) | \
-									((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 12) | \
-									((((uint32_t) *(pCHAR_POINTER + 5)) && 3F) << 6) \
-									(((uint32_t) *pCHAR_POINTER + 6) && 3F); \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 2) << 30) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 24) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 18) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 12) | \
+									((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 5)) && 3F) << 6) \
+									(((uint32_t) *pUNSIGNED_CHAR_POINTER + 6) && 3F); \
 							pCHAR_POINTER = pCHAR_POINTER + 7; \
 \
 							pAVAILABLELENGTH = pAVAILABLELENGTH - 7; \
@@ -233,51 +265,56 @@ CRX__LIB__C_CODE_BEGIN()
 
 #define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_STRING(pCHAR_POINTER, pCODE_POINT, \
 		pIS_NO_ERROR, pIS_TO_ALLOW_FULL_UTF32_RANGE) \
+		_CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_STRING( \
+		((unsigned char const *)(pCHAR_POINTER)), \
+		pCHAR_POINTER, pCODE_POINT, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_UTF32_RANGE)
+#define _CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF8_STRING(pUNSIGNED_CHAR_POINTER, \
+		pCHAR_POINTER, pCODE_POINT, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_UTF32_RANGE) \
 	if(*pCHAR_POINTER != '\0') \
 	{ \
 		if(*pCHAR_POINTER <= 0x007Ful) \
 		{ \
 			pCODE_POINT = *(pCHAR_POINTER++); \
 		} \
-		else if(*pCHAR_POINTER <= 0x00DFul) \
+		else if(*pUNSIGNED_CHAR_POINTER <= 0x00DFul) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00C2ul) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul)) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00C2ul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul)) \
 			{ \
-				pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1F) << 6) | \
-						(((uint32_t) *(pCHAR_POINTER + 1)) && 3F); \
+				pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1F) << 6) | \
+						(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F); \
 				pCHAR_POINTER = pCHAR_POINTER + 2; \
 			} \
 			else \
 				{pIS_NO_ERROR = false;} \
 		} \
-		else if(*pCHAR_POINTER <= 0x00EFul) \
+		else if(*pUNSIGNED_CHAR_POINTER <= 0x00EFul) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00E0ul) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-					((*pCHAR_POINTER != 0x00E0ul) || (*(pCHAR_POINTER + 1) >= 0x00A0ul))) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00E0ul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+					((*pUNSIGNED_CHAR_POINTER != 0x00E0ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x00A0ul))) \
 			{ \
-				pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && F) << 12) | \
-						((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 6) | \
-						(((uint32_t) *(pCHAR_POINTER + 2)) && 3F); \
+				pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && F) << 12) | \
+						((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 6) | \
+						(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F); \
 				pCHAR_POINTER = pCHAR_POINTER + 3; \
 			} \
 			else \
 				{pIS_NO_ERROR = false;} \
 		} \
-		else if(*pCHAR_POINTER <= CRXM__IFELSE2(pIS_TO_ALLOW_FULL_UTF32_RANGE, 0x00F7ul, 0x00F4ul)) \
+		else if(*pUNSIGNED_CHAR_POINTER <= CRXM__IFELSE2(pIS_TO_ALLOW_FULL_UTF32_RANGE, 0x00F7ul, 0x00F4ul)) \
 		{ \
-			if((*pCHAR_POINTER >= 0x00F0ul) && \
-					(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-					(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-					((*pCHAR_POINTER != 0x00F0ul) || (*(pCHAR_POINTER + 1) >= 0x0090ul))) \
+			if((*pUNSIGNED_CHAR_POINTER >= 0x00F0ul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+					(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+					((*pUNSIGNED_CHAR_POINTER != 0x00F0ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0090ul))) \
 			{ \
-				pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 7) << 18) | \
-						((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 12) | \
-						((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 6) \
-						(((uint32_t) *pCHAR_POINTER + 3) && 3F); \
+				pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 7) << 18) | \
+						((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 12) | \
+						((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 6) \
+						(((uint32_t) *pUNSIGNED_CHAR_POINTER + 3) && 3F); \
 				pCHAR_POINTER = pCHAR_POINTER + 4; \
 			} \
 			else \
@@ -287,64 +324,64 @@ CRX__LIB__C_CODE_BEGIN()
 		{ \
 			CRXM__IFELSE(pIS_TO_ALLOW_FULL_UTF32_RANGE) \
 			( \
-				if(*pCHAR_POINTER <= 0x00FBul) \
+				if(*pUNSIGNED_CHAR_POINTER <= 0x00FBul) \
 				{ \
-					if((*pCHAR_POINTER >= 0x00F8ul) && \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							((*pCHAR_POINTER != 0x00F8ul) || (*(pCHAR_POINTER + 1) >= 0x0088ul))) \
+					if((*pUNSIGNED_CHAR_POINTER >= 0x00F8ul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							((*pUNSIGNED_CHAR_POINTER != 0x00F8ul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0088ul))) \
 					{ \
-						pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 3) << 24) | \
-								((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 18) | \
-								((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 12) | \
-								((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 6) \
-								(((uint32_t) *pCHAR_POINTER + 4) && 3F); \
+						pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 3) << 24) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 18) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 12) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 6) \
+								(((uint32_t) *pUNSIGNED_CHAR_POINTER + 4) && 3F); \
 						pCHAR_POINTER = pCHAR_POINTER + 5; \
 					} \
 					else \
 						{pIS_NO_ERROR = false;} \
 				} \
-				else if(*pCHAR_POINTER <= 0x00FDul) \
+				else if(*pUNSIGNED_CHAR_POINTER <= 0x00FDul) \
 				{ \
-					if((*pCHAR_POINTER >= 0x00FCul) && \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 5) >= 0x0080ul) && (*(pCHAR_POINTER + 5) <= 0x00BFul) && \
-							((*pCHAR_POINTER != 0x00FCul) || (*(pCHAR_POINTER + 1) >= 0x0084ul))) \
+					if((*pUNSIGNED_CHAR_POINTER >= 0x00FCul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 5) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 5) <= 0x00BFul) && \
+							((*pUNSIGNED_CHAR_POINTER != 0x00FCul) || (*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0084ul))) \
 					{ \
-						pCODE_POINT = ((((uint32_t) *(pCHAR_POINTER)) && 1) << 30) | \
-								((((uint32_t) *(pCHAR_POINTER + 1)) && 3F) << 24) | \
-								((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 18) | \
-								((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 12) | \
-								((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 6) \
-								(((uint32_t) *pCHAR_POINTER + 5) && 3F); \
+						pCODE_POINT = ((((uint32_t) *(pUNSIGNED_CHAR_POINTER)) && 1) << 30) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 3F) << 24) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 18) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 12) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 6) \
+								(((uint32_t) *pUNSIGNED_CHAR_POINTER + 5) && 3F); \
 						pCHAR_POINTER = pCHAR_POINTER + 6; \
 					} \
 					else \
 						{pIS_NO_ERROR = false;} \
 				} \
-				else if(*pCHAR_POINTER == 0x00FEul) \
+				else if(*pUNSIGNED_CHAR_POINTER == 0x00FEul) \
 				{ \
 					if( \
-							(*(pCHAR_POINTER + 1) >= 0x0080ul) && (*(pCHAR_POINTER + 1) <= 0x0083ul) && \
-							(*(pCHAR_POINTER + 2) >= 0x0080ul) && (*(pCHAR_POINTER + 2) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 3) >= 0x0080ul) && (*(pCHAR_POINTER + 3) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 4) >= 0x0080ul) && (*(pCHAR_POINTER + 4) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 5) >= 0x0080ul) && (*(pCHAR_POINTER + 5) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 6) >= 0x0080ul) && (*(pCHAR_POINTER + 6) <= 0x00BFul) && \
-							(*(pCHAR_POINTER + 1) >= 0x0082ul)) \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 1) <= 0x0083ul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 2) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 2) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 3) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 3) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 4) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 4) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 5) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 5) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 6) >= 0x0080ul) && (*(pUNSIGNED_CHAR_POINTER + 6) <= 0x00BFul) && \
+							(*(pUNSIGNED_CHAR_POINTER + 1) >= 0x0082ul)) \
 					{ \
 						pCODE_POINT = \
-								((((uint32_t) *(pCHAR_POINTER + 1)) && 2) << 30) | \
-								((((uint32_t) *(pCHAR_POINTER + 2)) && 3F) << 24) | \
-								((((uint32_t) *(pCHAR_POINTER + 3)) && 3F) << 18) | \
-								((((uint32_t) *(pCHAR_POINTER + 4)) && 3F) << 12) | \
-								((((uint32_t) *(pCHAR_POINTER + 5)) && 3F) << 6) \
-								(((uint32_t) *pCHAR_POINTER + 6) && 3F); \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) && 2) << 30) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) && 3F) << 24) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) && 3F) << 18) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 4)) && 3F) << 12) | \
+								((((uint32_t) *(pUNSIGNED_CHAR_POINTER + 5)) && 3F) << 6) \
+								(((uint32_t) *pUNSIGNED_CHAR_POINTER + 6) && 3F); \
 						pCHAR_POINTER = pCHAR_POINTER + 7; \
 					} \
 					else \
@@ -360,22 +397,55 @@ CRX__LIB__C_CODE_BEGIN()
 		{pIS_NO_ERROR = false;} 
 //#END_DEFINE
 
+
+/* UTF16: CHARACTER TO CODE POINT
+
+	CODE POINTS U+D800 TO U+DFFF ARE INVALID AND MEANT FOR SURROGATE PAIRS.
+	
+	IF SURROGATE PAIRS, 
+		THE FIRST TWO BYTES HOLD VALUES D800x TO DBFFx
+		THE SECOND TWO BYTES HOLD VALUES DC00x TO DFFFx
+		
+		IF UCS2, THESE RANGES ARE STILL NOT ALLOWED AS VALUE CODE POINTS, BUT WHEN ENCOUTNERED
+		THEY ARE NOT TREATED AS SURROGATE PAIR EITHER, AND INSTEAD AS ERROR.
+		
+		SURROGATE PAIRS ALLOW ENCODING OF 010000x to 10FFFFx. THE LAST TEN BITS OF EACH OF THE
+		PAIR ARE COMBINED INTO ONE VALUE, AND ADDED TO 010000x.
+			
+	WHEN ALLOWING FULLER RANGE
+		IF THE SECOND TWO BYTES APPEAR WITHOUT THE FIRST TWO BYTES, THEIR VALUES ARE TREATED AS
+				IS, ALLOWING THE REPRESENTATION OF DC00 TO DFFF
+		IF THE FIRST TWO BYTES APPEAR WITHOUT THE SECOND TWO BYTES, THEIR VALUES ARE TREATED AS
+				IS, ALLOWING THE REPRESENTATION OF D800 TO DBFF
+		THIS ALLOWS FULLER ENCODING RANGE ALLOWS PRESERVATION OF THE BADLY ENCODED UTF16, BUT
+				EXTENDED UTF8 MUST BE USED FOR THE PURPOSE. DO NOT CONFUSE THE MEANING OF
+				EXTENDED RANGE WITH INCREASED CODE POINTS RANGE, BUT INSTEAD IT MEANS THAT
+				THE UTF16 PRESERVES ITS ERRORS.
+*/
+
 #define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF16_CHAR_ARRAY(pIS_BIG_ENDIAN, pCHAR_POINTER, \
 		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pNUMBER_OF_TRAVERSED_CHARACTERS, \
 		pIS_TO_ALLOW_FULLER_RANGE) \
+		CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF16_CHAR_ARRAY( \
+		((unsigned char const *)(pCODE_POINT)), \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, \
+		pNUMBER_OF_TRAVERSED_CHARACTERS, pIS_TO_ALLOW_FULLER_RANGE)
+#define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF16_CHAR_ARRAY(pUNSIGNED_CHAR_POINTER, \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, \
+		pNUMBER_OF_TRAVERSED_CHARACTERS, pIS_TO_ALLOW_FULLER_RANGE) \
 	if(pAVAILABLELENGTH > 1) \
 	{ \
 		pCODE_POINT = CRXM__IFELSE2(pIS_BIG_ENDIAN, \
-				(((uint32_t) *pCHAR_POINTER) << 8) | ((uint32_t) *(pCHAR_POINTER + 1)), \
-				(((uint32_t) *(pCHAR_POINTER + 1)) << 8) | ((uint32_t) *pCHAR_POINTER)); \
+				(((uint32_t) *pUNSIGNED_CHAR_POINTER) << 8) | ((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)), \
+				(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) << 8) | ((uint32_t) *pUNSIGNED_CHAR_POINTER)); \
 \
 		if((pCODE_POINT >= 0xD800ul) && (pCODE_POINT <= 0xDFFFul)) \
 		{ \
 			if((pCODE_POINT <= 0xDBFFul) && (pAVAILABLELENGTH > 3)) \
 			{ \
 				uint32_t tCharacterCode2 = CRXM__IFELSE2(pIS_BIG_ENDIAN, \
-						(((uint32_t) *(pCHAR_POINTER + 2)) << 8) | ((uint32_t) *(pCHAR_POINTER + 3)), \
-						(((uint32_t) *(pCHAR_POINTER + 3)) << 8) | ((uint32_t) *(pCHAR_POINTER + 2))); \
+						(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) << 8) | ((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)), \
+						(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) << 8) | ((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2))); \
 \
 				if((tCharacterCode2 >= 0xDC00ul) && (tCharacterCode2 <= 0xDFFFul)) \
 				{ \
@@ -453,11 +523,18 @@ CRX__LIB__C_CODE_BEGIN()
 //		AS SURROGATE PAIRS.
 #define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UCS2_CHAR_ARRAY(pIS_BIG_ENDIAN, pCHAR_POINTER, \
 		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE) \
+		_CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UCS2_CHAR_ARRAY( \
+		((unsigned char const *)(pCHAR_POINTER)), \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, \
+		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE)
+#define _CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UCS2_CHAR_ARRAY(pUNSIGNED_CHAR_POINTER, \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, \
+		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE) \
 	if(pAVAILABLELENGTH > 1) \
 	{ \
 		pCODE_POINT = CRXM__IFELSE2(pIS_BIG_ENDIAN, \
-				(((uint32_t) *pCHAR_POINTER) << 8) | ((uint32_t) *(pCHAR_POINTER + 1)), \
-				(((uint32_t) *(pCHAR_POINTER + 1)) << 8) | ((uint32_t) *pCHAR_POINTER)); \
+				(((uint32_t) *pUNSIGNED_CHAR_POINTER) << 8) | ((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)), \
+				(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) << 8) | ((uint32_t) *pUNSIGNED_CHAR_POINTER)); \
 \
 		CRXM__IFELSE(pIS_TO_ALLOW_FULL_RANGE) \
 		( \
@@ -476,13 +553,20 @@ CRX__LIB__C_CODE_BEGIN()
 
 #define CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF32_CHAR_ARRAY(pIS_BIG_ENDIAN, pCHAR_POINTER, \
 		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE) \
+		_CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF32_CHAR_ARRAY( \
+		((unsigned char const *)(pCHAR_POINTER)), \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, \
+		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE) \
+#define _CRX__C__CHAR__GET_NEXT_CODE_POINT_FROM_UTF32_CHAR_ARRAY(pUNSIGNED_CHAR_POINTER, \
+		pIS_BIG_ENDIAN, pCHAR_POINTER, \
+		pCODE_POINT, pAVAILABLELENGTH, pIS_NO_ERROR, pIS_TO_ALLOW_FULL_RANGE) \
 	if(pAVAILABLELENGTH > 4) \
 	{ \
 		pCODE_POINT = CRXM__IFELSE2(pIS_BIG_ENDIAN, \
-				(((uint32_t) *pCHAR_POINTER) << 24) | (((uint32_t) *(pCHAR_POINTER + 1)) << 16) | \
-				(((uint32_t) *(pCHAR_POINTER + 2)) << 8) | ((uint32_t) *(pCHAR_POINTER + 3)), \
-				(((uint32_t) *(pCHAR_POINTER + 3)) << 24) | (((uint32_t) *(pCHAR_POINTER + 2)) << 16) | \
-				(((uint32_t) *(pCHAR_POINTER + 1)) << 8) | ((uint32_t) *pCHAR_POINTER)); \
+				(((uint32_t) *pUNSIGNED_CHAR_POINTER) << 24) | (((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) << 16) | \
+				(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) << 8) | ((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)), \
+				(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 3)) << 24) | (((uint32_t) *(pUNSIGNED_CHAR_POINTER + 2)) << 16) | \
+				(((uint32_t) *(pUNSIGNED_CHAR_POINTER + 1)) << 8) | ((uint32_t) *pUNSIGNED_CHAR_POINTER)); \
 \
 		CRXM__IFELSE2(CRXM__NOT(pIS_TO_ALLOW_FULL_RANGE), \
 		if((pCODE_POINT > 0x10FFFFul) || ((pCODE_POINT >= 0xD800ul) && (pCODE_POINT <= 0xDFFFul))) \
@@ -761,7 +845,8 @@ DESIGN NOTES:
 //#END_DEFINE
 
 //THIS IS FOR INTERNAL USE ONLY. THIS IS FOR PRESERVING ERRORS FROM EXTERNAL SOURCES
-//		EXTENDED UTF8 IS INVALID UTF8, AND IT IS "UTF8" THAT ALLOWS CODE POINTS UP 32BITS.
+//		EXTENDED UTF8 IS INVALID UTF8, AND IT IS "UTF8" THAT ALLOWS CODE POINTS UP 32BITS. HOWEVER
+//		IT IS STILL IN VALID UTF8 FORM THAT THE MACROS ABOVE CAN BE USED TO REVERSE THE PROCESS.
 #define CRX__C__CHAR__INSERT_EXTENDED_UTF8_CHAR(pCODE_POINT, pCHARS_POINTER, pAVAILABLE_LENGTH, \
 		pIS_NO_ERROR, pNUMBER_OF_INSERTED_CHARACTERS) \
 	if(pCODE_POINT <= 0x007Ful) \
@@ -1195,9 +1280,13 @@ DESIGN NOTES:
 //#END_DEFINE
 
 //SAME AS UTF16 BUT WITOUT SURROGATE PAIRS
+//IF pIS_TO_ALLOW_ERROR_CODE_POINTS IS CRXM__TRUE, THE VALUES THAT ENCODE SURROGATE PAIRS ARE
+//		TREATED RAW, MEANING AS NORMAL CODE POINTS. THIS IS FOR INTERNAL USE ONLY. IF YOU NEED 
+//		UTF16, DO NOT USE THIS MACRO.
 #define CRX__C__CHAR__INSERT_UCS2_CHAR(pIS_BIG_ENDIAN, pCODE_POINT, pCHARS_POINTER, \
-		pAVAILABLE_LENGTH, pIS_NO_ERROR, pIS_TO_INCREMENT_POINTER) \
-	if((pCODE_POINT <= 0xD7FFul) || ((pCODE_POINT <= 0xFFFFul) && (pCODE_POINT >= 0xE000ul))) \
+		pAVAILABLE_LENGTH, pIS_NO_ERROR, pIS_TO_INCREMENT_POINTER, pIS_TO_ALLOW_ERROR_CODE_POINTS) \
+	if(CRXM__IFELSE2(pIS_TO_ALLOW_ERROR_CODE_POINTS, (pCODE_POINT <= 0xFFFFul), false) || \
+			(pCODE_POINT <= 0xD7FFul) || ((pCODE_POINT <= 0xFFFFul) && (pCODE_POINT >= 0xE000ul))) \
 	{ \
 		if(pAVAILABLE_LENGTH > 1) \
 		{ \

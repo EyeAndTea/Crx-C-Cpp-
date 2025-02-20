@@ -97,6 +97,13 @@
 			IN RECENT C++ STD VERSIONS, I DECIDED OTHERWISE.
 	size_t MUST ALSO BE RETURNED WHEN RETURNING AN INDEX, BECAUSE MAXIMUM OF size_t IS USED TO 
 			INDICATE NO INDEX.
+	WAITING UNTIL NEEDED TO ASSIGN A NULL TERMINATOR, WHICH HAPPENS DURING A CALL TO 
+			crx_c_string_silentlyAppendNullTerminator() AND crx_c_string_getCString() LEAD TO CODE
+			THAT TREATED A STRING PARAMETER CONSTANT WHEN THE CODE REQUIRED INTERNALLY A C STRING
+			FROM THE STRING. BECAUSE OF THIS, THE STRING NOW PRE EMPTIVELY ADDS NULL TERMINATOR
+			WHENEVER IT IS MODIFIED. THIS MUST BE DONE SILENTLY, MEANING WITHOUT AFFECTING THE
+			LENGTH OF THE STRING. THIS IS ALSO WHY, THE STRING BASE CLASS'S MEMBERS, THE ARRAY,
+			ARE ALL CLASS PROTECTED.
 */
 	
 CRX__LIB__C_CODE_BEGIN()
@@ -106,6 +113,8 @@ CRX__LIB__C_CODE_BEGIN()
 #else
 	#define CRX__C__STRING__PRIVATE__SIZE32_MAX ((uint32_t)(-1))
 #endif
+
+#define CRX__C__STRING__SIZE_OF_NULL_TERMINATOR  4
 
 
 typedef struct Crx_C_String_Sub Crx_C_String_Sub;
@@ -121,11 +130,11 @@ CONTRACT:
 	HAS MOVE CONSTRUCT:		0
 	HAS MOVE DESTRUCT:		0
 	
-REMEMBER THAT THIS TYPE, Crx::C::String, IS NOT NULL TERMINATED. HENCE, ITS SIZE IS EQUAL TO ITS
+REMEMBER THAT THIS TYPE, crx::c::String, IS NOT NULL TERMINATED. HENCE, ITS SIZE IS EQUAL TO ITS
 		LENGTH. FOR char *, HOWEVER, REMEMBER THAT LENGTH INCLUDES THE NULL TERMINATOR,
 		WHILE SIZE EXCLUDES IT. THIS IS PER MY FORMAL DEFINITIONS ELSEWHERE.
 */
-CRX__C__Array__DECLARE(Crx_C_String, crx_c_string_, char, 
+CRX__C__Array__DECLARE(Crx_C_String, crx_c_string_classProtected_, char, 
 		uint32_t, CRX__C__STRING__PRIVATE__SIZE32_MAX, 
 		16, CRXM__FALSE,
 		CRXM__FALSE, CRXM__FALSE, CRXM__FALSE, CRXM__FALSE)
@@ -140,21 +149,52 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_areStringsEqual(void const * pSt
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getHash(size_t pSeed, 
 		void const * CRX_NOT_NULL pString);
 
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, char pChar);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct4(Crx_C_String * pThis, 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct2(Crx_C_String * pThis, 
 		char const * pString);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, 
 		char const * pChars, size_t pSize);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, char pChar);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyConstruct(Crx_C_String * pThis, 
-		Crx_C_String const * CRX_NOT_NULL pString);//DEFINED BY TEMPLATE
+		Crx_C_String const * CRX_NOT_NULL pString);
 
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new3(char pChar);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new4(char const * pString);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char const * pChars, size_t pSize);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new();
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new2(char const * pString);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new3(char const * pChars, size_t pSize);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char pChar);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_moveNew(Crx_C_String * CRX_NOT_NULL pString);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyNew(Crx_C_String const * CRX_NOT_NULL pString);
 
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_destruct(Crx_C_String * pThis); //DEFINED BY TEMPLATE
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_free(Crx_C_String * pThis); //DEFINED BY TEMPLATE
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_destruct(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_free(Crx_C_String * pThis);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_ensureCapacity(Crx_C_String * pThis,
+		size_t pCapacity);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_empty(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_copyAssignFrom(Crx_C_String * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_tryToPilferSwapContentWith(
+		Crx_C_String * pThis, Crx_C_String * CRX_NOT_NULL pString);
+CRX__LIB__PUBLIC_C_FUNCTION() char crx_c_string_copyGet(Crx_C_String const * pThis, size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharCopiesAt(Crx_C_String * pThis,
+		size_t pIndex, char const pChar, size_t pNumberOfCopies);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharsAt(Crx_C_String * pThis,
+		size_t pIndex, char const * CRX_NOT_NULL pChars, size_t pWidth);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_removeChars(Crx_C_String * pThis,
+		size_t pIndex, size_t pWidth);
+/*THE POINTER RETURNED CAN BE USED TO OVERWITE THE UNDERLYING CHAR ARRAY BUT WITHOUT CHANGING ITS 
+SIZE, THE SIZE OF THE STRING IN OTHER WORDS*/
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_getCharsPointer(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_constantGetCharsPointer(
+		Crx_C_String const * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_getCArray(Crx_C_String * pThis, char pChar);		
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_unsafeGetCArray(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_updateLength(Crx_C_String * pThis,
+		size_t pLength);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_unsafeUpdateLength(Crx_C_String * pThis,
+		size_t pLength);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendString(Crx_C_String * pThis, 
 		Crx_C_String const * CRX_NOT_NULL pString);
@@ -173,35 +213,40 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis,
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_looselyAppendFloat(Crx_C_String * pThis, 
 		double pDouble);
 
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_silentlyAppendNullTerminator(Crx_C_String * pThis);
+
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
-		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo2(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo3(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo4(Crx_C_String const * pThis,
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
-CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String * pThis);
+//WARNING, CALLING ANY OF String::getCArray OR String::unsafeGetCArray THEN CALLING THIS FUNCTION
+//		BEFORE CALLING String::updateLength() OR String::unsafeUpdateLength() CAN INDETERMINISTICLY 
+//		MAKE THIS FUNCTION RETURN NULL. 
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String const * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith(Crx_C_String const * pThis,
-		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith2(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith3(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith4(Crx_C_String const * pThis,
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith(Crx_C_String const * pThis,
-		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith2(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pString, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith3(Crx_C_String const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith4(Crx_C_String const * pThis,
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
@@ -435,7 +480,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo(Crx_C_String_Sub c
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo2(Crx_C_String_Sub const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo4(Crx_C_String_Sub const * pThis,
 		Crx_C_String_Sub * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
@@ -444,7 +489,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith(Crx_C_String
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith2(Crx_C_String_Sub const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith4(Crx_C_String_Sub const * pThis,
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
@@ -453,7 +498,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith(Crx_C_String_Su
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith2(Crx_C_String_Sub const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive);
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith4(Crx_C_String_Sub const * pThis,
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub, bool pIsCaseInSensitive);
 
@@ -467,7 +512,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf3(
 		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
 		char const * CRX_NOT_NULL pChars__delimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf4(
 		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter, 
@@ -484,7 +529,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccu
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(
 		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
 		char const * CRX_NOT_NULL pChars__delimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf4(
 		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub__delimiter,
@@ -500,7 +545,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurance
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf3(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pStartIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pStartIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf4(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
@@ -517,7 +562,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOc
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf4(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
@@ -534,7 +579,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIn
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
-		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex4(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
@@ -552,7 +597,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLef
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft3(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
-		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0));
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft4(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,

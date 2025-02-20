@@ -283,10 +283,14 @@ _CRX__C__OrderedHashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUN
 	\
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getStartIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis); \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getLastIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis); \
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getEndIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis); \
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getNextIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex); \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getPreviousIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis); \
 	\
 	PRIVATE size_t pMEMBER_FUNCTIONS_PREFIX ## prepareSeedForHash( \
 			void const * pPointer, void const * pPointer2);
@@ -1950,9 +1954,17 @@ _CRX__C__OrderedHashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNC
 			pHASH_TABLE_TYPE_NAME const * pThis) \
 	{ \
 		if((pThis->gPrivate_keyNodes == NULL) || (pThis->gPrivate_rootKeyNode == NULL))\
-			{return 0;} \
+			{return pThis->gPrivate_numberOfBuckets;} \
 	\
 		return pThis->gPrivate_rootKeyNode->gPrivate_index; \
+	} \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getLastIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis) \
+	{ \
+		if((pThis->gPrivate_keyNodes == NULL) || (pThis->gPrivate_lastKeyNode == NULL))\
+			{return pThis->gPrivate_numberOfBuckets;} \
+	\
+		return pThis->gPrivate_lastKeyNode->gPrivate_index; \
 	} \
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getEndIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis) \
@@ -1966,6 +1978,16 @@ _CRX__C__OrderedHashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNC
 	\
 		return (pThis->gPrivate_keyNodes + (pThis->gPrivate_keyNodes + pIndex)-> \
 				gPrivate_nextIndex)->gPrivate_index; \
+	} \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getPreviousIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex) \
+	{ \
+		if((pThis->gPrivate_keyNodes == NULL) || (pIndex >= pThis->gPrivate_numberOfBuckets) || \
+				((pThis->gPrivate_keyNodes + pIndex)->gPrivate_previousIndex == pSIZE_T_MAX)) \
+			{return pThis->gPrivate_numberOfBuckets;} \
+	\
+		return (pThis->gPrivate_keyNodes + (pThis->gPrivate_keyNodes + pIndex)-> \
+				gPrivate_previousIndex)->gPrivate_index; \
 	} \
 	\
 	PRIVATE size_t pMEMBER_FUNCTIONS_PREFIX ## prepareSeedForHash( \
@@ -2168,9 +2190,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_remove(Crx_C_OrderedHa
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getStartIndex(
 		Crx_C_OrderedHashTable const * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getLastIndex(
+		Crx_C_OrderedHashTable const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getEndIndex(
 		Crx_C_OrderedHashTable const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getNextIndex(
+		Crx_C_OrderedHashTable const * pThis, size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getPreviousIndex(
 		Crx_C_OrderedHashTable const * pThis, size_t pIndex);
 
 CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_orderedHashTable_private_prepareSeedForHash(

@@ -39,13 +39,13 @@ namespace crx{namespace web
 				Crx_C_CrxCss_NameValuePair * CRX_NOT_NULL pParserObject) : 
 						gName(""), gValue(""), gParserObject(pParserObject)
 		{
-			::std::string vString(crx_c_string_constantGetElementsPointer(&(pParserObject->gName)), 
-						crx_c_string_getLength(&(pParserObject->gName)));
+			::std::string vString(crx_c_string_constantGetCharsPointer(&(pParserObject->gName)), 
+						crx_c_string_getSize(&(pParserObject->gName)));
 
 			std::transform(vString.begin(), vString.end(), this->gName.begin(), ::tolower);
 
-			this->gValue.append(crx_c_string_constantGetElementsPointer(&(pParserObject->gValue)), 
-						crx_c_string_getLength(&(pParserObject->gValue)));
+			this->gValue.append(crx_c_string_constantGetCharsPointer(&(pParserObject->gValue)), 
+						crx_c_string_getSize(&(pParserObject->gValue)));
 		}
 	#pragma endregion //}
 
@@ -75,8 +75,8 @@ namespace crx{namespace web
 				Crx_C_String * tString = crx_c_arrays_stringSmall_get(&(pParserObject->gReferences), tI);
 
 				this->gReferences.push_back(Security_CrxCssReference(::std::string(
-						crx_c_string_constantGetElementsPointer(tString), 
-						crx_c_string_getLength(tString)), tString, pSecurity));
+						crx_c_string_constantGetCharsPointer(tString), 
+						crx_c_string_getSize(tString)), tString, pSecurity));
 			}
 		}
 	#pragma endregion //}
@@ -2000,8 +2000,8 @@ namespace crx{namespace web
 					if(tErrorElement->gMessage != NULL)
 					{
 						tString.append(
-								crx_c_string_constantGetElementsPointer(tErrorElement->gMessage),
-								crx_c_string_getLength(tErrorElement->gMessage));
+								crx_c_string_constantGetCharsPointer(tErrorElement->gMessage),
+								crx_c_string_getSize(tErrorElement->gMessage));
 						tString.push_back('\n');
 					}
 				}
@@ -2079,8 +2079,8 @@ namespace crx{namespace web
 					if(tErrorElement->gMessage != NULL)
 					{
 						tString.append( 
-								crx_c_string_constantGetElementsPointer(tErrorElement->gMessage),
-								crx_c_string_getLength(tErrorElement->gMessage));
+								crx_c_string_constantGetCharsPointer(tErrorElement->gMessage),
+								crx_c_string_getSize(tErrorElement->gMessage));
 						tString.push_back('\n');
 					}
 				}
@@ -2158,10 +2158,10 @@ namespace crx{namespace web
 		{
 			//echo "sabberworm_processCrxCssAtRule__processAtRule: AtRuleStatement<br/>";
 			Security_CrxCssAtRuleStatementData vCrxCssAtRuleStatementData(
-					::std::string(crx_c_string_constantGetElementsPointer(&(pAtRuleStatement->gName)), 
-							crx_c_string_getLength(&(pAtRuleStatement->gName))),
-					::std::string(crx_c_string_constantGetElementsPointer(&(pAtRuleStatement->gValue)), 
-							crx_c_string_getLength(&(pAtRuleStatement->gValue))),
+					::std::string(crx_c_string_constantGetCharsPointer(&(pAtRuleStatement->gName)), 
+							crx_c_string_getSize(&(pAtRuleStatement->gName))),
+					::std::string(crx_c_string_constantGetCharsPointer(&(pAtRuleStatement->gValue)), 
+							crx_c_string_getSize(&(pAtRuleStatement->gValue))),
 					pAtRuleStatement);
 					
 			if(this->filterCrxCssAtRuleStatement(&vCrxCssAtRuleStatementData) &&
@@ -2180,10 +2180,10 @@ namespace crx{namespace web
 		{
 			//echo "sabberworm_processCrxCssAtRule__processAtRuleBlockList: AtRule Element<br/>";
 			Security_CrxCssAtRuleElementData vCrxCssAtRuleElementData(::std::string(
-							crx_c_string_constantGetElementsPointer(&(pAtRuleElement->gName)), 
-							crx_c_string_getLength(&(pAtRuleElement->gName))), 
-					::std::string(crx_c_string_constantGetElementsPointer(&(pAtRuleElement->gValue)), 
-							crx_c_string_getLength(&(pAtRuleElement->gValue))),
+							crx_c_string_constantGetCharsPointer(&(pAtRuleElement->gName)), 
+							crx_c_string_getSize(&(pAtRuleElement->gName))), 
+					::std::string(crx_c_string_constantGetCharsPointer(&(pAtRuleElement->gValue)), 
+							crx_c_string_getSize(&(pAtRuleElement->gValue))),
 					pAtRuleElement);
 
 			if(this->filterCrxCssAtRuleElement(&vCrxCssAtRuleElementData) &&
@@ -2228,10 +2228,10 @@ namespace crx{namespace web
 			//echo "sabberworm_processCrxCssAtRule__processAtRuleSet: ".$pAtRuleSet->atRuleName()."<br/>";
 			
 			Security_CrxCssAtRuleNameValueBlockData vCrxCssAtRuleNameValueBlockData(
-					::std::string(crx_c_string_constantGetElementsPointer(&(pAtRuleNameValueBlock->gName)), 
-							crx_c_string_getLength(&(pAtRuleNameValueBlock->gName))),
-					::std::string(crx_c_string_constantGetElementsPointer(&(pAtRuleNameValueBlock->gValue)), 
-							crx_c_string_getLength(&(pAtRuleNameValueBlock->gValue))),
+					::std::string(crx_c_string_constantGetCharsPointer(&(pAtRuleNameValueBlock->gName)), 
+							crx_c_string_getSize(&(pAtRuleNameValueBlock->gName))),
+					::std::string(crx_c_string_constantGetCharsPointer(&(pAtRuleNameValueBlock->gValue)), 
+							crx_c_string_getSize(&(pAtRuleNameValueBlock->gValue))),
 					pAtRuleNameValueBlock);
 
 			if(this->filterCrxCssAtRuleNameValueBlock(&vCrxCssAtRuleNameValueBlockData) &&

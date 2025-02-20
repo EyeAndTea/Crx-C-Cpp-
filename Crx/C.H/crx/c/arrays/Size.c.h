@@ -8,7 +8,7 @@
 CRX__LIB__C_CODE_BEGIN()
 
 CRX__C__Array__DEFINE(Crx_C_Arrays_Size, crx_c_arrays_size_, size_t,
-		size_t, ((size_t)(-1)), 0, CRXM__FALSE, 
+		size_t, ((size_t)(-1)), 4, CRXM__FALSE, 
 		CRXM__FALSE, CRXM__FALSE, 
 		CRXM__FALSE, CRXM__FALSE)
 		

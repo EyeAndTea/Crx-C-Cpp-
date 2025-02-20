@@ -2798,7 +2798,7 @@ _CRX__C__Array__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## updateLength(pARRAY_TYPE_NAME * pThis, \
 			size_t pLength) \
 	{ \
-		if((pLength <= pThis->gPrivate_capacity) || !pThis->gPrivate_isReadyForCArray) \
+		if((pLength > pThis->gPrivate_capacity) || !pThis->gPrivate_isReadyForCArray) \
 			{return false;} \
 	\
 		pThis->gPrivate_length = pLength; \
@@ -2809,7 +2809,7 @@ _CRX__C__Array__DEFINE(pARRAY_TYPE_NAME, pARRAY_MEMBER_FUNCTIONS_PREFIX, pELEMEN
 	PUBLIC bool pARRAY_MEMBER_FUNCTIONS_PREFIX ## unsafeUpdateLength(pARRAY_TYPE_NAME * pThis, \
 			size_t pLength) \
 	{ \
-		if(pLength <= pThis->gPrivate_capacity) \
+		if(pLength > pThis->gPrivate_capacity) \
 			{return false;} \
 	\
 		pThis->gPrivate_length = pLength; \

@@ -35,7 +35,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_array_getByteSizeFor(
 		{return sizeof(Crx_C_Array);}
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_private_doInit(Crx_C_Array * pThis, 
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_array_private_doInit(Crx_C_Array * pThis, 
 		Crx_C_TypeBluePrint const *  pTypeBluePrint, size_t pSizeOfInternalBuffer, size_t pCapacity)
 {
 	//assert(((pThis->gPrivate_elements == 0) || (pThis->gPrivate_elements == NULL)) && (pThis->gPrivate_length == 0));

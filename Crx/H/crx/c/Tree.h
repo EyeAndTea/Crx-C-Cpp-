@@ -878,7 +878,7 @@ CRX__LIB__C_CODE_BEGIN()
 			- WHEN ENTRIES ARE IN THE LEAVES ONLY, THE SPLITTING OF A LEAF IS SUCH AS THE LEFT
 					NODE HAS ONE MORE ENTRY COMPARED TO THE RIGHT NODE, THE NEW NDOE.
 			- WARNING: THIS FUNCTION EXPECTS A NODE TO EXIST AT pIndexOfNodeInParent + 1 IF 
-					pIndexOfNodeInParent IS SMALLER THAN THE MAXIMUM NUMBER OF CHILDREN. SAME 
+	3				pIndexOfNodeInParent IS SMALLER THAN THE MAXIMUM NUMBER OF CHILDREN. SAME 
 					APPLIES TO *pIndicesOfNodesInParents. THIS ASSUMPTION IS BROKEN WHEN THE TREE IS 
 					WITH A SINGLE LEAF NODE UNDER A SINGLE INNER NODE, AND LEAF NODE IS PASSED FOR 
 					SPLITTING. WHEN THE ASSUMPTION IS BROKEN, MAKE SURE THAT THE NODE POINTER AT 
@@ -1008,6 +1008,7 @@ CRX__LIB__C_CODE_BEGIN()
 					- IF 2 RETURNED, ENTRY POINTED TO BY pIterator IS INCORRECT, BUT AN ENTRY IS 
 							FOUND IN ITS VICINITY, AND pIterator__return IS SET TO IT.
 		- Tree::getTraceOfLeafNode()
+			- CURRENTLY, THIS FUNCTION'S EXISTANCE IS A FORMAL LIE.
 			- NOTES FROM FUNCTION
 					THIS FUNCTION WILL SET pNodes AND pIndices TO A TRACE TO THE LEAF NODE, pNode. 
 					THE TRACE RESEMBLES THE PRIVATE Tree::Iterator::gPrivate_positions DATA MEMBER, 
@@ -1820,6 +1821,14 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pTREE_TYPE_NAME ## _Private_Node const * CRX_NOT_NULL pNode__source));, ) \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## destruct(pTREE_TYPE_NAME * pThis); \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## free(pTREE_TYPE_NAME * pThis); \
+	\
+	CRX__C__TYPE_BLUE_PRINT__DECLARE_GET_BLUE_PRINT( \
+			pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+			CRXM__TRUE, CRXM__TRUE, \
+			pIS_COPYABLE, CRXM__TRUE, \
+			CRXM__FALSE, CRXM__FALSE); \
+	\
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_deleteNode(pTREE_TYPE_NAME * pThis, \
 			pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode); \
 	\
@@ -1842,7 +1851,7 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_transferAllIntoNode( \
 			pTREE_TYPE_NAME * pThis, pINDEX_TYPE * CRX_NOT_NULL pIndex__guide, \
 			pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode__child, \
-			pELEMENT_TYPE * CRX_NOT_NULL pElement, \
+			pELEMENT_TYPE * pElement, \
 			pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode, \
 			size_t pIndex, bool pIsToIncludeBegginingChildNode), \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_transferAllIntoNode( \
@@ -1934,7 +1943,7 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pINDEX_TYPE * pIndex__out), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
 			pTREE_TYPE_NAME * pThis, uint32_t pMode, pTREE_TYPE_NAME ## _Private_Node * pNode, \
-			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE * * pElement, \
+			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE const * pElement, \
 			pINDEX_TYPE * pIndex__out)), \
 	CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
@@ -1942,16 +1951,16 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pELEMENT_TYPE const * pElement, pELEMENT_TYPE * pElement__out), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
 			pTREE_TYPE_NAME * pThis, uint32_t pMode, pTREE_TYPE_NAME ## _Private_Node * pNode, \
-			pELEMENT_TYPE * * pElement, pELEMENT_TYPE * * pElement__out)))); \
+			pELEMENT_TYPE const * pElement, pELEMENT_TYPE * * pElement__out)))); \
 	CRXM__IFELSE2(CRXM__AND(pHAS_INDEX, CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)), \
 	CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-	static uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
-			pTREE_TYPE_NAME * pTree, \
+	PRIVATE uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
+			pTREE_TYPE_NAME * pThis, \
 			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE const * pElement, \
 			pTREE_TYPE_NAME ## _Iterator const * pIterator, \
 			pTREE_TYPE_NAME ## _Iterator * pIterator__return), \
-	static uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
-			pTREE_TYPE_NAME * pTree, \
+	PRIVATE uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
+			pTREE_TYPE_NAME * pThis, \
 			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE * * pElement, \
 			pTREE_TYPE_NAME ## _Iterator const * pIterator, \
 			pTREE_TYPE_NAME ## _Iterator * pIterator__return));, ) \
@@ -2042,6 +2051,7 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	} pTREE_TYPE_NAME ## _Private_LeafNode; \
 	\
 	\
+	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	typedef struct pTREE_TYPE_NAME ## _Iterator_Private_Position \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position;, ) \
@@ -2063,23 +2073,24 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		pTREE_TYPE_NAME ## _Iterator_Private_Position * CRX_NOT_MINE gPrivate_position__current;, ) \
 	} pTREE_TYPE_NAME ## _Iterator; \
 	\
+	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
-			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * CRX_NOT_NULL pTree); \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * pTree); \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct2( \
-			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * CRX_NOT_NULL pTree); \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * pTree); \
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_construct3( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree), ); \
+			pTREE_TYPE_NAME const * pTree), ); \
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			bool pIsConstant, pTREE_TYPE_NAME * CRX_NOT_NULL pTree), \
+			bool pIsConstant, pTREE_TYPE_NAME * pTree), \
 	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
-			pTREE_TYPE_NAME * CRX_NOT_NULL pTree)); \
+			pTREE_TYPE_NAME * pTree)); \
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_copyConstruct( \
@@ -2097,13 +2108,13 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pTREE_TYPE_NAME ## _Iterator const * CRX_NOT_NULL pIterator);, ) \
 	\
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new( \
-			pTREE_TYPE_NAME * CRX_NOT_NULL pTree); \
+			pTREE_TYPE_NAME * pTree); \
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new2( \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree); \
+			pTREE_TYPE_NAME const * pTree); \
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	PRIVATE pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_new3( \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree);, ) \
+			pTREE_TYPE_NAME const * pTree);, ) \
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_moveNew( \
 			pTREE_TYPE_NAME ## _Iterator * CRX_NOT_NULL pIterator); \
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_copyNew( \
@@ -2122,6 +2133,14 @@ _CRX__C__Tree__DECLARE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_copyAssignFrom( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, \
 			pTREE_TYPE_NAME ## _Iterator const * CRX_NOT_NULL pIterator);, ) \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_associateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * pTree); \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_constantAssociateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * pTree); \
+	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
+			pTREE_TYPE_NAME const * pTree); \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_reset(pTREE_TYPE_NAME ## _Iterator * pThis); \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_resetToBack( \
@@ -3077,7 +3096,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								tIndexInElements < pNode__source->gPrivate_numberOfEntries, \
 								tIndexInElements++) \
 						{ \
-							pELEMENT_TYPE * tElement = calloc(1, sizeof(pELEMENT_TYPE)); \
+							pELEMENT_TYPE * tElement = (pELEMENT_TYPE *)calloc(1, \
+									sizeof(pELEMENT_TYPE)); \
 	\
 							if(tElement != NULL) \
 							{ \
@@ -3293,7 +3313,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 				CRX_FOR(size_t tI = 0, \
 						tI < pNode__source->gPrivate_numberOfEntries, tI++) \
 				{ \
-					pELEMENT_TYPE * tElement = calloc(1, sizeof(pELEMENT_TYPE)); \
+					pELEMENT_TYPE * tElement = (pELEMENT_TYPE *)calloc(1, \
+							sizeof(pELEMENT_TYPE)); \
 	\
 					if(tElement != NULL) \
 					{ \
@@ -3353,6 +3374,14 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		if(pThis->gPrivate_node__root != NULL) \
 			{pMEMBER_FUNCTIONS_PREFIX ## private_deleteNode(pThis, pThis->gPrivate_node__root);} \
 	} \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## free(pTREE_TYPE_NAME * pThis) \
+		{free(pThis);} \
+	\
+	CRX__C__TYPE_BLUE_PRINT__DEFINE_GET_BLUE_PRINT( \
+			pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
+			CRXM__TRUE, CRXM__TRUE, \
+			pIS_COPYABLE, CRXM__TRUE, \
+			CRXM__FALSE, CRXM__FALSE); \
 	\
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_deleteNode( \
 			pTREE_TYPE_NAME * pThis, pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode) \
@@ -3707,7 +3736,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_transferAllIntoNode( \
 			pTREE_TYPE_NAME * pThis, pINDEX_TYPE * CRX_NOT_NULL pIndex__guide, \
 			pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode__child, \
-			pELEMENT_TYPE * CRX_NOT_NULL pElement, \
+			pELEMENT_TYPE * pElement, \
 			pTREE_TYPE_NAME ## _Private_Node * CRX_NOT_NULL pNode, \
 			size_t pIndex, bool pIsToIncludeBegginingChildNode), \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## private_transferAllIntoNode( \
@@ -3932,7 +3961,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 								CRXM__IFELSE2(pFUNC_INDEX_MOVE_DESTRUCTOR, \
 								pFUNC_INDEX_MOVE_DESTRUCTOR(pINTERNAL__GET_INDEX(pTREE_TYPE_NAME, \
-										pNode, pThis, tI));, )\
+										pNode, pThis, tI));, ) \
 							} \
 							CRX_ENDFOR \
 						) \
@@ -3974,10 +4003,10 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 													tI - pWidth), \
 											pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
 													pNode, pThis, tI)); \
-		\
+	\
 									CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 									pFUNC_ELEMENT_MOVE_DESTRUCTOR(pINTERNAL__GET_ELEMENT( \
-											pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, )\
+											pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, ) \
 								} \
 								CRX_ENDFOR \
 							) \
@@ -3990,7 +4019,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 											pINTERNAL__GET_ELEMENT_ENTRY(pTREE_TYPE_NAME, \
 													pELEMENT_TYPE, pNode, pThis, tI), \
 											sizeof(pELEMENT_TYPE)); \
-		\
+	\
 									pFUNC_ELEMENT_MOVE_DESTRUCTOR(pINTERNAL__GET_ELEMENT( \
 											pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI)); \
 								} \
@@ -4041,7 +4070,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 									CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 									pFUNC_ELEMENT_MOVE_DESTRUCTOR(pINTERNAL__GET_ELEMENT( \
-											pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, )\
+											pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, ) \
 								} \
 								CRX_ENDFOR \
 							) \
@@ -4098,7 +4127,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 								CRXM__IFELSE2(pFUNC_INDEX_MOVE_DESTRUCTOR, \
 								pFUNC_INDEX_MOVE_DESTRUCTOR(pLEAF__GET_INDEX(pTREE_TYPE_NAME, pNode, \
-										pThis, tI));, )\
+										pThis, tI));, ) \
 							} \
 							CRX_ENDFOR \
 						) \
@@ -4142,7 +4171,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 								CRXM__IFELSE2(pFUNC_ELEMENT_MOVE_DESTRUCTOR, \
 								pFUNC_ELEMENT_MOVE_DESTRUCTOR(pLEAF__GET_ELEMENT( \
-										pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, )\
+										pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, pThis, tI));, ) \
 							} \
 							CRX_ENDFOR \
 						) \
@@ -4391,8 +4420,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 							pNode__rightSibling, 0, true); \
 	\
 					CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_DESTRUCTOR, CRXM__OR( \
-							CRXM__NOT(pIS_PERSISTANT), CRXM__AND(pIS_PERSISTANT, \
-							CRXM__NOT(pIS_TO_USE_DELEGATION)))), \
+							CRXM__NOT(pIS_PERSISTANT), CRXM__NOT(pIS_TO_USE_DELEGATION))), \
 					pFUNC_ELEMENT_DESTRUCTOR(pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, \
 							pELEMENT_TYPE, pNode__parent, pThis, pIndexOfNodeInParent));, ) \
 	\
@@ -4404,12 +4432,21 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								pNode__rightSibling, pThis, 0); \
 					) \
 					( \
-						CRX__C__TREE__PRIVATE__COPY_ASSIGN_TO(sizeof(pELEMENT_TYPE), \
-								pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-								pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
-										pNode__parent, pThis, pIndexOfNodeInParent), \
-								pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
-										pNode__rightSibling, pThis, 0)); \
+						CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+						( \
+							pFUNC_ELEMENT_COPY_CONSTRUCTOR( \
+									pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__parent, pThis, pIndexOfNodeInParent), \
+									pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__rightSibling, pThis, 0)); \
+						) \
+						( \
+							memcpy(pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__parent, pThis, pIndexOfNodeInParent), \
+									pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__rightSibling, pThis, 0), \
+									sizeof(pELEMENT_TYPE)); \
+						) \
 					) \
 				) \
 			} \
@@ -4628,8 +4665,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 							pNode__leftSibling->gPrivate_numberOfEntries, false); \
 	\
 					CRXM__IFELSE2(CRXM__AND(pFUNC_ELEMENT_DESTRUCTOR, CRXM__OR( \
-							CRXM__NOT(pIS_PERSISTANT), CRXM__AND(pIS_PERSISTANT, \
-							CRXM__NOT(pIS_TO_USE_DELEGATION)))), \
+							CRXM__NOT(pIS_PERSISTANT), CRXM__NOT(pIS_TO_USE_DELEGATION))), \
 					pFUNC_ELEMENT_DESTRUCTOR(pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, \
 							pELEMENT_TYPE, pNode__parent, pThis, pIndexOfNodeInParent - 1));, ) \
 	\
@@ -4641,12 +4677,21 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								pNode, pThis, 1); \
 					) \
 					( \
-						CRX__C__TREE__PRIVATE__COPY_ASSIGN_TO(sizeof(pELEMENT_TYPE), \
-								pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
-								pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
-										pNode__parent, pThis, pIndexOfNodeInParent - 1), \
-								pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
-										pNode, pThis, 1)); \
+						CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+						( \
+							pFUNC_ELEMENT_COPY_CONSTRUCTOR( \
+									pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__parent, pThis, pIndexOfNodeInParent - 1), \
+									pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode, pThis, 1)); \
+						) \
+						( \
+							memcpy(pINTERNAL__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode__parent, pThis, pIndexOfNodeInParent - 1), \
+									pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, \
+											pNode, pThis, 1), \
+									sizeof(pELEMENT_TYPE)); \
+						) \
 					) \
 				) \
 			} \
@@ -5677,7 +5722,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 			pMEMBER_FUNCTIONS_PREFIX ## private_transferPushFromNodeToNode( \
 					pThis, tNode__right, tNode__left, true, 0); \
-			\
+	\
 			if(tNode__left->gPrivate_type == 0) \
 			{ \
 				((pTREE_TYPE_NAME ## _Private_LeafNode *)tNode__left)->gPrivate_leafNode__next = \
@@ -5715,17 +5760,17 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		CRXM__IFELSE2(pHAS_INDEX, \
 		unsigned char * vIndex__guide = ((unsigned char *)CRX__ALLOCA(sizeof(pINDEX_TYPE)));, ) \
 		CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-				CRXM__IFELSE(pHAS_INDEX)), \
+				pHAS_INDEX), \
 		pTREE_TYPE_NAME ## _Iterator vIterator /*= ?*/;, ) \
 		CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-				CRXM__IFELSE(pHAS_INDEX)), \
+				pHAS_INDEX), \
 		pTREE_TYPE_NAME ## _Iterator_Private_Position vPositions[64] /*= ?*/;, ) \
 		bool vReturn /*= ?*/; \
 	\
 		CRXM__IFELSE2(pHAS_INDEX, \
 		pCONSTRUCT_INDEX_FROM(((pINDEX_TYPE *)vIndex__guide), pElement);, ) \
 		CRXM__IFELSE2(CRXM__AND(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-				CRXM__IFELSE(pHAS_INDEX)), \
+				pHAS_INDEX), \
 		pMEMBER_FUNCTIONS_PREFIX ## iterator_private_construct3(&vIterator, \
 				&(vPositions[0]), pThis);, ) \
 	\
@@ -5764,13 +5809,13 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 				CRXM__IFELSE(CRXM__NOT(pIS_PERSISTANT)) \
 				( \
 					vReturn = pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do(pThis, 0, \
-							pThis->gPrivate_node__root, ((pINDEX_TYPE *)vIndex__guide), pElement, \
-							NULL); \
+							pThis->gPrivate_node__root, ((pINDEX_TYPE *)vIndex__guide), \
+							pElement, NULL); \
 				) \
 				( \
 					vReturn = pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do(pThis, 0, \
 							pThis->gPrivate_node__root, ((pINDEX_TYPE *)vIndex__guide), \
-							((pELEMENT_TYPE * *)&pElement), NULL); \
+							pElement, NULL); \
 				) \
 			) \
 			( \
@@ -5781,8 +5826,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 				) \
 				( \
 					vReturn = pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do(pThis, 0, \
-							pThis->gPrivate_node__root, \
-							((pELEMENT_TYPE * *)&pElement), NULL); \
+							pThis->gPrivate_node__root, pElement, NULL); \
 				) \
 			) \
 		) \
@@ -5836,7 +5880,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pINDEX_TYPE * pIndex__out), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
 			pTREE_TYPE_NAME * pThis, uint32_t pMode, pTREE_TYPE_NAME ## _Private_Node * pNode, \
-			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE * * pElement, \
+			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE const * pElement, \
 			pINDEX_TYPE * pIndex__out)), \
 	CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
@@ -5844,7 +5888,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pELEMENT_TYPE const * pElement, pELEMENT_TYPE * pElement__out), \
 	PRIVATE bool /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do( \
 			pTREE_TYPE_NAME * pThis, uint32_t pMode, pTREE_TYPE_NAME ## _Private_Node * pNode, \
-			pELEMENT_TYPE * * pElement, pELEMENT_TYPE * * pElement__out)))) \
+			pELEMENT_TYPE const * pElement, pELEMENT_TYPE * * pElement__out)))) \
 	{ \
 		/*if(pNode == NULL) \
 			{return *pKey;} \
@@ -5908,7 +5952,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 				( \
 					tImaginaryIndex = \
 							pMEMBER_FUNCTIONS_PREFIX ## private_getSuitableImagineryIndexFor( \
-							pThis, pNode, CRXM__IFELSE2(pIS_PERSISTANT, *pElement, pElement), \
+							pThis, pNode, pElement, \
 							&tZeroIfFoundOrResultOfComparisonWithLargestKeyInNode); \
 				) */ \
 	\
@@ -5947,7 +5991,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 					( \
 						tImaginaryIndex = \
 								pMEMBER_FUNCTIONS_PREFIX ## private_getSuitableImagineryIndexFor( \
-								pThis, pNode, CRXM__IFELSE2(pIS_PERSISTANT, *pElement, pElement), \
+								pThis, pNode, pElement, \
 								&tZeroIfFoundOrResultOfComparisonWithLargestKeyInNode); \
 					) \
 				} \
@@ -6035,8 +6079,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 								( \
 									tNumberOfKeysInLeftNode = (*(pINTERNAL__GET_NODE( \
-											pTREE_TYPE_NAME, pNode, pThis, tImaginaryIndex - 1 \
-											)))->gPrivate_numberOfEntries; \
+											pTREE_TYPE_NAME, pNode, pThis, \
+											tImaginaryIndex - 1)))->gPrivate_numberOfEntries; \
 	\
 									if(tNumberOfKeysInLeftNode >= \
 											pThis->gPrviate_countOfMidElementInNode) \
@@ -6258,7 +6302,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 														pThis, tImaginaryIndex /*+ 1*/)), \
 												pIndex__guide, pElement, \
 												CRXM__IFELSE2(pIS_TO_USE_DELEGATION, \
-												pINTERNAL__GET_INDEX(pTREE_TYPE_NAME, \
+														pINTERNAL__GET_INDEX(pTREE_TYPE_NAME, \
 														pNode, pThis, \
 														tImaginaryIndex - 1), NULL)); \
 									) \
@@ -6269,9 +6313,9 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 														pThis, tImaginaryIndex /*+ 1*/)), \
 												pElement, \
 												CRXM__IFELSE2(pIS_TO_USE_DELEGATION, \
-												pINTERNAL__GET_ELEMENT_ENTRY(pTREE_TYPE_NAME, \
-														pELEMENT_TYPE, pNode, pThis, \
-														tImaginaryIndex - 1), NULL)); \
+														pINTERNAL__GET_ELEMENT_ENTRY( \
+														pTREE_TYPE_NAME, pELEMENT_TYPE, pNode, \
+														pThis, tImaginaryIndex - 1), NULL)); \
 									) \
 								) \
 								/*vKey = __KB_KEY(pGUIDE_TYPE, pNode)[tImaginaryIndex - 1];*/ \
@@ -6497,7 +6541,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 						/*NOTE THAT 'PREVIOUS' AND 'NEXT' AND SIMILAR ARE RELATIVE TO THE \
 								KEY "FOUND" BY private_getSuitableImagineryIndexFor(), WHICH, AFTER \
 								tImaginaryIndex CHANGED ITS SEMANTICS ABOVE, IS AT INDEX \
-								tImaginaryIndex - 1 IN THE PREEMPTIVE CASE.\
+								tImaginaryIndex - 1 IN THE PREEMPTIVE CASE. \
 								IN THE NON PREEMPTIVE CASE, tImaginaryIndex, BEFORE THE CHANGE OF \
 								SEMANTICS ABOVE, IS EITHER THE INDEX OF THE KEY "FOUND" + 1, OR \
 								THE INDEX OF THE KEY BEFORE THE BRANCH THAT IS TAKEN TO HOIST AN \
@@ -6563,7 +6607,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 						TOO EMPTY, AND 'N', SEE NOTES ABOVE, COULD BE 2, WHICH MEANS N - 1, THE \
 						MINIMAL ALLOWED LENGTH OF A NODE COULD BE 1, WHICH MEANS THAT IF A MERGER 
 						HAPPENS ON THE WAY DOWN THE LENGTH COULD BECOME 0, AND THE CODE ABOVE \
-						WOULD OBSERVE '0' THAT ON THE WAY UP.\
+						WOULD OBSERVE '0' THAT ON THE WAY UP. \
 					*/ \
 					/*return pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do(pMode, pThis, \
 							tNode, pKey); */ \
@@ -6802,7 +6846,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 							if(pCOMPARE_ELEMENTS(pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, \
 									pELEMENT_TYPE, pNode, pThis, tImaginaryIndex - 1), \
-									CRXM__IFELSE2(pIS_PERSISTANT, *pElement, pElement)) == 0) \
+									pElement) == 0) \
 								{tIsFound = true;} \
 	\
 							if(!tIsFound) \
@@ -6843,7 +6887,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								{ \
 									if(pCOMPARE_ELEMENTS(pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, \
 											pELEMENT_TYPE, tNode2, pThis, tIndex2), \
-											CRXM__IFELSE2(pIS_PERSISTANT, *pElement, pElement)) == 0) \
+											pElement) == 0) \
 									{ \
 										tIsFound = true; \
 										tIsToSwap = true; \
@@ -6932,7 +6976,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								{ \
 									if(pCOMPARE_ELEMENTS(pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, \
 											pELEMENT_TYPE, tNode2, pThis, tIndex2), \
-											CRXM__IFELSE2(pIS_PERSISTANT, *pElement, pElement)) == \
+											pElement) == \
 											0) \
 									{ \
 										tIsFound = true; \
@@ -7085,7 +7129,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 										{tImaginaryIndex = pNode->gPrivate_numberOfEntries - 1 /*2*/;} \
 									else /*pMode == 2*/ \
 										{tImaginaryIndex = 1 /*0*/;} \
-		\
+	\
 									CRXM__IFELSE(pHAS_INDEX) \
 									( \
 										CRXM__IFELSE(CRXM__NOT(pARE_INDICES_IN_INTERNAL_NODES_ONLY)) \
@@ -7137,7 +7181,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 									MUST BE FOUND IN THE LEAVES. \
 									NOTE THAT THIS WAS NECESSARY WHEN THE ALGORITHM CONTINUED TO DO A \
 									BINARY SEARCH IN THAT CASE WHEN MODE WAS NOT ZERO. LATER I CHANED \
-									THAT, BUT KEEPING THE CODE BELOW FOR THE TIME BEING.\
+									THAT, BUT KEEPING THE CODE BELOW FOR THE TIME BEING. \
 							*/ \
 							{assert(pMode == 0);} \
 					} \
@@ -7149,7 +7193,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 								MUST BE FOUND IN THE LEAVES. \
 								NOTE THAT THIS WAS NECESSARY WHEN THE ALGORITHM CONTINUED TO DO A \
 								BINARY SEARCH IN THAT CASE WHEN MODE WAS NOT ZERO. LATER I CHANED \
-								THAT, BUT KEEPING THE CODE BELOW FOR THE TIME BEING.\
+								THAT, BUT KEEPING THE CODE BELOW FOR THE TIME BEING. \
 						*/ \
 						{assert(pMode == 0);} \
 				) \
@@ -7166,13 +7210,13 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	} \
 	CRXM__IFELSE2(CRXM__AND(pHAS_INDEX, CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)), \
 	CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-	static uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
-			pTREE_TYPE_NAME * pTree, \
+	PRIVATE uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
+			pTREE_TYPE_NAME * pThis, \
 			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE const * pElement, \
 			pTREE_TYPE_NAME ## _Iterator const * pIterator, \
 			pTREE_TYPE_NAME ## _Iterator * pIterator__return), \
-	static uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
-			pTREE_TYPE_NAME * pTree, \
+	PRIVATE uint32_t /*pGUIDE_TYPE*/ pMEMBER_FUNCTIONS_PREFIX ## private_removeElement__do__findExactEntry( \
+			pTREE_TYPE_NAME * pThis, \
 			pINDEX_TYPE * pIndex__guide, pELEMENT_TYPE * * pElement, \
 			pTREE_TYPE_NAME ## _Iterator const * pIterator, \
 			pTREE_TYPE_NAME ## _Iterator * pIterator__return)) \
@@ -8019,7 +8063,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
-			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * pTree) \
 	{ \
 		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 		( \
@@ -8032,7 +8076,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		) \
 	} \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct2( \
-			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * pTree) \
 	{ \
 		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 		( \
@@ -8048,7 +8092,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_construct3( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME const * pTree) \
 	{ \
 		_ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct(pThis, pPositions, false, \
 				(pTREE_TYPE_NAME *)pTree); \
@@ -8057,10 +8101,10 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			bool pIsConstant, pTREE_TYPE_NAME * CRX_NOT_NULL pTree), \
+			bool pIsConstant, pTREE_TYPE_NAME * pTree), \
 	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
 			pTREE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
-			pTREE_TYPE_NAME * CRX_NOT_NULL pTree)) \
+			pTREE_TYPE_NAME * pTree)) \
 	{ \
 		pThis->gPrivate_isConstant = pIsConstant; \
 		pThis->gPrivate_tree = pTree; \
@@ -8081,7 +8125,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			{ \
 				/*IT SHOULD BE 65 WITH THE FIXED ALGORITHM(ASSUMING 64BIT MACHINES) BUT THIS IS 
 						ASSUMING 1 BYTE PER NODE*/ \
-				pThis->gPrivate_positions = calloc(1, 64 * sizeof( \
+				pThis->gPrivate_positions = \
+						(pTREE_TYPE_NAME ## _Iterator_Private_Position *)calloc(1, 64 * sizeof( \
 						pTREE_TYPE_NAME ## _Iterator_Private_Position)); \
 			} \
 	\
@@ -8142,7 +8187,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			} \
 			else \
 			{ \
-				pThis->gPrivate_positions = calloc(1, 64 * sizeof( \
+				pThis->gPrivate_positions = \
+						(pTREE_TYPE_NAME ## _Iterator_Private_Position *)calloc(1, 64 * sizeof( \
 						pTREE_TYPE_NAME ## _Iterator_Private_Position)); \
 			} \
 	\
@@ -8167,7 +8213,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	}, ) \
 	\
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new( \
-			pTREE_TYPE_NAME * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME * pTree) \
 	{ \
 		pTREE_TYPE_NAME ## _Iterator * vReturn = (pTREE_TYPE_NAME ## _Iterator *)(calloc(1, \
 				sizeof(pTREE_TYPE_NAME ## _Iterator))); \
@@ -8178,7 +8224,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		return vReturn; \
 	} \
 	PUBLIC pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new2( \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME const * pTree) \
 	{ \
 		pTREE_TYPE_NAME ## _Iterator * vReturn = (pTREE_TYPE_NAME ## _Iterator *)(calloc(1, \
 				sizeof(pTREE_TYPE_NAME ## _Iterator))); \
@@ -8191,7 +8237,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
 	PRIVATE pTREE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_new3( \
 			pTREE_TYPE_NAME ## _Iterator_Private_Position * pPositions, \
-			pTREE_TYPE_NAME const * CRX_NOT_NULL pTree) \
+			pTREE_TYPE_NAME const * pTree) \
 	{ \
 		pTREE_TYPE_NAME ## _Iterator * vReturn = (pTREE_TYPE_NAME ## _Iterator *)(calloc(1, \
 				sizeof(pTREE_TYPE_NAME ## _Iterator))); \
@@ -8290,11 +8336,40 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		} \
 	}, ) \
 	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_associateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME * pTree) \
+		{pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith(pThis, false, pTree);} \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_constantAssociateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, pTREE_TYPE_NAME const * pTree) \
+		{pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith(pThis, true, pTree);} \
+	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith( \
+			pTREE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
+			pTREE_TYPE_NAME const * pTree) \
+	{ \
+		assert(pThis->gPrivate_isPositionsMine); \
+	\
+		pThis->gPrivate_isConstant = pIsConstant; \
+		pThis->gPrivate_tree = ((pTREE_TYPE_NAME *)pTree); \
+	\
+		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
+		( \
+			CRXM__IFELSE2(CRXM__NOT(pIS_PREEMPTIVE), \
+			pThis->gPrivate_node = NULL;, ); \
+	\
+			pThis->gPrivate_position__current = pThis->gPrivate_positions; \
+		) \
+		( \
+			pThis->gPrivate_node = NULL; \
+			pThis->gPrivate_elementIndex = 0; \
+		) \
+	} \
+	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_reset(pTREE_TYPE_NAME ## _Iterator * pThis) \
 	{ \
-		CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-		if(pThis->gPrivate_positions == NULL) \
-			{return;}, ) \
+		if((pThis->gPrivate_tree == NULL) || \
+				CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
+				(pThis->gPrivate_positions == NULL), false)) \
+			{return;} \
 	\
 		if(pThis->gPrivate_tree->gPrivate_numberOfElements != 0) \
 		{ \
@@ -8377,9 +8452,10 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_resetToBack( \
 			pTREE_TYPE_NAME ## _Iterator * pThis) \
 	{ \
-		CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-		if(pThis->gPrivate_positions == NULL) \
-			{return;}, ) \
+		if((pThis->gPrivate_tree == NULL) || \
+				CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
+				(pThis->gPrivate_positions == NULL), false)) \
+			{return;} \
 	\
 		if(pThis->gPrivate_tree->gPrivate_numberOfElements != 0) \
 		{ \
@@ -8478,7 +8554,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	{ \
 		CRXM__IFELSE(pIS_ELEMENT_DATA_IN_LEAVES_ONLY) \
 		( \
-			return (CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis->gPrivate_tree, \
+			return ((pThis->gPrivate_tree != NULL) && \
+					CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis->gPrivate_tree, \
 							pIterator->gPrivate_tree, false) && \
 					CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis->gPrivate_node, \
 					pIterator->gPrivate_node, false) && \
@@ -8491,7 +8568,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 				ALSO ACCOUNTS FOR 
 						pThis->gPrivate_positions == NULL				
 			*/ \
-			return (CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis->gPrivate_tree, \
+			return ((pThis->gPrivate_tree != NULL) && \
+					CRX__ARE_POINTERS_TO_SAME_OBJECT(pThis->gPrivate_tree, \
 							pIterator->gPrivate_tree, false) && \
 					(((pThis->gPrivate_position__current == pThis->gPrivate_positions) && \
 							(pIterator->gPrivate_position__current == \
@@ -8514,6 +8592,9 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	\
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_next(pTREE_TYPE_NAME ## _Iterator * pThis) \
 	{ \
+		if(pThis->gPrivate_tree == NULL) \
+			{return false;} \
+	\
 		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 		( \
 			/*THIS IS THE REASON 64 PER THE REFERENCE IMPLEMENTATION BECAME 65 HERE*/ \
@@ -8622,6 +8703,9 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	} \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_prev(pTREE_TYPE_NAME ## _Iterator * pThis) \
 	{ \
+		if(pThis->gPrivate_tree == NULL) \
+			{return false;} \
+	\
 		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 		( \
 			/*THIS IS THE REASON 64 PER THE REFERENCE IMPLEMENTATION BECAME 65 HERE*/ \
@@ -8814,6 +8898,11 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pTREE_TYPE_NAME ## _Iterator * pThis, pELEMENT_TYPE const * pElement, \
 			Crx_C_Tree_Edge pEdge) \
 	{ \
+		CRX_SCOPE_META \
+		if(pThis->gPrivate_tree == NULL) \
+			{return false;} \
+	\
+		CRX_SCOPE \
 		CRXM__IFELSE(pHAS_INDEX) \
 		( \
 			unsigned char * tIndex__guide = ((unsigned char *)CRX__ALLOCA(sizeof(pINDEX_TYPE))); \
@@ -8827,6 +8916,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			return pMEMBER_FUNCTIONS_PREFIX ## iterator_setToPositionOf__do(pThis, \
 					pElement, pEdge); \
 		) \
+		CRX_SCOPE_END \
 	} \
 	CRXM__IFELSE2(pHAS_INDEX, \
 	PRIVATE bool pMEMBER_FUNCTIONS_PREFIX ## iterator_setToPositionOf__do( \
@@ -9566,7 +9656,8 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_remove(pTREE_TYPE_NAME ## _Iterator * pThis) \
 	{ \
 		CRX_SCOPE_META \
-		if((pThis->gPrivate_isConstant) || \
+		if((pThis->gPrivate_tree == NULL) || \
+				(pThis->gPrivate_isConstant) || \
 				(pThis->gPrivate_tree->gPrivate_node__root == NULL) || \
 				CRXM__IFELSE2(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, \
 						(pThis->gPrivate_node == NULL), \
@@ -9639,14 +9730,13 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 			pTREE_TYPE_NAME ## _Private_Node * tNodes[64]; \
 			size_t tIndices[64]; \
 			CRXM__IFELSE2(pHAS_INDEX, \
-			unsigned char * tIndex__guide;, ) \
+			unsigned char * tIndex__guide = \
+					((unsigned char *)CRX__ALLOCA(sizeof(pINDEX_TYPE)));, ) \
 	\
 			CRXM__IFELSE(pHAS_INDEX) \
 			( \
 				CRXM__IFELSE(pARE_INDICES_IN_INTERNAL_NODES_ONLY) \
 				( \
-					tIndex__guide = ((unsigned char *)CRX__ALLOCA(sizeof(pINDEX_TYPE))); \
-	\
 					pCONSTRUCT_INDEX_FROM(((pINDEX_TYPE *)tIndex__guide), \
 							pLEAF__GET_ELEMENT(pTREE_TYPE_NAME, pELEMENT_TYPE, pThis->gPrivate_node, \
 									pThis->gPrivate_tree, pThis->gPrivate_elementIndex)); \
@@ -10107,7 +10197,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 											pThis->gPrivate_tree, vImaginaryIndex /*+ 1*/))); \
 	\
 							pIndices[pIndexInIndices + 1] = pIndices[pIndexInIndices + 1] + 1; \
-							\
+	\
 							if((*(pINTERNAL__GET_NODE(pTREE_TYPE_NAME, \
 									pNode, pThis->gPrivate_tree, \
 									vImaginaryIndex /*+ 1*/)))->gPrivate_type == 0) \
@@ -10580,7 +10670,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 										MEANING WHEN HOISTING HAPPENED AND THE ALGORITHM IS \
 										NOT PREEMPTIVE. REMEMBER, ONLY WITH HOISTING DO WE \
 										CONSIDER TAKING THE 'LEFT' SIDE. OTHERWISE WE ARE \
-										ALWAYS TAKING THE 'RIGHT' SIDE.\
+										ALWAYS TAKING THE 'RIGHT' SIDE. \
 								*/ \
 								CRXM__IFELSE(pIS_PREEMPTIVE) \
 								( \
@@ -10825,7 +10915,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 					TOO EMPTY, AND 'N', SEE NOTES ABOVE, COULD BE 2, WHICH MEANS N - 1, THE \
 					MINIMAL ALLOWED LENGTH OF A NODE COULD BE 1, WHICH MEANS THAT IF A MERGER 
 					HAPPENS ON THE WAY DOWN THE LENGTH COULD BECOME 0, AND THE CODE ABOVE \
-					WOULD OBSERVE '0' THAT ON THE WAY UP.\
+					WOULD OBSERVE '0' THAT ON THE WAY UP. \
 				*/ \
 				/*return pMEMBER_FUNCTIONS_PREFIX ## iterator_private_remove__do(pMode, pTree, \
 						tNode, pKey); */ \
@@ -10956,7 +11046,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 					( \
 						if((pNode->gPrivate_numberOfEntries == 0) || \
 								(vImaginaryIndex == \
-										(pNode->gPrivate_numberOfEntries /*- 1*/)))\
+										(pNode->gPrivate_numberOfEntries /*- 1*/))) \
 							{*pIsToAdvance = true;} \
 					) \
 				} \
@@ -11087,6 +11177,9 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 	PRIVATE pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet( \
 			pTREE_TYPE_NAME ## _Iterator const * pThis) \
 	{ \
+		if(pThis->gPrivate_tree == NULL) \
+			{return NULL;} \
+	\
 		CRXM__IFELSE(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)) \
 		( \
 			if(pThis->gPrivate_position__current == pThis->gPrivate_positions) \
@@ -11624,14 +11717,14 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 							CRX_FOR(size_t tI = 0, tI < pINDEX, tI++) \
 							{ \
 								pFUNC_TYPE_MOVE_CONSTRUCTOR( \
-										vTarget + ((pNODE->gPrivate_startIndex + tI + \
+										tBuffer + ((pNODE->gPrivate_startIndex + tI + \
 												pCAPACITY_WHEN_RING - pWIDTH) & \
 												(pCAPACITY_WHEN_RING - 1)), \
-										vTarget + ((pNODE->gPrivate_startIndex + tI) & \
+										tBuffer + ((pNODE->gPrivate_startIndex + tI) & \
 												(pCAPACITY_WHEN_RING - 1))); \
 \
 								CRXM__IFELSE2(pFUNC_TYPE_MOVE_DESTRUCTOR, \
-								pFUNC_TYPE_MOVE_DESTRUCTOR(vTarget + \
+								pFUNC_TYPE_MOVE_DESTRUCTOR(tBuffer + \
 										((pNODE->gPrivate_startIndex + tI) & \
 										(pCAPACITY_WHEN_RING - 1)));, ) \
 							} \
@@ -11663,14 +11756,14 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 						{ \
 							CRX_FOR(size_t tI = 0, tI < pINDEX, tI++) \
 							{ \
-								memmove(vTarget + ((pNODE->gPrivate_startIndex + tI + \
+								memmove(tBuffer + ((pNODE->gPrivate_startIndex + tI + \
 												pCAPACITY_WHEN_RING - pWIDTH) & \
 												(pCAPACITY_WHEN_RING - 1)), \
-										vTarget + ((pNODE->gPrivate_startIndex + tI) & \
+										tBuffer + ((pNODE->gPrivate_startIndex + tI) & \
 												(pCAPACITY_WHEN_RING - 1)), \
 										sizeof(pTYPE)); \
 \
-								pFUNC_ELEMENT_MOVE_DESTRUCTOR(vTarget + \
+								pFUNC_ELEMENT_MOVE_DESTRUCTOR(tBuffer + \
 										((pNODE->gPrivate_startIndex + tI) & \
 										(pCAPACITY_WHEN_RING - 1))); \
 							} \
@@ -11843,7 +11936,7 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 						pFUNC_TYPE_MOVE_CONSTRUCTOR(pBUFFER + tI - pWIDTH, pBUFFER + tI); \
 \
 						CRXM__IFELSE2(pFUNC_TYPE_MOVE_DESTRUCTOR, \
-						pFUNC_TYPE_MOVE_DESTRUCTOR(pBUFFER + tI);, )\
+						pFUNC_TYPE_MOVE_DESTRUCTOR(pBUFFER + tI);, ) \
 					} \
 					CRX_ENDFOR \
 				) \
@@ -12154,18 +12247,6 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 		) \
 	}
 
-#define CRX__C__TREE__PRIVATE__COPY_ASSIGN_TO(pSIZE_OF_TYPE, pFUNC_TYPE_COPY_CONSTRUCTOR, \
-		pOBJECT, pOBJECT___2) \
-	{ \
-		CRXM__IFELSE(pFUNC_TYPE_COPY_CONSTRUCTOR) \
-		( \
-			pFUNC_TYPE_COPY_CONSTRUCTOR(pOBJECT, pOBJECT___2); \
-		) \
-		( \
-			memcpy(pOBJECT, pOBJECT___2, pSIZE_OF_TYPE); \
-		) \
-	}
-
 /*#define CRX__TREE__PRIVATE__ROUND_TO_TWO(pN) (((pN) + 1) >> 1 << 1)*/
 #define CRX__TREE__PRIVATE__ROUND_TO_FOUR(pN) (((pN) + 3) >> 2 << 2)
 #define CRX__TREE__PRIVATE__ROUND_TO_EIGHT(pN) (((pN) + 7) >> 3 << 3)
@@ -12198,37 +12279,31 @@ _CRX__C__Tree__DEFINE(pTREE_TYPE_NAME, pMEMBER_FUNCTIONS_PREFIX, \
 
 
 
-typedef char Crx_C_Tree__ERROR__INDEX_MUST_BE_TRIVIALLY_DESTRUCTABLE_AND_RAW_COPYABLE[ \
-		2 * CRXM__IFELSE2(CRXM__OR(CRXM__NOT(pHAS_INDEX), \
-		CRXM__AND(pIS_INDEX_COPYABLE, CRXM__NOT(CRXM__OR( \
-		pFUNC_INDEX_DESTRUCTOR, pFUNC_INDEX_COPY_CONSTRUCTOR)))), 1, 0) - 1]; \
-typedef char Crx_C_Tree__ERROR__ELEMENT_MUST_BE_COPYABLE_IF_ELEMENT_DATA_IN_LEAVES_ONLY_AND_NO_INDEX_USED_AND_TREE_NOT_PERSISTANT[ \
-		2 * CRXM__IFELSE2(CRXM__NOT(CRXM__AND(CRXM__AND(CRXM__AND(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, \
-		CRXM__NOT(pHAS_INDEX)), CRXM__NOT(pIS_PERSISTANT)), CRXM__NOT(pIS_ELEMENT_COPYABLE))), \
-		1, 0) - 1]; \
-typedef char Crx_C_Tree__ERROR__ELEMENT_MUST_BE_COPYABLE_IF_ELEMENT_DATA_IN_LEAVES_ONLY_AND_NO_INDEX_USED_AND_TREE_PERSISTANT_AND_WITHOUT_DELEGATION[ \
-		2 * CRXM__IFELSE2(CRXM__NOT(CRXM__AND(CRXM__AND(CRXM__AND(CRXM__AND( \
-		pIS_ELEMENT_DATA_IN_LEAVES_ONLY, CRXM__NOT(pHAS_INDEX)), pIS_PERSISTANT), \
-		CRXM__NOT(pIS_TO_USE_DELEGATION)), CRXM__NOT(pIS_ELEMENT_COPYABLE))), 1, 0) - 1]; \
-\
-
-#define CRX__C__TREE__IS_BIT_SET(pUINT32__FLAGS, pN) \
+#define CRX__C__TREE__PRIVATE__IS_BIT_SET(pUINT32__FLAGS, pN) \
 		(((pUINT32__FLAGS) & (1 << (pN))) ? true : false)
-#define CRX__C__TREE__ECHO_ARE_INDICES_IN_INTERNAL_NODES_ONLY \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 0)
-#define CRX__C__TREE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 1)
-#define CRX__C__TREE__ECHO_IS_TO_USE_DELEGATION \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 2)
-#define CRX__C__TREE__ECHO_IS_PERSISTANT \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 3)
-#define CRX__C__TREE__ECHO_IS_CONSERVATIVE_IN_GROWTH \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 4)
-#define CRX__C__TREE__ECHO_IS_PREEMPTIVE \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 5)
-#define CRX__C__TREE__ECHO_IS_TO_USE_RINGS \
-		CRX__C__TREE__IS_BIT_SET(pThis->gPrivate_info, 6)
-#define CRX__C__TREE__ECHO_HAS_INDEX \
+#define CRX__C__TREE__PRIVATE__ECHO_ARE_INDICES_IN_INTERNAL_NODES_ONLY \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 0)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 1)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY2(pTREE) \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET((pTREE)->gPrivate_info, 1)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY3(pIFNO) \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET((pIFNO), 1)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_TO_USE_DELEGATION \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 2)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_TO_USE_DELEGATION3(pIFNO) \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET((pIFNO), 2)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_PERSISTANT \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 3)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_PERSISTANT3(pIFNO) \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET((pIFNO), 3)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_CONSERVATIVE_IN_GROWTH \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 4)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_PREEMPTIVE \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 5)
+#define CRX__C__TREE__PRIVATE__ECHO_IS_TO_USE_RINGS \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_info, 6)
+#define CRX__C__TREE__PRIVATE__ECHO_HAS_INDEX \
 		(pThis->gPrivate_typeBluePrint__index != NULL)
 		
 #define CRX__C__TREE__FLAG__INDICES_IN_INTERNAL_NODES_ONLY 	1
@@ -12239,10 +12314,30 @@ typedef char Crx_C_Tree__ERROR__ELEMENT_MUST_BE_COPYABLE_IF_ELEMENT_DATA_IN_LEAV
 #define CRX__C__TREE__FLAG__PREEMPTIVE						32
 #define CRX__C__TREE__FLAG__USES_RINGS						64
 
-typedef struct Crx_C_Tree_Private_Node  Crx_C_Tree_Private_Node;
+
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_ARE_INDICES_IN_INTERNAL_NODES_ONLY \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 0)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 1)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_ELEMENT_DATA_IN_LEAVES_ONLY2(pITERATOR) \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET((pITERATOR)->gPrivate_tree->gPrivate_info, 1)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_TO_USE_DELEGATION \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 2)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_PERSISTANT \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 3)
+/*#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_CONSERVATIVE_IN_GROWTH \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 4)*/
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_PREEMPTIVE \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 5)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_IS_TO_USE_RINGS \
+		CRX__C__TREE__PRIVATE__IS_BIT_SET(pThis->gPrivate_tree->gPrivate_info, 6)
+#define CRX__C__TREE__ITERATOR__PRIVATE__ECHO_HAS_INDEX \
+		(pThis->gPrivate_tree->gPrivate_typeBluePrint__index != NULL)
+
+typedef struct Crx_C_Tree_Private_Node Crx_C_Tree_Private_Node;
 typedef struct Crx_C_Tree_Iterator Crx_C_Tree_Iterator;
 typedef void(* Crx_C_Tree_ConstructIndexFrom)(void * CRX_NOT_NULL pIndex, 
-		void * CRX_NOT_NULL pElement);
+		void const * CRX_NOT_NULL pElement);
 typedef struct Crx_C_Tree
 {
 	CRX_FRIEND_CLASS(Crx_C_Tree_Private_Node)
@@ -12256,8 +12351,8 @@ typedef struct Crx_C_Tree
 								bit 04: IS_CONSERVATIVE_IN_GROWTH
 								bit 05: IS_PREEMPTIVE
 								bit 06: IS_TO_USE_RINGS */
-	Crx_C_TypeBluePrint_AreObjectsEqual gPrivate_areElementsEqual;
-	Crx_C_TypeBluePrint_AreObjectsEqual gPrivate_areIndicesEqual;
+	Crx_C_TypeBluePrint_GetOrderOfObjects gPrivate_getOrderOfElements;
+	Crx_C_TypeBluePrint_GetOrderOfObjects gPrivate_getOrderOfIndices;
 	Crx_C_Tree_ConstructIndexFrom gPrivate_constructIndexFrom;
 	Crx_C_Tree_Private_Node * gPrivate_node__root;
 	size_t gPrivate_internalNode_byteOffsetToChildNodes;
@@ -12279,20 +12374,20 @@ typedef struct Crx_C_Tree
 			CRX__C__TREE__FLAG__USES_RINGS
 */
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pCountOfMidElementInNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct2(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredNumberOfElementsPerNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct3(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct4(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfHotRegionInNode);
 
 /*WITHOUT INDEX, PRIMARY ENTRIES IN LEAVES ONLY. ELEMENT MUST BE COPYABLE
@@ -12305,20 +12400,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct4(Crx_C_Tree * pThis,
 			CRX__C__TREE__FLAG__USES_RINGS
 */
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct5(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pCountOfMidElementInNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct6(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredNumberOfElementsPerNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct7(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct8(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfHotRegionInNode);
 
 /*WITHOUT INDEX, PRIMARY ENTRIES IN LEAVES ONLY. ELEMENT MUST BE NON COPYABLE
@@ -12329,20 +12424,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct8(Crx_C_Tree * pThis,
 			CRX__C__TREE__FLAG__USES_RINGS
 */
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct9(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pCountOfMidElementInNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct10(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredNumberOfElementsPerNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct11(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct12(Crx_C_Tree * pThis,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
 		size_t pDesiredByteSizeOfHotRegionInNode);
 
 /*WITH INDEX
@@ -12356,224 +12451,301 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct12(Crx_C_Tree * pThis,
 			CRX__C__TREE__FLAG__PREEMPTIVE
 			CRX__C__TREE__FLAG__USES_RINGS
 */
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct13(pTREE_TYPE_NAME * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct13(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfIndices,
+		Crx_C_Tree_ConstructIndexFrom CRX_NOT_NULL pFunc_constructIndexFrom,		
 		size_t pCountOfMidElementInNode);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct14(pTREE_TYPE_NAME * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct14(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfIndices, 
+		Crx_C_Tree_ConstructIndexFrom CRX_NOT_NULL pFunc_constructIndexFrom,
 		size_t pDesiredNumberOfElementsPerNode);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct15(pTREE_TYPE_NAME * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct15(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfIndices, 
+		Crx_C_Tree_ConstructIndexFrom CRX_NOT_NULL pFunc_constructIndexFrom,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct16(pTREE_TYPE_NAME * pThis,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct16(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index,
-		uint32_t pOptions, Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual, 
+		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__index, uint32_t pOptions, 
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfIndices, 
+		Crx_C_Tree_ConstructIndexFrom CRX_NOT_NULL pFunc_constructIndexFrom,
 		size_t pDesiredByteSizeOfHotRegionInNode);
 
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_private_construct(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
-		Crx_C_TypeBluePrint const * pTypeBluePrint__index,
+		Crx_C_TypeBluePrint const * pTypeBluePrint__index, 
 		uint32_t pOptions,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual pFunc_areIndicesEqual,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects pFunc_getOrderOfIndices,
+		Crx_C_Tree_ConstructIndexFrom pFunc_constructIndexFrom,
 		size_t pCountOfMidElementInNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_private_construct2(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
 		Crx_C_TypeBluePrint const * pTypeBluePrint__index,
 		uint32_t pOptions,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects pFunc_getOrderOfIndices,
+		Crx_C_Tree_ConstructIndexFrom pFunc_constructIndexFrom,
 		size_t pDesiredNumberOfElementsPerNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_private_construct3(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
 		Crx_C_TypeBluePrint const * pTypeBluePrint__index,
 		uint32_t pOptions,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects pFunc_getOrderOfIndices,
+		Crx_C_Tree_ConstructIndexFrom pFunc_constructIndexFrom,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_private_construct4(Crx_C_Tree * pThis,
 		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint__element,
 		Crx_C_TypeBluePrint const * pTypeBluePrint__index,
 		uint32_t pOptions,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areElementsEqual,
-		Crx_C_TypeBluePrint_AreObjectsEqual CRX_NOT_NULL pFunc_areIndicesEqual,
+		Crx_C_TypeBluePrint_GetOrderOfObjects CRX_NOT_NULL pFunc_getOrderOfElements,
+		Crx_C_TypeBluePrint_GetOrderOfObjects pFunc_getOrderOfIndices,
+		Crx_C_Tree_ConstructIndexFrom pFunc_constructIndexFrom,
 		size_t pDesiredByteSizeOfHotRegionInNode);
-\
+
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_copyConstruct(Crx_C_Tree * pThis,
 		Crx_C_Tree const * CRX_NOT_NULL pTree);
 CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_copyConstruct__finishBuildingNode(
 		Crx_C_Tree * pThis, Crx_C_Tree const * CRX_NOT_NULL pTree,
 		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__target,
-		Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode__source,
-		Crx_C_Tree_Private_Node * * pElement__lastSeenNonFirstChildInTarget);
-\
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_destruct(Crx_C_Tree * pThis); \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_deleteNode(Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode); \
-\
-CRXM__IFELSE2(pHAS_INDEX, \
-CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_getSuitableImagineryIndexFor( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, \
-		void const * CRX_NOT_NULL pIndex__guide /*pKey*/, \
-		int32_t * pZeroIfFoundOrResultOfComparisonWithLargestKeyInNode), \
-CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_getSuitableImagineryIndexFor( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, \
-		void const * CRX_NOT_NULL pElement /*pKey*/, \
-		int32_t * pZeroIfFoundOrResultOfComparisonWithLargestKeyInNode)); \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferPushFromNodeToNode( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__target, \
-		bool pIsToIncludeBegginingChildNode, size_t pStartingIndex); \
-\
-CRXM__IFELSE2(pHAS_INDEX, \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferAllIntoNode( \
-		Crx_C_Tree * pThis, void * CRX_NOT_NULL pIndex__guide, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__child, \
-		void * CRX_NOT_NULL pElement, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t pIndex, bool pIsToIncludeBegginingChildNode), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferAllIntoNode( \
-		Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__child, \
-		void * CRX_NOT_NULL pElement, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t pIndex, bool pIsToIncludeBegginingChildNode)); \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_removeFirstNEntriesFrom( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t pWidth); \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rotateRight(Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, size_t pIndexOfNodeInParent, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__parent, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__rightSibling); \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rotateLeft(Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, size_t pIndexOfNodeInParent, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__parent, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__leftSibling); \
-\
-CRXM__IFELSE2(pIS_PREEMPTIVE, \
-CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_resolveFullNode(Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__parent, \
-		size_t pIndexOfNodeInParent), \
-CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_resolveFullNode(Crx_C_Tree * pThis, \
-		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t * CRX_NOT_NULL pIndicesOfNodesInParents)); \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry( \
-		Crx_C_Tree * pThis, void * CRX_NOT_NULL pElement); \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(pIS_PREEMPTIVE, \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry__do( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		void * CRX_NOT_NULL pIndex, \
-		void * CRX_NOT_NULL pElement), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry__do( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t * CRX_NOT_NULL pIndexOfNodeInParent, \
-		void * CRX_NOT_NULL pIndex, \
-		void * CRX_NOT_NULL pElement)), \
-CRXM__IFELSE2(pIS_PREEMPTIVE, \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry__do( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		void * CRX_NOT_NULL pElement), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry__do( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t * CRX_NOT_NULL pIndexOfNodeInParent, \
-		void * CRX_NOT_NULL pElement))); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_tryMoveAndInsertElement(Crx_C_Tree * pThis, \
-		void * CRX_NOT_NULL pElement); \
-CRXM__IFELSE2(pIS_COPYABLE, \
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_insertElement(Crx_C_Tree * pThis, \
-		void * CRX_NOT_NULL pElement), ); \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Tree_Private_Node * crx_c_tree_mergeTwoNodesAndGetRemainingNode( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		size_t pIndex); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_removeElement(Crx_C_Tree * pThis, \
-		void const * CRX_NOT_NULL pElement); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * pIndex__guide, void * pElement, \
-		Crx_C_Tree_Iterator * pIterator), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * pIndex__guide, void * * pElement, \
-		Crx_C_Tree_Iterator * pIterator)), \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * pElement), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * * pElement))), \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * pIndex__guide, void const * pElement, \
-		void * pIndex__out), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * pIndex__guide, void * * pElement, \
-		void * pIndex__out)), \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void const * pElement, void * pElement__out), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do( \
-		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode, \
-		void * * pElement, void * * pElement__out)))); \
-CRXM__IFELSE2(CRXM__AND(pHAS_INDEX, CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY)), \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-static uint32_t /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do__findExactEntry( \
-		Crx_C_Tree * pTree, \
-		void * pIndex__guide, void const * pElement, \
-		Crx_C_Tree_Iterator const * pIterator, \
-		Crx_C_Tree_Iterator * pIterator__return), \
-static uint32_t /*pGUIDE_TYPE*/ crx_c_tree_private_removeElement__do__findExactEntry( \
-		Crx_C_Tree * pTree, \
-		void * pIndex__guide, void * * pElement, \
-		Crx_C_Tree_Iterator const * pIterator, \
-		Crx_C_Tree_Iterator * pIterator__return));, ) \
-\
-CRXM__IFELSE2(CRXM__AND(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, CRXM__NOT(pIS_PREEMPTIVE)), \
-CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_findChildNodeIndexInParent( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode);, ) \
-\
-CRXM__IFELSE2(CRXM__AND(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, pIS_PREEMPTIVE), \
-CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_getTraceOfLeafNode( \
-		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, \
-		Crx_C_Tree_Private_Node * * CRX_NOT_NULL pNodes, \
-		size_t * CRX_NOT_NULL pIndices);, ) \
-\
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_decrementNumberOfElements( \
-		Crx_C_Tree * pThis); \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_decrementNumberOfNodes( \
-		Crx_C_Tree * pThis); \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_unsafePopRootNode( \
-		Crx_C_Tree * pThis); \
-\
-\
+		Crx_C_Tree_Private_Node const * pNode__source,
+		unsigned char * pElement__lastSeenNonFirstChildInTarget /*unsigned char * * */);
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_destruct(Crx_C_Tree * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_free(Crx_C_Tree * pThis);
+
+CRX__C__TYPE_BLUE_PRINT__GENERIC__DECLARE_GET_BLUE_PRINT(
+			Crx_C_Tree, crx_c_tree_,
+			CRXM__TRUE, CRXM__TRUE,
+			CRXM__TRUE, CRXM__TRUE,
+			CRXM__FALSE, CRXM__FALSE);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_deleteNode(Crx_C_Tree * pThis,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode);
+
+CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_getSuitableImagineryIndexFor(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode,
+		void const * pElement,
+		void const * pIndex__guide,
+		int32_t * pZeroIfFoundOrResultOfComparisonWithLargestKeyInNode);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferPushFromNodeToNode(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__target,
+		bool pIsToIncludeBegginingChildNode, size_t pStartingIndex);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferAllIntoNode(
+		Crx_C_Tree * pThis, void * pIndex__guide,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__child,
+		void * pElement,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		size_t pIndex, bool pIsToIncludeBegginingChildNode);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_removeFirstNEntriesFrom(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		size_t pWidth);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rotateRight(Crx_C_Tree * pThis,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, size_t pIndexOfNodeInParent,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__parent,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__rightSibling);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rotateLeft(Crx_C_Tree * pThis,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, size_t pIndexOfNodeInParent,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__parent,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode__leftSibling);
+
+/*REMEMBER: IN THE PRE EMPTIVE CASE, THIS MUST NOT MODIFY *pIndicesOfNodesInParents, MEANING
+		pIndexOfNodeInParent*/
+CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_resolveFullNode(Crx_C_Tree * pThis,
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		Crx_C_Tree_Private_Node * pNode__parent,
+		size_t * CRX_NOT_NULL pIndicesOfNodesInParents /*pIndexOfNodeInParent*/);
+
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry(
+		Crx_C_Tree * pThis, void * CRX_NOT_NULL pElement);
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementEntry__do(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		size_t * pIndexOfNodeInParent,
+		void * pIndex__guide,
+		void * CRX_NOT_NULL pElement);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_tryMoveAndInsertElement(Crx_C_Tree * pThis,
+		void * CRX_NOT_NULL pElement);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_insertElement(Crx_C_Tree * pThis,
+		void * CRX_NOT_NULL pElement);
+
+CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Tree_Private_Node * 
+		crx_c_tree_mergeTwoNodesAndGetRemainingNode(Crx_C_Tree * pThis, 
+		Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode, size_t pIndex);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_removeElement(Crx_C_Tree * pThis,
+		void const * CRX_NOT_NULL pElement);
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_removeElement__do(
+		Crx_C_Tree * pThis, uint32_t pMode, Crx_C_Tree_Private_Node * pNode,
+		void * pIndex__guide, void * pElement,
+		Crx_C_Tree_Iterator * pIterator,
+		void * pIndex__out, void * pElement__out);
+CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__findExactEntry(
+		Crx_C_Tree * pThis, void * pIndex__guide, void const * pElement,
+		Crx_C_Tree_Iterator const * pIterator,
+		Crx_C_Tree_Iterator * pIterator__return);
+
+CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_findChildNodeIndexInParent(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode);
+
+CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_tree_private_getTraceOfLeafNode(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * CRX_NOT_NULL pNode,
+		Crx_C_Tree_Private_Node * * CRX_NOT_NULL pNodes,
+		size_t * CRX_NOT_NULL pIndices);
+
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_decrementNumberOfElements(
+		Crx_C_Tree * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_decrementNumberOfNodes(
+		Crx_C_Tree * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_unsafePopRootNode(
+		Crx_C_Tree * pThis);
+
+/*
+MEANT TO TRANSFER THE CONTENT OF THE SEPERATE BUFFERS IN THE NODES, WHERE EACH CALL IS TO 
+TRANSFER ONE BUFFER'S CONTENT. THE TARGET SPACE MUST ALREADY BE EMPTY.
+
+BASED ON CRX__C__RING__ECHO__COPY_FROM_RING_RANGE.
+
+WARNING: pCAPACITY_WHEN_RING MUST BE THE VALUE APPROPRIATE FOR THE RING MODE.
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transfer(Crx_C_Tree * pThis, 
+		size_t pByteSizeOfType, Crx_C_TypeBluePrint_MoveConstruct pFunc_moveConstruct,
+		Crx_C_TypeBluePrint_MoveDestruct pFunc_moveDestruct,
+		unsigned char * pTarget, Crx_C_Tree_Private_Node * pTarget_node, size_t pTarget_index, 
+		unsigned char * pSrc, Crx_C_Tree_Private_Node * pSrc_node, size_t pSrc_index, 
+		size_t pCount);
+/*
+MEANT TO COPY THE CONTENT OF THE SEPERATE BUFFERS IN THE NODES, WHERE EACH CALL IS TO COPY 
+ONE BUFFER'S CONTENT. THE TARGET SPACE MUST ALREADY BE EMPTY.
+
+BASED ON CRX__C__RING__ECHO__COPY_FROM_RING_RANGE.
+
+WARNING: pCAPACITY MUST BE THE VALUE APPROPRIATE FOR THE RING MODE.
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_copy(Crx_C_Tree * pThis,
+		size_t pByteSizeOfType, Crx_C_TypeBluePrint_CopyConstruct pFunc_copyConstruct,
+		unsigned char * pTarget, Crx_C_Tree_Private_Node * pTarget_node, size_t pTarget_index, 
+		unsigned char * pSrc, Crx_C_Tree_Private_Node const * pSrc_node, size_t pSrc_index, 
+		size_t pCount);
+
+/*
+WARNING: pCAPACITY_WHEN_RING MUST BE THE VALUE APPROPRIATE FOR THE RING MODE.
+WARNING: THIS DOES NOT UPDATE THE STARTING INDEX. 
+		CRX__C__TREE__PRIVATE__UPDATE_START_INDEX_AFTER_INSERTION_OF_SPACE() MUST BE CALLED 
+		LATER TO DO SO.
+
+THIS FUNCTION IS A COPY OF A SIMILAR FUNCTION FROM THE RING CLASS, THE OLD IMPLEMENTATION
+OF CRX__C__Ring__ECHO_INSERT_SPACE_AT(), AND LIKE THAT IMPLEMENTATION, THIS FUNCTION DOES NOT 
+ATTEMPT TO REDUCE THE RANGE OF CALCULATIONS OVER size_t, MAKING THE MAXIMUM CAPACITY ALLOWED TO 
+BE 1/3 OF size_t, UNLIKE THE RING WHERE IT IS 1/2 UNDER THE NEW IMPLEMENTATION OF
+CRX__C__Ring__ECHO_INSERT_SPACE_AT(). IN OUR CASE, WE WOULD BE ELEMINATING THE FIRST TWO BITS 
+FROM uint32_t GIVING A MAXIMUM CAPACITY PER NODE OF 2^30. THIS IS ALSO THE REASON BEHIND THE 
+SIMPLIFIED IMPLEMENTATION IN 
+CRX__C__TREE__PRIVATE__UPDATE_START_INDEX_AFTER_INSERTION_OF_SPACE() AND WHY WE CAN AVOID 
+pFUNC_TYPE_MOVE_CONSTRUCTOR AND pFUNC_TYPE_MOVE_DESTRUCTOR IN THAT FUNCTION.
+
+TO KEEP THE ROTATION CONSISTANT BETWEEN ALL BUFFERS WITHIN THE SAME NODE FOR THE SAME HIGH
+LEVEL OPERATION, IT IS UP TO THE USER TO DECIDE WHICH DIRECTION THE ROTATION HAPPENS TO CREATE
+THE SPACE. HOWEVER, IF pINDEX IS ZERO, pIS_TO_ROTATE_RIGHT_IF_RING MUST BE false. THIS IS TO
+KEEP THE ALGORITHM CLOSE TO THE ONE FROM THE RING CLASS. BY DEFINITION, A LEFT ROTATION
+CHANGES THE START INDEX, WHILE THE RIGHT ROTATION DOES NOT.
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_insertSpaceAt(Crx_C_Tree * pThis,
+		size_t pByteSizeOfType, Crx_C_TypeBluePrint_MoveConstruct pFunc_moveConstruct,
+		Crx_C_TypeBluePrint_MoveDestruct pFunc_moveDestruct, bool pIsToRotateRightIfRing,
+		Crx_C_Tree_Private_Node * pNode, unsigned char * pBuffer, size_t pLength, size_t pIndex,
+		size_t pWidth);
+/*
+NOTE: pINDEX SHOULD BE THE INDEX OF INSERTION OF THE KEY
+NOTE: MAKE SURE TO USE THE SAME VALUE FOR THE PARAMETERS AS YOU USED FOR THE CORRESPONDING
+		CALLS TO CRX__C__TREE__PRIVATE__INSERT_SPACE_AT(). HOWEVER FOR pINDEX, USE THE LOWEST 
+		INDEX USED IN THE CORRESPONDING CALLS, MEANING THE INDEX USED WHEN INSERTING SPACE IN 
+		THE ELEMENTS' BUFFER.
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_updateStartIndexAfterInsertionOfSpace(
+		Crx_C_Tree * pThis, bool pIsToRotateRightIfRing, Crx_C_Tree_Private_Node * pNode,
+		size_t pIndex, size_t pWidth);
+
+/*
+WARNING: pCAPACITY_WHEN_RING MUST BE THE VALUE APPROPRIATE FOR THE RING MODE.
+WARNING: THIS DOES NOT UPDATE THE STARTING INDEX. 
+		CRX__C__TREE__PRIVATE__UPDATE_START_INDEX_AFTER_REMOVAL_OF_SPACE() MUST BE CALLED 
+		LATER TO DO SO.
+
+THE FOLLOWING IS MEANT TO REMOVE EMPTY SPACE FROM THE INDIVIDUAL BUFFERS IN A NODE.
+THIS FUNCTION IS ALMOST A COPY OF removeElements() FROM THE RING CLASS, EXCEPT THAT IT ASSUMES
+THE SPACE TO BE REMOVED IS ALREADT EMPTY.
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_removeSpaceFrom(
+		Crx_C_Tree * pThis, size_t pByteSizeOfType, 
+		Crx_C_TypeBluePrint_MoveConstruct pFunc_moveConstruct,
+		Crx_C_TypeBluePrint_MoveDestruct pFunc_moveDestruct, 
+		Crx_C_Tree_Private_Node * pNode, unsigned char * pBuffer,
+		size_t pLength, size_t pIndex, size_t pWidth,
+		bool pIsToRotateRightIfRing);
+/*
+NOTE: MAKE SURE TO USE THE SAME VALUE FOR THE PARAMETERS AS YOU USED FOR THE CORRESPONDING
+		CALLS TO CRX__C__TREE__PRIVATE__REMOVE_SPACE_FROM().
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_updateStartIndexAfterRemovalOfSpace(
+		Crx_C_Tree * pThis, Crx_C_Tree_Private_Node * pNode, size_t pWidth,
+		bool pIsToRotateRightIfRing);
+
+/*
+WARNING: THE FOLLOWING ASSUMES THAT THE REMAINING SPACE IS LARGER THAN pWIDTH. THIS MEANS THAT
+		IT IS ASSUMED THAT THE TAIL WILL NEVER HIT THE ORIGINAL LOCATION OF THE HEAD AFTER 
+		ROTATION.
+
+THE EXISTANCE OF THE FOLLOWING IS A FORMAL LIE, BUT KEEPING TO KEEP THE CODE SIMILAR TO THE CODE
+OF THE RING CLASS. THE FOLLOWING IS BASED ON CRX__C__RING__ECHO__RAW_ROTATE_RIGHT()
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rawRotateRight(Crx_C_Tree * pThis,
+		size_t pByteSizeOfType, unsigned char * pElements, size_t pRawStartIndex, 
+		size_t pRawEndIndex, size_t pWidth);
+/*
+WARNING: THE FOLLOWING ASSUMES THAT THE REMAINING SPACE IS LARGER THAN pWIDTH. THIS MEANS THAT
+		IT IS ASSUMED THAT THE HEAD WILL NEVER HIT THE ORIGINAL LOCATION OF THE TAIL AFTER 
+		ROTATION.
+
+THE EXISTANCE OF THE FOLLOWING IS A FORMAL LIE, BUT KEEPING TO KEEP THE CODE SIMILAR TO THE CODE
+OF THE RING CLASS. THE FOLLOWING IS BASED ON CRX__C__RING__ECHO__RAW_ROTATE_LEFT()
+*/
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_rawRotateLeft(Crx_C_Tree * pThis,
+		size_t pByteSizeOfType, unsigned char * pElements, size_t pRawStartIndex, 
+		size_t pRawEndIndex, size_t pWidth);
+		
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_private_transferConstruct(Crx_C_Tree * pThis,
+		size_t pByteSizeOfType, Crx_C_TypeBluePrint_MoveConstruct pFunc_moveConstruct,
+		Crx_C_TypeBluePrint_MoveDestruct pFunc_moveDestruct, 
+		void * pObject, void * pObject__2);
+
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_private_getElementEntry(
+		Crx_C_Tree const * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, size_t pIndex);
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_private_getElement(
+		Crx_C_Tree const * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, size_t pIndex);
+CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Tree_Private_Node * * crx_c_tree_private_getChildNode(
+		Crx_C_Tree const * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, size_t pIndex);
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_private_getIndexFrom(
+		Crx_C_Tree const * pThis, Crx_C_Tree_Private_Node const * CRX_NOT_NULL pNode, size_t pIndex);
+
+
+
 typedef struct Crx_C_Tree_Private_Node
 {
 	CRX_FRIEND_CLASS(Crx_C_Tree)
@@ -12583,8 +12755,8 @@ typedef struct Crx_C_Tree_Private_Node
 	Crx_C_Tree_Private_Node * gPrivate_node__parent;
 	size_t gPrivate_startIndex;
 } Crx_C_Tree_Private_Node;
-\
-\
+
+
 typedef struct Crx_C_Tree_Private_InternalNode
 {
 	CRX_FRIEND_CLASS(Crx_C_Tree)
@@ -12607,10 +12779,10 @@ typedef struct Crx_C_Tree_Private_InternalNode
 		unsigned char uIndices[1];
 	} gPrivate_buffer;
 } Crx_C_Tree_Private_InternalNode;
-\
-\
+
+
 typedef struct Crx_C_Tree_Private_LeafNode Crx_C_Tree_Private_LeafNode;
-\
+
 typedef struct Crx_C_Tree_Private_LeafNode
 {
 	CRX_FRIEND_CLASS(Crx_C_Tree)
@@ -12633,198 +12805,142 @@ typedef struct Crx_C_Tree_Private_LeafNode
 		unsigned char uIndices[1];
 	} gPrivate_buffer;
 } Crx_C_Tree_Private_LeafNode;
-\
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-typedef struct Crx_C_Tree_Iterator_Private_Position \
-		Crx_C_Tree_Iterator_Private_Position;, ) \
-typedef struct Crx_C_Tree_Iterator \
-{ \
-	CRX_FRIEND_CLASS(Crx_C_Tree) \
-\
-	bool gPrivate_isConstant; \
-	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-	bool gPrivate_isPositionsMine;, ) \
-	Crx_C_Tree * CRX_NOT_MINE gPrivate_tree; \
-	CRXM__IFELSE2(CRXM__OR(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, CRXM__NOT(pIS_PREEMPTIVE)), \
-	Crx_C_Tree_Private_Node * CRX_NOT_MINE gPrivate_node;, ) \
-	CRXM__IFELSE2(pIS_ELEMENT_DATA_IN_LEAVES_ONLY, \
-	size_t gPrivate_elementIndex;, ) \
-	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-	Crx_C_Tree_Iterator_Private_Position * gPrivate_positions;, ) \
-	CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-	Crx_C_Tree_Iterator_Private_Position * CRX_NOT_MINE gPrivate_position__current;, ) \
-} Crx_C_Tree_Iterator; \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_construct( \
-		Crx_C_Tree_Iterator * pThis, Crx_C_Tree * CRX_NOT_NULL pTree); \
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_construct2( \
-		Crx_C_Tree_Iterator * pThis, Crx_C_Tree const * CRX_NOT_NULL pTree); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_construct3( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		Crx_C_Tree const * CRX_NOT_NULL pTree), ); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() void _ ## crx_c_tree_iterator_construct( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		bool pIsConstant, Crx_C_Tree * CRX_NOT_NULL pTree), \
-CRX__LIB__PRIVATE_C_FUNCTION() void _ ## crx_c_tree_iterator_construct( \
-		Crx_C_Tree_Iterator * pThis, bool pIsConstant, \
-		Crx_C_Tree * CRX_NOT_NULL pTree)); \
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_copyConstruct( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);, ) \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_copyConstructFrom( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);, ) \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_copyConstructUsing( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);, ) \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_new( \
-		Crx_C_Tree * CRX_NOT_NULL pTree); \
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_new2( \
-		Crx_C_Tree const * CRX_NOT_NULL pTree); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_private_new3( \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		Crx_C_Tree const * CRX_NOT_NULL pTree);, ) \
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_moveNew( \
-		Crx_C_Tree_Iterator * CRX_NOT_NULL pIterator); \
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_copyNew( \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_private_copyNewUsing( \
-		Crx_C_Tree_Iterator_Private_Position * pPositions, \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);, ) \
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_destruct( \
-		Crx_C_Tree_Iterator * pThis);, ) \
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_free(Crx_C_Tree_Iterator * pThis); \
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_copyAssignFrom( \
-		Crx_C_Tree_Iterator * pThis, \
-		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);, ) \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_reset(Crx_C_Tree_Iterator * pThis); \
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_resetToBack( \
-		Crx_C_Tree_Iterator * pThis); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_isEqualTo( \
-		Crx_C_Tree_Iterator * pThis, Crx_C_Tree_Iterator const * pIterator); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_next(Crx_C_Tree_Iterator * pThis); \
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_prev(Crx_C_Tree_Iterator * pThis); \
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_isValid( \
-		Crx_C_Tree_Iterator * pThis); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_setToPositionOf( \
-		Crx_C_Tree_Iterator * pThis, void const * pElement, \
-		Crx_C_Tree_Edge pEdge); \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_setToPositionOf__do( \
-		Crx_C_Tree_Iterator * pThis, void const * pIndex__guide, \
-		Crx_C_Tree_Edge pEdge), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_setToPositionOf__do( \
-		Crx_C_Tree_Iterator * pThis, void const * pElement, \
-		Crx_C_Tree_Edge pEdge)); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_remove(Crx_C_Tree_Iterator * pThis); \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, \
-		Crx_C_Tree_Iterator_Private_Position * pPosition__current, \
-		void * pIndex__guide, void * pElement, \
-		bool * CRX_NOT_NULL pIsToAdvance), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, \
-		Crx_C_Tree_Iterator_Private_Position * pPosition__current, \
-		void * pIndex__guide, void * * pElement, \
-		bool * CRX_NOT_NULL pIsToAdvance)), \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, \
-		Crx_C_Tree_Iterator_Private_Position * pPosition__current, \
-		void * pElement, bool * CRX_NOT_NULL pIsToAdvance), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, \
-		Crx_C_Tree_Iterator_Private_Position * pPosition__current, \
-		void * * pElement, bool * CRX_NOT_NULL pIsToAdvance))), \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, size_t * pIndices, size_t pIndexInIndices, \
-		void * pIndex__guide, void const * pElement, \
-		void *  pIndex__out), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, size_t * pIndices, size_t pIndexInIndices, \
-		void * pIndex__guide, void const * pElement, \
-		void * pIndex__out)), \
-CRXM__IFELSE2(CRXM__NOT(pIS_PERSISTANT), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, size_t * pIndices, size_t pIndexInIndices, \
-		void const * pElement, \
-		void * pElement__out), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do( \
-		Crx_C_Tree_Iterator * pThis, uint32_t pMode, \
-		Crx_C_Tree_Private_Node * pNode, size_t * pIndices, size_t pIndexInIndices, \
-		void const * pElement, \
-		void * * pElement__out)))); \
-\
-CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_tree_iterator_get( \
-		Crx_C_Tree_Iterator const * pThis); \
-CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_tree_iterator_constantGet( \
-		Crx_C_Tree_Iterator const * pThis); \
-CRX__LIB__PRIVATE_C_FUNCTION() void * crx_c_tree_iterator_private_doGet( \
-		Crx_C_Tree_Iterator const * pThis); \
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_private_depthPush( \
-		Crx_C_Tree_Iterator * pThis, Crx_C_Tree_Private_Node * pNode, \
-		size_t pIndex);, ) \
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_depthPop( \
-		Crx_C_Tree_Iterator * pThis);, ) \
-\
-CRXM__IFELSE2(pHAS_INDEX, \
-CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_private_isInInternalNode( \
-		Crx_C_Tree_Iterator * pThis);, ) \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRX__LIB__PRIVATE_C_FUNCTION() void * crx_c_tree_iterator_private_getIndex( \
-		Crx_C_Tree_Iterator * pThis);, ) \
-CRXM__IFELSE2(pHAS_INDEX, \
-CRXM__IFELSE2(pIS_PERSISTANT, \
-CRX__LIB__PRIVATE_C_FUNCTION() void * * crx_c_tree_iterator_private_getEntry( \
-		Crx_C_Tree_Iterator * pThis), \
-CRX__LIB__PRIVATE_C_FUNCTION() void * crx_c_tree_iterator_private_getEntry( \
-		Crx_C_Tree_Iterator * pThis)), ); \
-\
-\
-CRXM__IFELSE2(CRXM__NOT(pIS_ELEMENT_DATA_IN_LEAVES_ONLY), \
-typedef struct Crx_C_Tree_Iterator_Private_Position \
-{ \
-	CRXM__IFELSE2(pIS_PREEMPTIVE, \
-	Crx_C_Tree_Private_Node * CRX_NOT_MINE gNode;, ) \
-	size_t gIndex; /*THIS IS INDEX OF NEXT CHILD IF gNode IS NOT NULL.*/ \
-} Crx_C_Tree_Iterator_Private_Position;, )
+
+
+typedef struct Crx_C_Tree_Iterator_Private_Position
+		Crx_C_Tree_Iterator_Private_Position;
+typedef struct Crx_C_Tree_Iterator
+{
+	CRX_FRIEND_CLASS(Crx_C_Tree)
+
+	bool gPrivate_isConstant;
+	bool gPrivate_isPositionsMine;
+	Crx_C_Tree * CRX_NOT_MINE gPrivate_tree;
+	Crx_C_Tree_Private_Node * CRX_NOT_MINE gPrivate_node;
+	size_t gPrivate_elementIndex;
+	Crx_C_Tree_Iterator_Private_Position * gPrivate_positions;
+	Crx_C_Tree_Iterator_Private_Position * CRX_NOT_MINE gPrivate_position__current;
+} Crx_C_Tree_Iterator;
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_construct(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree * pTree);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_construct2(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree const * pTree);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_construct3(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		Crx_C_Tree const * pTree);
+CRX__LIB__PRIVATE_C_FUNCTION() void _crx_c_tree_iterator_construct(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		bool pIsConstant, Crx_C_Tree * pTree);
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_copyConstruct(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_copyConstructFrom(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_copyConstructUsing(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_new(
+		Crx_C_Tree * pTree);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_new2(
+		Crx_C_Tree const * pTree);
+CRX__LIB__PRIVATE_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_private_new3(
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		Crx_C_Tree const * pTree);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_moveNew(
+		Crx_C_Tree_Iterator * CRX_NOT_NULL pIterator);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_copyNew(
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Tree_Iterator * crx_c_tree_iterator_private_copyNewUsing(
+		Crx_C_Tree_Iterator_Private_Position * pPositions,
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_destruct(
+		Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_free(Crx_C_Tree_Iterator * pThis);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_copyAssignFrom(
+		Crx_C_Tree_Iterator * pThis,
+		Crx_C_Tree_Iterator const * CRX_NOT_NULL pIterator);
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_associateWith(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree * pTree);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_constantAssociateWith(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree const * pTree);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_doAssociateWith(
+		Crx_C_Tree_Iterator * pThis, bool pIsConstant, Crx_C_Tree const * pTree);
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_reset(Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_resetToBack(
+		Crx_C_Tree_Iterator * pThis);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_isEqualTo(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree_Iterator const * pIterator);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_next(Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_prev(Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_isValid(
+		Crx_C_Tree_Iterator * pThis);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_setToPositionOf(
+		Crx_C_Tree_Iterator * pThis, void const * pElement,
+		Crx_C_Tree_Edge pEdge);
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_setToPositionOf__do(
+		Crx_C_Tree_Iterator * pThis, void const * pIndex__guide,
+		void const * pElement, Crx_C_Tree_Edge pEdge);
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_remove(Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do(
+		Crx_C_Tree_Iterator * pThis, uint32_t pMode,
+		Crx_C_Tree_Private_Node * pNode,
+		Crx_C_Tree_Iterator_Private_Position * pPosition__current,
+		size_t * pIndices, size_t pIndexInIndices,
+		void * pIndex__guide, void * pElement,
+		bool * CRX_NOT_NULL pIsToAdvance,
+		void * pIndex__out, void * pElement__out);
+
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_tree_iterator_get(
+		Crx_C_Tree_Iterator const * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char const * crx_c_tree_iterator_constantGet(
+		Crx_C_Tree_Iterator const * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_iterator_private_doGet(
+		Crx_C_Tree_Iterator const * pThis);
+
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_private_depthPush(
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree_Private_Node * pNode,
+		size_t pIndex);
+CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_depthPop(
+		Crx_C_Tree_Iterator * pThis);
+
+CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_iterator_private_isInInternalNode(
+		Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_iterator_private_getIndex(
+		Crx_C_Tree_Iterator * pThis);
+CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_iterator_private_getEntry(
+		Crx_C_Tree_Iterator * pThis);
+
+
+typedef struct Crx_C_Tree_Iterator_Private_Position
+{
+	Crx_C_Tree_Private_Node * CRX_NOT_MINE gNode;
+	size_t gIndex; /*THIS IS INDEX OF NEXT CHILD IF gNode IS NOT NULL.*/
+} Crx_C_Tree_Iterator_Private_Position;
+
+CRX__LIB__C_CODE_END()
+
+#if(CRXM__IS(CRX__LIB__MODE, CRX__LIB__MODE__HEADER_ONLY))
+	//INCLUDE THE CORRESPONDING .c.h FILE FROM THE CRXed CODE. DO NOT INCLUDE ANY OTHER FILE
+	#include "Crx/C.H/crx/c/Tree.c.h"
+#endif
+#if(CRX__PREPROCESSOR__HAS_PUSH_MACRO)
+	#pragma pop_macro("CRX__LIB__MODE")
+#endif
 
 #endif

@@ -2080,11 +2080,29 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_remove(Crx_C_HashTable * pThi
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getStartIndex(Crx_C_HashTable const * pThis)
 {
-	size_t vIndex = 0;
+	size_t vIndex = pThis->gPrivate_numberOfBuckets;
 
 	while((vIndex < pThis->gPrivate_numberOfBuckets) &&
 			CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex))
 		{vIndex = vIndex + 1;}
+
+	return vIndex;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getLastIndex(Crx_C_HashTable const * pThis)
+{
+	size_t vIndex = pThis->gPrivate_numberOfBuckets - 1;
+
+	while(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex))
+	{
+		if(vIndex > 0)
+			{vIndex = vIndex - 1;}
+		else
+		{
+			vIndex = pThis->gPrivate_numberOfBuckets;
+
+			break;
+		}
+	}
 
 	return vIndex;
 }
@@ -2101,8 +2119,33 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getNextIndex(Crx_C_HashTabl
 	size_t vIndex = pIndex + 1;
 
 	while((vIndex < pThis->gPrivate_numberOfBuckets) &&
-			CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
+			CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex))
 		{vIndex = vIndex + 1;}
+
+	return vIndex;
+	CRX_SCOPE_END
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getPreviousIndex(Crx_C_HashTable const * pThis,
+		size_t pIndex)
+{
+	CRX_SCOPE_META
+	if((pIndex == 0) || (pIndex >= pThis->gPrivate_numberOfBuckets))
+		{return 0;}
+
+	CRX_SCOPE
+	size_t vIndex = pIndex - 1;
+
+	while(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex))
+	{
+		if(vIndex > 0)
+			{vIndex = vIndex - 1;}
+		else
+		{
+			vIndex = pThis->gPrivate_numberOfBuckets;
+
+			return vIndex;
+		}
+	}
 
 	return vIndex;
 	CRX_SCOPE_END

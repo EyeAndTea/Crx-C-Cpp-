@@ -87,11 +87,6 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		uint8_t gPRIVATE__NODE_CAPACITY;, ) \
 	} pQUEUE_TYPE_NAME; \
 	\
-	/*typedef struct pQUEUE_TYPE_NAME ## _Iterator\
-	{ \
-		pQUEUE_TYPE_NAME ## _Private_Node gPrivate_node; \
-		uint8_t gPrivate_index; \
-	} pQUEUE_TYPE_NAME ## _Iterator; */ \
 	\
 	CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_NODE_CAPACITY_FIELD), \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## construct(pQUEUE_TYPE_NAME * pThis);, \
@@ -257,6 +252,65 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## private_node_popFromFront( \
 			pQUEUE_TYPE_NAME ## _Private_Node * pThis); \
+	\
+	\
+	\
+	typedef struct pQUEUE_TYPE_NAME ## _Iterator \
+	{ \
+		pQUEUE_TYPE_NAME * CRX_NOT_MINE gPrivate_queue; \
+		pQUEUE_TYPE_NAME ## _Private_Node * CRX_NOT_MINE gPrivate_node; \
+		uint8_t gPrivate_index; \
+		bool gPrivate_isConstant; \
+	} pQUEUE_TYPE_NAME ## _Iterator; \
+	\
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME * pQueue); \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct2( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue); \
+	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, \
+			bool pIsConstant, pQUEUE_TYPE_NAME * pQueue); \
+	\
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new( \
+			pQUEUE_TYPE_NAME * pQueue); \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new2( \
+			pQUEUE_TYPE_NAME const * pQueue); \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_moveNew( \
+			pQUEUE_TYPE_NAME ## _Iterator * pIterator); \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_copyNew( \
+			pQUEUE_TYPE_NAME ## _Iterator const * pIterator); \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_free( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis); \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_associateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue); \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_constantAssociateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue); \
+	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
+			pQUEUE_TYPE_NAME const * pQueue); \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_reset(pQUEUE_TYPE_NAME ## _Iterator * pThis); \
+	CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_resetToBack( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis);, ) \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_next(pQUEUE_TYPE_NAME ## _Iterator * pThis); \
+	CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_prev( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis);, ) \
+	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_isValid( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis); \
+	\
+	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_get( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## iterator_constantGet( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+	PRIVATE pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+			
 	
 //#END_DEFINE
 
@@ -309,7 +363,8 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## construct(pQUEUE_TYPE_NAME * pThis, \
 			size_t pNodeCapacity CRX_DEFAULT(0))) \
 	{ \
-		assert(pNodeCapacity < 256); \
+		CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
+		assert(pNodeCapacity < 256), ); \
 	\
 		pThis->gPrivate_rootNode = NULL; \
 		CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
@@ -568,8 +623,15 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		if((pThis->gPrivate_lastNode != NULL) && \
 				pMEMBER_FUNCTIONS_PREFIX ## private_node_hasRoomForPush(pThis->gPrivate_lastNode)) \
 		{ \
-			return pMEMBER_FUNCTIONS_PREFIX ## private_node_tryMoveAndPush( \
-					pThis->gPrivate_lastNode, pElement); \
+			if(pMEMBER_FUNCTIONS_PREFIX ## private_node_tryMoveAndPush( \
+					pThis->gPrivate_lastNode, pElement)) \
+			{ \
+				pThis->gPrivate_length = pThis->gPrivate_length + 1; \
+	\
+				return true; \
+			} \
+			else \
+				{return false;} \
 		} \
 		else \
 			{return false;} \
@@ -712,8 +774,15 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 				pMEMBER_FUNCTIONS_PREFIX ## private_node_hasRoomForPushToFront( \
 						pThis->gPrivate_rootNode)) \
 		{ \
-			return pMEMBER_FUNCTIONS_PREFIX ## private_node_tryMoveAndPushToFront( \
-					pThis->gPrivate_rootNode, pElement); \
+			if(pMEMBER_FUNCTIONS_PREFIX ## private_node_tryMoveAndPushToFront( \
+					pThis->gPrivate_rootNode, pElement)) \
+			{ \
+				pThis->gPrivate_length = pThis->gPrivate_length + 1; \
+	\
+				return true; \
+			} \
+			else \
+				{return false;} \
 		} \
 		else \
 			{return false;} \
@@ -1113,6 +1182,182 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 				{pThis->gPrivate_startIndex = pThis->gPrivate_startIndex + 1;} \
 		} \
 	} \
+	\
+	\
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME * pQueue) \
+		{_ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct(pThis, false, pQueue);}  \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_construct2( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue) \
+	{ \
+		_ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct(pThis, false, \
+				((pQUEUE_TYPE_NAME *)pQueue)); \
+	} \
+	PRIVATE void _ ## pMEMBER_FUNCTIONS_PREFIX ## iterator_construct( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, \
+			bool pIsConstant, pQUEUE_TYPE_NAME * pQueue) \
+	{ \
+		pThis->gPrivate_queue = pQueue; \
+		pThis->gPrivate_node = NULL; \
+		pThis->gPrivate_index = 0; \
+		pThis->gPrivate_isConstant = pIsConstant; \
+	} \
+	\
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new( \
+			pQUEUE_TYPE_NAME * pQueue) \
+	{ \
+		pQUEUE_TYPE_NAME ## _Iterator * vReturn = (pQUEUE_TYPE_NAME ## _Iterator *)(calloc(1, \
+				sizeof(pQUEUE_TYPE_NAME ## _Iterator))); \
+	\
+		if(vReturn != NULL) \
+			{pMEMBER_FUNCTIONS_PREFIX ## iterator_construct(vReturn, pQueue);} \
+	\
+		return vReturn; \
+	} \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_new2( \
+			pQUEUE_TYPE_NAME const * pQueue) \
+	{ \
+		pQUEUE_TYPE_NAME ## _Iterator * vReturn = (pQUEUE_TYPE_NAME ## _Iterator *)(calloc(1, \
+				sizeof(pQUEUE_TYPE_NAME ## _Iterator))); \
+	\
+		if(vReturn != NULL) \
+			{pMEMBER_FUNCTIONS_PREFIX ## iterator_construct2(vReturn, pQueue);} \
+	\
+		return vReturn; \
+	} \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_moveNew( \
+			pQUEUE_TYPE_NAME ## _Iterator * pIterator) \
+	{ \
+		pQUEUE_TYPE_NAME ## _Iterator * vReturn = (pQUEUE_TYPE_NAME ## _Iterator *)(calloc(1, \
+				sizeof(pQUEUE_TYPE_NAME ## _Iterator))); \
+	\
+		if(vReturn != NULL) \
+			{memcpy(vReturn, pIterator, sizeof(pQUEUE_TYPE_NAME ## _Iterator));} \
+	\
+		return vReturn; \
+	} \
+	PUBLIC pQUEUE_TYPE_NAME ## _Iterator * pMEMBER_FUNCTIONS_PREFIX ## iterator_copyNew( \
+			pQUEUE_TYPE_NAME ## _Iterator const * pIterator) \
+	{ \
+		pQUEUE_TYPE_NAME ## _Iterator * vReturn = (pQUEUE_TYPE_NAME ## _Iterator *)(calloc(1, \
+				sizeof(pQUEUE_TYPE_NAME ## _Iterator))); \
+	\
+		if(vReturn != NULL) \
+			{memcpy(vReturn, pIterator, sizeof(pQUEUE_TYPE_NAME ## _Iterator));} \
+	\
+		return vReturn; \
+	} \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_free( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+		{free(pThis);} \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_associateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue) \
+		{pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith(pThis, false, pQueue);} \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_constantAssociateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, pQUEUE_TYPE_NAME const * pQueue) \
+		{pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith(pThis, true, pQueue);} \
+	PRIVATE void pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doAssociateWith( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis, bool pIsConstant, \
+			pQUEUE_TYPE_NAME const * pQueue) \
+	{ \
+		pThis->gPrivate_queue = ((pQUEUE_TYPE_NAME *)pQueue); \
+		pThis->gPrivate_node = NULL; \
+		pThis->gPrivate_index = 0; \
+		pThis->gPrivate_isConstant = pIsConstant; \
+	} \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_reset(pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+	{ \
+		if((pThis->gPrivate_queue == NULL) || \
+				(pThis->gPrivate_queue->gPrivate_length == 0)) \
+			{return; } \
+	\
+		pThis->gPrivate_node = pThis->gPrivate_queue->gPrivate_rootNode; \
+	\
+		if(pThis->gPrivate_node->gPrivate_length == 0) \
+			{pThis->gPrivate_node = pThis->gPrivate_node->gPrivate_next;} \
+	\
+		pThis->gPrivate_index = CRXM__IFELSE2(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK), \
+				0, pThis->gPrivate_node->gPrivate_startIndex); \
+	} \
+	CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_resetToBack( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+	{ \
+		if((pThis->gPrivate_queue == NULL) || \
+				(pThis->gPrivate_queue->gPrivate_length == 0)) \
+			{return;} \
+	\
+		pThis->gPrivate_node = pThis->gPrivate_queue->gPrivate_lastNode; \
+	\
+		if(pThis->gPrivate_node->gPrivate_length == 0) \
+			{pThis->gPrivate_node = pThis->gPrivate_node->gPrivate_prev;} \
+	\
+		pThis->gPrivate_index = CRXM__IFELSE2(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK), \
+				0, pThis->gPrivate_node->gPrivate_length - 1); \
+	}, ) \
+	\
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_next(pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+	{ \
+		if((pThis->gPrivate_queue != NULL) && (pThis->gPrivate_queue->gPrivate_length != 0)) \
+		{ \
+			pThis->gPrivate_index = pThis->gPrivate_index + 1; \
+	\
+			if(pThis->gPrivate_index >= pThis->gPrivate_node->gPrivate_length) \
+			{ \
+				pThis->gPrivate_index = 0; \
+				pThis->gPrivate_node = pThis->gPrivate_node->gPrivate_next; \
+	\
+				if(pThis->gPrivate_node->gPrivate_length == 0) \
+					{pThis->gPrivate_node = NULL;} \
+			} \
+		} \
+	} \
+	CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
+	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## iterator_prev( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+	{ \
+		if((pThis->gPrivate_queue != NULL) && (pThis->gPrivate_queue->gPrivate_length != 0)) \
+		{ \
+			if(pThis->gPrivate_index > 0) \
+				{pThis->gPrivate_index = pThis->gPrivate_index - 1;} \
+			else \
+			{ \
+				pThis->gPrivate_node = pThis->gPrivate_node->gPrivate_prev; \
+	\
+				if(pThis->gPrivate_node != NULL) \
+				{ \
+					if(pThis->gPrivate_node->gPrivate_length != 0) \
+						{pThis->gPrivate_index = pThis->gPrivate_node->gPrivate_length - 1;} \
+					else \
+						{pThis->gPrivate_node = NULL;} \
+				} \
+			} \
+		} \
+	}, ) \
+	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## iterator_isValid( \
+			pQUEUE_TYPE_NAME ## _Iterator * pThis) \
+		{return (pThis->gPrivate_node != NULL);} \
+	\
+	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_get( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+	{ \
+		if(pThis->gPrivate_isConstant) \
+			{return NULL;} \
+	\
+		return pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet(pThis); \
+	} \
+	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## iterator_constantGet( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+		{return pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet(pThis);} \
+	PRIVATE pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet( \
+			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+	{ \
+		if(pThis->gPrivate_node != NULL) \
+			{return pThis->gPrivate_node->gPrivate_elements + pThis->gPrivate_index;} \
+	}
 
 //#END_DEFINE
 
@@ -1122,7 +1367,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 
 
 
-
+typedef struct Crx_C_Queue_Private_Node Crx_C_Queue_Private_Node;
 typedef struct Crx_C_Queue
 {
 	Crx_C_TypeBluePrint const * CRX_NOT_MINE gPrivate_typeBluePrint;
@@ -1131,19 +1376,6 @@ typedef struct Crx_C_Queue
 	size_t gPrivate_length;
 	uint8_t gPRIVATE__NODE_CAPACITY;
 } Crx_C_Queue;
-typedef struct Crx_C_Queue_Private_Node
-{
-	CRX_FRIEND_CLASS(Crx_C_Queue);
-
-	Crx_C_TypeBluePrint const * CRX_NOT_MINE gPrivate_typeBluePrint;
-	Crx_C_Queue_Private_Node * gPrivate_next;
-	Crx_C_Queue_Private_Node * gPrivate_prev;
-	uint8_t gPrivate_length;
-	uint8_t gPrivate_startIndex;
-	uint8_t gPRIVATE__NODE_CAPACITY;
-	uint8_t _gfddgier[5];
-	unsigned char gPrivate_elements[1/*N*/]; /*KEEP THIS ALIGNED AT 16 BYTES RELATIVE TO STRUCTURE WHEN 64BIT*/
-} Crx_C_Queue_Private_Node;
 /*typedef struct Crx_C_Queue_Iterator
 {
 	Crx_C_Queue_Private_Node gPrivate_node;
@@ -1183,34 +1415,48 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_empty(Crx_C_Queue * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_queue_getLength(Crx_C_Queue const * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_tryMoveAndPush(Crx_C_Queue * pThis,
-		pELEMENT_TYPE * pElement);
+		void * pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_push(Crx_C_Queue * pThis,
-		pELEMENT_TYPE * pElement);
+		void * pElement);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_pop(Crx_C_Queue * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_tryMoveAndPushToFront(Crx_C_Queue * pThis, \
-		pELEMENT_TYPE * pElement);
+		void * pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_pushToFront(Crx_C_Queue * pThis,
-		pELEMENT_TYPE * pElement);
+		void * pElement);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_popFromFront(Crx_C_Queue * pThis);
 
-CRX__LIB__PUBLIC_C_FUNCTION() pELEMENT_TYPE * crx_c_queue_get(Crx_C_Queue * pThis);
-CRX__LIB__PUBLIC_C_FUNCTION() pELEMENT_TYPE const * crx_c_queue_constantGet(
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_queue_get(Crx_C_Queue * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char const * crx_c_queue_constantGet(
 		Crx_C_Queue const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_copyGetTo(Crx_C_Queue const * pThis,
-		pELEMENT_TYPE * pReturn);
+		void * pReturn);
 
-CRX__LIB__PUBLIC_C_FUNCTION() pELEMENT_TYPE * crx_c_queue_getFront(Crx_C_Queue * pThis);
-CRX__LIB__PUBLIC_C_FUNCTION() pELEMENT_TYPE const * crx_c_queue_constantGetFront(
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_queue_getFront(Crx_C_Queue * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char const * crx_c_queue_constantGetFront(
 		Crx_C_Queue const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_copyGetFrontTo(Crx_C_Queue const * pThis,
-		pELEMENT_TYPE * pReturn);
+		void * pReturn);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_empty(Crx_C_Queue * pThis);
 
 
+
+typedef struct Crx_C_Queue_Private_Node
+{
+	CRX_FRIEND_CLASS(Crx_C_Queue);
+
+	Crx_C_TypeBluePrint const * CRX_NOT_MINE gPrivate_typeBluePrint;
+	Crx_C_Queue_Private_Node * gPrivate_next;
+	Crx_C_Queue_Private_Node * gPrivate_prev;
+	uint8_t gPrivate_length;
+	uint8_t gPrivate_startIndex;
+	uint8_t gPRIVATE__NODE_CAPACITY;
+	uint8_t _gfddgier[5];
+	unsigned char gPrivate_elements[1/*N*/]; /*KEEP THIS ALIGNED AT 16 BYTES RELATIVE TO STRUCTURE WHEN 64BIT*/
+} Crx_C_Queue_Private_Node;
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_queue_private_node_getByteSizeOf(
 		Crx_C_Queue const * CRX_NOT_NULL pNode);
@@ -1236,7 +1482,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_private_node_free(
 		Crx_C_Queue_Private_Node * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_private_node_tryMoveAndPush(
-		Crx_C_Queue_Private_Node * pThis, pELEMENT_TYPE * pElement);
+		Crx_C_Queue_Private_Node * pThis, void * pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_private_node_hasRoomForPush(
 		Crx_C_Queue_Private_Node * pThis);
 
@@ -1244,7 +1490,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_private_node_pop(
 		Crx_C_Queue_Private_Node * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_private_node_tryMoveAndPushToFront(
-		Crx_C_Queue_Private_Node * pThis, pELEMENT_TYPE * pElement);
+		Crx_C_Queue_Private_Node * pThis, void * pElement);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_queue_private_node_hasRoomForPushToFront(
 		Crx_C_Queue_Private_Node * pThis);
 

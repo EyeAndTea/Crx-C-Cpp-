@@ -25,8 +25,8 @@ CRX__LIB__C_CODE_BEGIN()
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleStatement_construct(
 		Crx_C_CrxCss_AtRuleStatement * pThis)
 {
-	crx_c_string_construct(&(pThis->gName), 0);
-	crx_c_string_construct(&(pThis->gValue), 0);
+	crx_c_string_construct(&(pThis->gName));
+	crx_c_string_construct(&(pThis->gValue));
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleStatement_copyConstruct(
 		Crx_C_CrxCss_AtRuleStatement * pThis, Crx_C_CrxCss_AtRuleStatement const * pAtRuleStatement)
@@ -82,8 +82,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleStatement_free(
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleElement_construct(
 		Crx_C_CrxCss_AtRuleElement * pThis)
 {
-	crx_c_string_construct(&(pThis->gName), 0);
-	crx_c_string_construct(&(pThis->gValue), 0);
+	crx_c_string_construct(&(pThis->gName));
+	crx_c_string_construct(&(pThis->gValue));
 	pThis->gBlock = crx_c_crxCss_block_new(0);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleElement_copyConstruct(
@@ -143,8 +143,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleElement_free(
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_nameValuePair_construct(
 		Crx_C_CrxCss_NameValuePair * pThis)
 {
-	crx_c_string_construct(&(pThis->gName), 0);
-	crx_c_string_construct(&(pThis->gValue), 0);
+	crx_c_string_construct(&(pThis->gName));
+	crx_c_string_construct(&(pThis->gValue));
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_nameValuePair_copyConstruct(
 		Crx_C_CrxCss_NameValuePair * pThis, Crx_C_CrxCss_NameValuePair const * pNameValuePair)
@@ -208,8 +208,8 @@ CRX__C__Array__DEFINE(Crx_C_CrxCss_NameValueBlock, crx_c_crxCss_nameValueBlock_,
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleNameValueBlock_construct(
 		Crx_C_CrxCss_AtRuleNameValueBlock * pThis)
 {
-	crx_c_string_construct(&(pThis->gName), 0);
-	crx_c_string_construct(&(pThis->gValue), 0);
+	crx_c_string_construct(&(pThis->gName));
+	crx_c_string_construct(&(pThis->gValue));
 	crx_c_crxCss_nameValueBlock_construct(&(pThis->gNameValueBlock), 0);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_crxCss_atRuleNameValueBlock_copyConstruct(
@@ -585,8 +585,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_CrxCss_BlockElement * CRX_PASSING crx_c_crxC
 		{return crx_c_crxCss_blockElement_new();}
 	else
 	{
-		return crx_c_crxCss_parseCrxCss3(crx_c_string_getElementsPointer(pSource), crx_c_string_getLength(pSource),
-				pError__out);
+		return crx_c_crxCss_parseCrxCss3(crx_c_string_getCharsPointer(pSource), 
+				crx_c_string_getSize(pSource), pError__out);
 	}
 }
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_CrxCss_BlockElement * CRX_PASSING crx_c_crxCss_parseCrxCss2(
@@ -682,7 +682,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_pushErrorTraceToParserData(
 		int tCharacterNumber = 0;
 		int tCount = 0;
 		
-		crx_c_string_construct(&tString, 0);
+		crx_c_string_construct(&tString);
 
 		while(tCurrentChar != pParserData->gCurrentCharacter)
 		{
@@ -841,8 +841,8 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseBlock(
 				pParserData->gCurrentCharacter = pParserData->gCurrentCharacter + 1;
 				pParserData->gRemainingLength = pParserData->gRemainingLength - 1;
 
-				crx_c_string_construct(&tString, 0);
-				crx_c_string_construct(&tString2, 0);
+				crx_c_string_construct(&tString);
+				crx_c_string_construct(&tString2);
 
 				while(pParserData->gRemainingLength > 0)
 				{
@@ -873,7 +873,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseBlock(
 					}
 				}
 				
-				if(crx_c_string_getLength(&tString) == 0)
+				if(crx_c_string_getSize(&tString) == 0)
 				{
 					crx_c_crxCss_pushErrorTraceToParserData(pParserData, 1, 
 							"Error: ruleName can not be empty");
@@ -987,7 +987,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseBlock(
 
 				
 				crx_c_arrays_stringSmall_construct(&tStrings, 0);
-				crx_c_string_construct(&tString, 0);
+				crx_c_string_construct(&tString);
 				crx_c_crxCss_blockElement_construct(&tBlockElement);
 				crx_c_crxCss_referenceNameValueBlock_construct(&tReferenceNameValueBlock);
 
@@ -1005,7 +1005,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseBlock(
 						if(!crx_c_arrays_stringSmall_tryMoveAndPush(&tStrings, &tString))
 							{crx_c_string_destruct(&tString);}
 
-						crx_c_string_construct(&tString, 0);
+						crx_c_string_construct(&tString);
 						
 						pParserData->gRemainingLength = pParserData->gRemainingLength - 1;
 						pParserData->gCurrentCharacter = pParserData->gCurrentCharacter + 1;
@@ -1103,7 +1103,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseNameValueBlock(
 
 					if(*(pParserData->gCurrentCharacter) == ':')
 					{
-						if(crx_c_string_getLength(&(tNameValuePair.gName)) > 0)
+						if(crx_c_string_getSize(&(tNameValuePair.gName)) > 0)
 						{
 							pParserData->gRemainingLength = pParserData->gRemainingLength - 1;
 							pParserData->gCurrentCharacter = pParserData->gCurrentCharacter + 1;
@@ -1150,7 +1150,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseNameValueBlock(
 					}
 					else if(*(pParserData->gCurrentCharacter) == ';')
 					{
-						if(crx_c_string_getLength(&(tNameValuePair.gName)) == 0)
+						if(crx_c_string_getSize(&(tNameValuePair.gName)) == 0)
 						{
 							pParserData->gRemainingLength = pParserData->gRemainingLength - 1;
 							pParserData->gCurrentCharacter = pParserData->gCurrentCharacter + 1;
@@ -1169,7 +1169,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_crxCss_parseNameValueBlock(
 				}
 
 				if((!pParserData->gIsError) &&
-						(crx_c_string_getLength(&(tNameValuePair.gName)) > 0))
+						(crx_c_string_getSize(&(tNameValuePair.gName)) > 0))
 				{
 					if(!crx_c_crxCss_nameValueBlock_tryMoveAndPush(pNameValueBlock, &tNameValuePair))
 						{crx_c_crxCss_nameValuePair_destruct(&tNameValuePair);}

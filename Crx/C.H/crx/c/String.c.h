@@ -36,7 +36,7 @@ CRX__LIB__C_CODE_BEGIN()
 #endif
 
 
-CRX__C__Array__DEFINE(Crx_C_String, crx_c_string_, char, 
+CRX__C__Array__DEFINE(Crx_C_String, crx_c_string_classProtected_, char, 
 		uint32_t, CRX__C__STRING__PRIVATE__SIZE32_MAX, 
 		16, CRXM__FALSE,
 		CRXM__FALSE, CRXM__FALSE, CRXM__FALSE, CRXM__FALSE)
@@ -88,81 +88,263 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_areStringsEqual(void const * pSt
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getHash(size_t pSeed, 
 		void const * CRX_NOT_NULL pString)
 {
-	return crx_c_hashTable_compute32BitsHash(pSeed, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString));
+	return crx_c_hashTable_compute32BitsHash(pSeed, 
+			crx_c_string_classProtected_constantGetElementsPointer(pString),
+			crx_c_string_classProtected_getLength(pString));
 }
 
 
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, char pChar)
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct(Crx_C_String * pThis)
 {
-	crx_c_string_construct(pThis, 1);
-	crx_c_string_push2(pThis, pChar);
+	crx_c_string_classProtected_construct(pThis, 4);
+	crx_c_string_silentlyAppendNullTerminator(pThis);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct4(Crx_C_String * pThis, 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct2(Crx_C_String * pThis, 
 		char const * pString)
 {
 	size_t vLength = ((pString == NULL) ? 0 : strlen(pString));
 	
-	crx_c_string_construct(pThis, vLength);
-	crx_c_string_insertCArrayAt(pThis, 0, pString, vLength);
+	crx_c_string_construct(pThis, vLength + 4);
+	crx_c_string_insertCharsAt(pThis, 0, pString, vLength);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, 
 		char const * pChars, size_t pSize)
 {
 	size_t vLength = ((pChars == NULL) ? 0 : pSize);
 
 	crx_c_string_construct(pThis, vLength);
-	crx_c_string_insertCArrayAt(pThis, 0, pChars, vLength);
+	crx_c_string_insertCharsAt(pThis, 0, pChars, vLength);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, char pChar)
+{
+	crx_c_string_construct(pThis, 1);
+	crx_c_string_classProtected_push2(pThis, pChar);//WE ARE ASSUMING 12 EMPTY SPACES ALREADY
+	crx_c_string_silentlyAppendNullTerminator(pThis);
 }
 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyConstruct(Crx_C_String * pThis, 
+		Crx_C_String const * CRX_NOT_NULL pString)
+	{crx_c_string_classProtected_copyConstruct(pThis, pString);}
 
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new3(char pChar)
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new()
 {
-	Crx_C_String * vString = crx_c_string_new(1);
-	
+	Crx_C_String * vString = crx_c_string_classProtected_new(1);
+
 	if(vString != NULL)
-		{crx_c_string_push2(vString, pChar);}
+		{crx_c_string_silentlyAppendNullTerminator(pThis);}
 	
 	return vString;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new4(char const * pString)
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new2(char const * pString)
 {
 	size_t vLength = ((pString == NULL) ? 0 : strlen(pString));
-	Crx_C_String * vString = crx_c_string_new(vLength);
+	Crx_C_String * vString = crx_c_string_classProtected_new(vLength + 4);
 	
 	if(vString != NULL)
-		{crx_c_string_insertCArrayAt(vString, 0, pString, vLength);}
+		{crx_c_string_insertCharsAt(vString, 0, pString, vLength);}
 	
 	return vString;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char const * pChars, size_t pSize)
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new3(char const * pChars, size_t pSize)
 {
 	size_t vLength = ((pChars == NULL) ? 0 : pSize);
-	Crx_C_String * vString = crx_c_string_new(vLength);
+	Crx_C_String * vString = crx_c_string_classProtected_new(vLength + 4);
 	
 	if(vString != NULL)
-		{crx_c_string_insertCArrayAt(vString, 0, pChars, vLength);}
+		{crx_c_string_insertCharsAt(vString, 0, pChars, vLength);}
 	
 	return vString;
 }
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char pChar)
+{
+	Crx_C_String * vString = crx_c_string_classProtected_new(1);
+	
+	if(vString != NULL)
+		{crx_c_string_insertCharsAt(vString, 0, &pChar, 1);}
+	
+	return vString;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_moveNew(Crx_C_String * CRX_NOT_NULL pString)
+	{crx_c_string_classProtected_moveNew(pString);}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyNew(Crx_C_String const * CRX_NOT_NULL pString)
+	{crx_c_string_classProtected_copyNew(pString);}
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_destruct(Crx_C_String * pThis)
+	{crx_c_string_classProtected_destruct(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_free(Crx_C_String * pThis)
+	{crx_c_string_classProtected_free(pThis);}
+
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String * pThis)
+	{return crx_c_string_classProtected_getLength(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getCapacity(Crx_C_String * pThis)
+	{return crx_c_string_classProtected_getCapacity(pThis) - 4;}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_ensureCapacity(Crx_C_String * pThis,
+		size_t pCapacity)
+	{return crx_c_string_classProtected_ensureCapacity(pThis, pCapacity + 4);}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_empty(Crx_C_String * pThis)
+	{return crx_c_string_classProtected_empty(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_copyAssignFrom(Crx_C_String * pThis,
+		Crx_C_String const * CRX_NOT_NULL pString)
+{
+	if(crx_c_string_classProtected_ensureCapacity(pThis, 
+			crx_c_string_classProtected_getLength(pString) + 4))
+	{
+		crx_c_string_classProtected_copyAssignFrom(pThis, pString);
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+		
+		return true;
+	}
+	else
+		{return false;}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_trySwapContentWith(
+		Crx_C_String * pThis, Crx_C_String * CRX_NOT_NULL pString)
+{
+	bool vReturn = true;
+
+	if(!crx_c_string_classProtected_tryToPilferSwapContentWith(pThis, pString));
+	{
+		if((crx_c_string_classProtected_getCapacity(pThis) <= 16) &&
+				(crx_c_string_classProtected_getCapacity(pString) <= 16))
+		{
+			unsigned char vBuffer01[16] /*= ?*/;
+			size_t tLength = crx_c_string_classProtected_getLength(pThis);
+
+			memcpy(&(vBuffer01[0]), crx_c_string_classProtected_getElementsPointer(pThis), tLength);
+			
+			crx_c_string_classProtected_empty(pThis);
+			crx_c_string_appendString(pThis, pString);
+				
+			crx_c_string_empty(pString);
+			crx_c_string_appendChars(pString, &(vBuffer01[0]), tLength);
+		}
+		else
+		{
+			if(crx_c_string_classProtected_getCapacity(pThis) <= 16)
+				{vReturn = crx_c_string_classProtected_ensureCapacity(pThis, 32);}
+			if(vReturn && crx_c_string_classProtected_getCapacity(pString) <= 16)
+				{vReturn = crx_c_string_classProtected_ensureCapacity(pString, 32);}
+			
+			if(vReturn)
+			{
+				vReturn = crx_c_string_classProtected_tryToPilferSwapContentWith(pThis, pString);
+				
+				assert(vReturn);
+			}
+		}
+	}
+
+	if(vReturn)
+	{
+		vReturn = crx_c_string_silentlyAppendNullTerminator(pThis) &&
+				crx_c_string_silentlyAppendNullTerminator(pString);
+
+		assert(vReturn);
+	}
+	
+	return vReturn;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() char crx_c_string_copyGet(Crx_C_String const * pThis, size_t pIndex);
+	{return crx_c_string_classProtected_copyGet(pThis, pIndex);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharCopiesAt(Crx_C_String * pThis,
+		size_t pIndex, char const pChar, size_t pNumberOfCopies)
+{
+	if(crx_c_string_classProtected_ensureCapacity(crx_c_string_classProtected_getLength(pThis) + 
+			pNumberOfCopies + 4))
+	{
+		crx_c_string_classProtected_insertElementCopiesAt2(pThis, pIndex, pChar, pNumberOfCopies);
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+
+		return true;
+	}
+	else
+		{return false;}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharsAt(Crx_C_String * pThis,
+		size_t pIndex, char const * CRX_NOT_NULL pChars, size_t pWidth)
+{
+	if(crx_c_string_classProtected_ensureCapacity(crx_c_string_classProtected_getLength(pThis) + 
+			pWidth + 4))
+	{
+		crx_c_string_classProtected_insertCArrayAt(pThis, pIndex, pChars, pWidth);
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+		
+		return true;
+	}
+	else
+		{return false;}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_removeChars(Crx_C_String * pThis,
+		size_t pIndex, size_t pWidth)
+{
+	crx_c_string_classProtected_removeElements(pThis, pIndex, pWidth);
+	crx_c_string_silentlyAppendNullTerminator(pThis);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_getCharsPointer(Crx_C_String * pThis)
+	{return crx_c_string_classProtected_getElementsPointer(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_constantGetCharsPointer(
+		Crx_C_String const * pThis)
+	{return crx_c_string_classProtected_constantGetElementsPointer(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_getCArray(Crx_C_String * pThis, char pChar)
+	{return crx_c_string_classProtected_getCArray(pThis, pChar);}
+CRX__LIB__PUBLIC_C_FUNCTION() char * crx_c_string_unsafeGetCArray(Crx_C_String * pThis)
+	{return crx_c_string_classProtected_unsafeGetCArray(pThis);}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_updateLength(Crx_C_String * pThis,
+		size_t pLength)
+{
+	if(pLength > (crx_c_string_classProtected_getCapacity(pThis) - 4))
+		{return false;}
+	
+	if(crx_c_string_classProtected_updateLength(pThis, pLength))
+	{
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+	
+		return true;
+	}
+	else
+		{return false;}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_unsafeUpdateLength(Crx_C_String * pThis,
+		size_t pLength)
+{
+	if(pLength > (crx_c_string_classProtected_getCapacity(pThis) - 4))
+		{return false;}
+	
+	if(crx_c_string_classProtected_unsafeUpdateLength(pThis, pLength))
+	{
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+		
+		return true;
+	}
+	else
+		{return false;}
+}
+
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendString(Crx_C_String * pThis, 
 		Crx_C_String const * CRX_NOT_NULL pString)
 {
-	return crx_c_string_insertElementsAt(pThis, crx_c_string_getLength(pThis), pString, 0,
-			crx_c_string_getLength(pString));
+	return crx_c_string_insertCharsAt(pThis, crx_c_string_classProtected_getLength(pThis), 
+			crx_c_string_classProtected_constantGetElementsPointer(pString), 
+			crx_c_string_classProtected_getLength(pString));
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChar(Crx_C_String * pThis, char pChar)
-	{return crx_c_string_push2(pThis, pChar);}
+{
+	return crx_c_string_insertCharsAt(pThis, crx_c_string_classProtected_getLength(pThis), 
+			&pChar, 1);
+}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendCString(Crx_C_String * pThis, 
 		char const * pString)
 {
-	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pString, 
+	return crx_c_string_insertCharsAt(pThis, crx_c_string_classProtected_getLength(pThis), pString, 
 			strlen(pString));
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendChars(Crx_C_String * pThis, 
 		char const * CRX_NOT_NULL pChars, size_t pSize)
-	{return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), pChars, pSize);}
+{
+	return crx_c_string_insertCharsAt(pThis, crx_c_string_classProtected_getLength(pThis), pChars, 
+			pSize);
+}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendSub(Crx_C_String * pThis, 
 		Crx_C_String_Sub const * CRX_NOT_NULL pSub)
 {
@@ -175,7 +357,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendSub(Crx_C_String * pThis,
 	if(pWchars == NULL)
 		{return true;}
 
-	return crx_c_string_insertCArrayAt(pThis, crx_c_string_getLength(pThis), 
+	return crx_c_string_insertCharsAt(pThis, crx_c_string_classProtected_getLength(pThis), 
 			(char const *)pWchars, pSize * sizeof(wchar_t));
 }*/
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt(Crx_C_String * pThis, int32_t pInt)
@@ -199,16 +381,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis,
 	}
 	else
 	{
-		size_t tCurrentLength = crx_c_string_getLength(pThis);
+		size_t tCurrentLength = crx_c_string_classProtected_getLength(pThis);
 		size_t tAvailableSpace = crx_c_string_getCapacity(pThis) - tCurrentLength;
 
-		if((tAvailableSpace < (pNumberOfDigits + 50)) || 
-				crx_c_string_ensureCapacity(pThis, tCurrentLength + 50 + pNumberOfDigits))
+		if((tAvailableSpace < (pNumberOfDigits + 50 + 4)) || 
+				crx_c_string_ensureCapacity(pThis, tCurrentLength + 50 + 4 + pNumberOfDigits))
 		{
-			crx_c_string_insertElementCopiesAt2(pThis, tCurrentLength, '\0', 51 + pNumberOfDigits);
+			crx_c_string_classProtected_insertElementCopiesAt2(pThis, tCurrentLength, '\0', 
+					50 + 4 + pNumberOfDigits);
 
-			sprintf(crx_c_string_getElementsPointer(pThis) + tCurrentLength, "%.*d", pNumberOfDigits,
-					pInt);
+			sprintf(crx_c_string_classProtected_getElementsPointer(pThis) + tCurrentLength, 
+					"%.*d", pNumberOfDigits, pInt);
 
 			return true;
 		}
@@ -225,15 +408,28 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_looselyAppendFloat(Crx_C_String 
 	return crx_c_string_appendCString(pThis, vChars);
 }
 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_silentlyAppendNullTerminator(Crx_C_String * pThis)
+{//THIS ASSUMES THERE ARE ALWAYS FOUR SPACES LEFT
+	char * tChars = crx_c_string_classProtected_unsafeGetCArray(pThis); //crx_c_string_classProtected_getElementsPointer(pThis);
+
+	size_t tLength = crx_c_string_classProtected_getLength(pThis);
+
+	*(tChars + tLength) = '\0';
+	*(tChars + tLength + 1) = '\0';
+	*(tChars + tLength + 2) = '\0';
+	*(tChars + tLength + 3) = '\0';
+}
+
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pThis)
 {
-	if(crx_c_string_getLength(pThis) == 0)
+	if(crx_c_string_classProtected_getLength(pThis) == 0)
 		{return true;}
 
-	CRX_FOR(size_t tI = 0, tI < crx_c_string_getLength(pThis), tI++)
+	CRX_FOR(size_t tI = 0, tI < crx_c_string_classProtected_getLength(pThis), tI++)
 	{
-		if(!(((crx_c_string_copyGet(pThis, tI) >= 0) && (crx_c_string_copyGet(pThis, tI) <= 32)) || 
-				(crx_c_string_copyGet(pThis, tI) == 127)))
+		if(!(((crx_c_string_classProtected_copyGet(pThis, tI) >= 0) && 
+				(crx_c_string_classProtected_copyGet(pThis, tI) <= 32)) || 
+				(crx_c_string_classProtected_copyGet(pThis, tI) == 127)))
 			{return false;}
 	}
 	CRX_ENDFOR
@@ -242,8 +438,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pTh
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
 {
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_classProtected_getLength(pThis);
 	size_t vStartIndex = 0;
 
 	/*while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
@@ -258,7 +454,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
 	if(vChars != vChars__end)
 	{
 		char * tChars = vChars__end - 1;
-		size_t tEndIndex = crx_c_string_getLength(pThis);
+		size_t tEndIndex = crx_c_string_classProtected_getLength(pThis);
 
 		/*while(((*tChars >= 9) && (*tChars <= 13)) ||
 				(*tChars == 32) || (*vChars == 127))*/
@@ -273,15 +469,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
 		}
 
 		crx_c_string_unsafeUpdateLength(pThis, tEndIndex);
-		crx_c_string_removeElements(pThis, 0, vStartIndex);
+		crx_c_string_removeChars(pThis, 0, vStartIndex);
 	}
 	else
 		{crx_c_string_unsafeUpdateLength(pThis, 0);}
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_leftTrim(Crx_C_String * pThis)
 {
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_classProtected_getLength(pThis);
 	size_t vStartIndex = 0;
 
 	/*while((vChars != vChars__end) && (((*vChars >= 9) && (*vChars <= 13)) ||
@@ -293,18 +489,18 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_leftTrim(Crx_C_String * pThis)
 		vStartIndex++;
 	}
 
-	crx_c_string_removeElements(pThis, 0, vStartIndex);
+	crx_c_string_removeChars(pThis, 0, vStartIndex);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightTrim(Crx_C_String * pThis)
 {
 	CRX_SCOPE_META
-	if(crx_c_string_getLength(pThis) == 0)
+	if(crx_c_string_classProtected_getLength(pThis) == 0)
 		{return;}
 
 	CRX_SCOPE
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__last = vChars + crx_c_string_getLength(pThis) - 1;
-	size_t tEndIndex = crx_c_string_getLength(pThis);
+	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
+	char * vChars__last = vChars + crx_c_string_classProtected_getLength(pThis) - 1;
+	size_t tEndIndex = crx_c_string_classProtected_getLength(pThis);
 
 	/*while(((*vChars__last >= 9) && (*vChars__last <= 13)) ||
 			(*vChars__last == 32) || (*vChars == 127))*/
@@ -327,8 +523,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightTrim(Crx_C_String * pThis)
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
-	return crx_c_string_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString), pIsCaseInSensitive);
+	return crx_c_string_isEqualTo3(pThis, 
+			crx_c_string_classProtected_constantGetElementsPointer(pString),
+			crx_c_string_classProtected_getLength(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo2(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
@@ -336,16 +533,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo2(Crx_C_String const * 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo3(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if(crx_c_string_getLength(pThis) != pSize)
+	if(crx_c_string_classProtected_getLength(pThis) != pSize)
 		{return false;}
 	else
 	{
 		if(!pIsCaseInSensitive)
-			{return (memcmp(crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);}
+		{
+			return (memcmp(crx_c_string_classProtected_constantGetElementsPointer(pThis), pChars, 
+					pSize) == 0);
+		}
 		else
 		{
 			return (crx_c_string_caseInsensitivelyCompare(
-					crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);
+					crx_c_string_classProtected_constantGetElementsPointer(pThis), pChars, 
+					pSize) == 0);
 		}
 	}
 }
@@ -356,24 +557,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo4(Crx_C_String const * 
 			crx_c_string_sub_getLength(pSub), pIsCaseInSensitive);
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String * pThis)
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String const * pThis)
 {
-	if(crx_c_string_ensureCapacity(pThis, crx_c_string_getLength(pThis) + 4))
-	{
-		char * tChars = crx_c_string_unsafeGetCArray(pThis); //crx_c_string_getElementsPointer(pThis);
+	char const * tChars = crx_c_string_classProtected_constantGetElementsPointer(pThis);	//crx_c_string_classProtected_unsafeGetCArray(pThis); 
+																					//crx_c_string_classProtected_getElementsPointer(pThis); <== was this first
 
-		if(tChars != NULL)
-		{
-			size_t tLength = crx_c_string_getLength(pThis);
-
-			*(tChars + tLength) = '\0';
-			*(tChars + tLength + 1) = '\0';
-			*(tChars + tLength + 2) = '\0';
-			*(tChars + tLength + 3) = '\0';
-		}
-		
-		return tChars;
-	}
+	//THIS PROTECTS FROM USER GETTING CHARS, WHETHER SAFELY OR UNSAFELY, THEN CALLING THIS BEFORE 
+	//		UPDATING LENGTH
+	if((tChars != NULL) && (*(tChars + tLength) == '\0') &&  (*(tChars + tLength + 1) == '\0') &&
+			(*(tChars + tLength + 2) == '\0') && (*(tChars + tLength + 3) == '\0'))
+		{return tChars;}
 	else
 		{return NULL;}
 }
@@ -381,8 +574,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith(Crx_C_String const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
-	return crx_c_string_isBeginningWith3(pThis, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString), pIsCaseInSensitive);
+	return crx_c_string_isBeginningWith3(pThis, 
+			crx_c_string_classProtected_constantGetElementsPointer(pString),
+			crx_c_string_classProtected_getLength(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith2(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
@@ -390,16 +584,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith2(Crx_C_String co
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith3(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if(crx_c_string_getLength(pThis) < pSize)
+	if(crx_c_string_classProtected_getLength(pThis) < pSize)
 		{return false;}
 	else
 	{
 		if(!pIsCaseInSensitive)
-			{return (memcmp(crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);}
+		{
+			return (memcmp(crx_c_string_classProtected_constantGetElementsPointer(pThis), 
+					pChars, pSize) == 0);
+		}
 		else
 		{
 			return (crx_c_string_caseInsensitivelyCompare(
-					crx_c_string_constantGetElementsPointer(pThis), pChars, pSize) == 0);
+					crx_c_string_classProtected_constantGetElementsPointer(pThis), pChars, 
+					pSize) == 0);
 		}
 	}
 }
@@ -418,8 +616,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isBeginningWith4(Crx_C_String co
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith(Crx_C_String const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
-	return crx_c_string_isEndingWith3(pThis, crx_c_string_constantGetElementsPointer(pString),
-			crx_c_string_getLength(pString), pIsCaseInSensitive);
+	return crx_c_string_isEndingWith3(pThis, 
+			crx_c_string_classProtected_constantGetElementsPointer(pString),
+			crx_c_string_classProtected_getLength(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith2(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
@@ -427,20 +626,20 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith2(Crx_C_String const
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith3(Crx_C_String const * pThis,
 		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if(crx_c_string_getLength(pThis) < pSize)
+	if(crx_c_string_classProtected_getLength(pThis) < pSize)
 		{return false;}
 	else
 	{
 		if(!pIsCaseInSensitive)
 		{
-			return (memcmp(crx_c_string_constantGetElementsPointer(pThis) + 
-					crx_c_string_getLength(pThis) - pSize, pChars, pSize) == 0);
+			return (memcmp(crx_c_string_classProtected_constantGetElementsPointer(pThis) + 
+					crx_c_string_classProtected_getLength(pThis) - pSize, pChars, pSize) == 0);
 		}
 		else
 		{
 			return (crx_c_string_caseInsensitivelyCompare(
-					crx_c_string_constantGetElementsPointer(pThis) + crx_c_string_getLength(pThis) -
-					pSize, pChars, pSize) == 0);
+					crx_c_string_classProtected_constantGetElementsPointer(pThis) + 
+					crx_c_string_classProtected_getLength(pThis) - pSize, pChars, pSize) == 0);
 		}
 	}
 }
@@ -458,8 +657,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEndingWith4(Crx_C_String const
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_lowerTheCase(Crx_C_String * pThis)
 {
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_classProtected_getLength(pThis);
 
 	while(vChars != vChars__end)
 	{
@@ -471,8 +670,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_lowerTheCase(Crx_C_String * pThi
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_upperTheCase(Crx_C_String * pThis)
 {
-	char * vChars = crx_c_string_unsafeGetCArray(pThis);
-	char * vChars__end = vChars + crx_c_string_getLength(pThis);
+	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
+	char * vChars__end = vChars + crx_c_string_classProtected_getLength(pThis);
 
 	while(vChars != vChars__end)
 	{
@@ -488,8 +687,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf(
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis, pStartIndex,
-			crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter),
+			crx_c_string_classProtected_constantGetElementsPointer(pDelimiter),
+			crx_c_string_classProtected_getLength(pDelimiter),
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf2(
@@ -504,16 +703,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstOccuranceOf3(
 		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	CRX_SCOPE_META
-	if(((crx_c_string_getLength(pThis) - pStartIndex) < pSize) || 
-			(crx_c_string_getLength(pThis) <= pStartIndex) || (pSize == 0))
+	if((crx_c_string_classProtected_getLength(pThis) <= pStartIndex) ||
+			((crx_c_string_classProtected_getLength(pThis) - pStartIndex) < pSize) || (pSize == 0))
 		{return ((size_t)(-1));}
 
 	CRX_SCOPE
 	uint32_t vAlgorithm = 0;
 	uint8_t vSizeOfCharacterSet = ((pSizeOfCharacterSet == 0) ? 255 : pSizeOfCharacterSet);
-	size_t vFullLength = crx_c_string_getLength(pThis);
+	size_t vFullLength = crx_c_string_classProtected_getLength(pThis);
 	size_t vLength = vFullLength - pStartIndex;
-	char const * vChars = crx_c_string_constantGetElementsPointer(pThis) + pStartIndex;
+	char const * vChars = crx_c_string_classProtected_constantGetElementsPointer(pThis) + 
+			pStartIndex;
 	size_t vReturn = vFullLength;
 #if(CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE)
 	char * vChars__startOfFoundOccurance = NULL;
@@ -1112,8 +1312,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
-			crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter),
+			crx_c_string_classProtected_constantGetElementsPointer(pDelimiter),
+			crx_c_string_classProtected_getLength(pDelimiter),
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranceOf2(
@@ -1139,15 +1339,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_getIndexOfFirstReverseOccuranc
 	*/
 	CRX_SCOPE_META
 	if((pInclusiveEndIndex < pSize - 1) || 
-			(pInclusiveEndIndex >= crx_c_string_getLength(pThis)) || (pSize == 0))
+			(pInclusiveEndIndex >= crx_c_string_classProtected_getLength(pThis)) || (pSize == 0))
 		{return ((size_t)(-1));}
 
 	CRX_SCOPE
 	uint32_t vAlgorithm = 0;
 	uint8_t vSizeOfCharacterSet = ((pSizeOfCharacterSet == 0) ? 255 : pSizeOfCharacterSet);
-	size_t vFullLength = crx_c_string_getLength(pThis);
+	size_t vFullLength = crx_c_string_classProtected_getLength(pThis);
 	size_t vLength = pInclusiveEndIndex + 1;
-	char const * vChars = crx_c_string_constantGetElementsPointer(pThis);
+	char const * vChars = crx_c_string_classProtected_constantGetElementsPointer(pThis);
 	size_t vReturn = ((size_t)(-1));
 	
 
@@ -1692,8 +1892,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf(
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis, pReturn,
-			pStartIndex, crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter),
+			pStartIndex, crx_c_string_classProtected_constantGetElementsPointer(pDelimiter),
+			crx_c_string_classProtected_getLength(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf2(
@@ -1711,7 +1911,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf3
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	uint8_t vSizeOfCharacterSet = ((pSizeOfCharacterSet == 0) ? 255 : pSizeOfCharacterSet);
-	size_t vFullLength = crx_c_string_getLength(pThis);
+	size_t vFullLength = crx_c_string_classProtected_getLength(pThis);
 	bool vIsNoError = true;
 
 	crx_c_arrays_size_empty(pReturn);
@@ -1721,7 +1921,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllOccurancesOf3
 	{
 		uint32_t tAlgorithm = 0;
 		size_t tLength = vFullLength - pStartIndex;
-		char const * tChars = crx_c_string_constantGetElementsPointer(pThis) + pStartIndex;
+		char const * tChars = crx_c_string_classProtected_constantGetElementsPointer(pThis) + 
+				pStartIndex;
 
 		/*if(pSize < 5)
 			{tAlgorithm = 1;}
@@ -2338,8 +2539,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccura
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn,
-			pInclusiveEndIndex, crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter),
+			pInclusiveEndIndex, crx_c_string_classProtected_constantGetElementsPointer(pDelimiter),
+			crx_c_string_classProtected_getLength(pDelimiter),
 			pIsToAllowOverlap, pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccurancesOf2(
@@ -2367,7 +2568,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccura
 			ALGORITHM 8, TO KEEP THEIR SYMMETRY WITH THE OCCURANCE SEARCH ALGORITHMS ELSEWHERE.
 	*/
 	uint8_t vSizeOfCharacterSet = ((pSizeOfCharacterSet == 0) ? 255 : pSizeOfCharacterSet);
-	size_t vFullLength = crx_c_string_getLength(pThis);
+	size_t vFullLength = crx_c_string_classProtected_getLength(pThis);
 	bool vIsNoError = true;
 
 	crx_c_arrays_size_empty(pReturn);
@@ -2378,7 +2579,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_computeIndicesOfAllReverseOccura
 
 		uint32_t tAlgorithm = 0;
 		size_t tLength = pInclusiveEndIndex + 1;
-		char const * tChars = crx_c_string_constantGetElementsPointer(pThis);
+		char const * tChars = crx_c_string_classProtected_constantGetElementsPointer(pThis);
 
 		/*if(pSize < 5)
 			{tAlgorithm = 1;}
@@ -2956,12 +3157,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_replaceOccurancesOfChar(Crx_C_St
 		size_t pStartingIndex, char pChar, char pReplacementChar, bool pIsToReplaceFirstOnly)
 {
 	CRX_SCOPE_META
-	if(crx_c_string_getLength(pThis) == 0)
+	if(crx_c_string_classProtected_getLength(pThis) == 0)
 		{return;}
 
 	CRX_SCOPE
-	char * vCurrentChar = crx_c_string_getElementsPointer(pThis) + pStartingIndex;
-	char * vEndChar = vCurrentChar + crx_c_string_getLength(pThis);
+	char * vCurrentChar = crx_c_string_classProtected_getElementsPointer(pThis) + pStartingIndex;
+	char * vEndChar = vCurrentChar + crx_c_string_classProtected_getLength(pThis);
 
 	vCurrentChar = memchr(vCurrentChar, pChar, vEndChar - vCurrentChar);
 
@@ -2989,8 +3190,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex(
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex, 
-			crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_classProtected_constantGetElementsPointer(pDelimiter),
+			crx_c_string_classProtected_getLength(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex2(
 		Crx_C_String const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
@@ -3017,19 +3218,19 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findNextLeftTokenAndUpdateIndex3
 	}
 	else
 	{
-		if(*pIndex < crx_c_string_getLength(pThis))
+		if(*pIndex < crx_c_string_classProtected_getLength(pThis))
 		{
 			crx_c_string_sub_setString2(pReturn, pThis, *pIndex, 
-					crx_c_string_getLength(pThis));
-			*pIndex = crx_c_string_getLength(pThis);
+					crx_c_string_classProtected_getLength(pThis));
+			*pIndex = crx_c_string_classProtected_getLength(pThis);
 
 			return true;
 		}
-		else if(*pIndex == crx_c_string_getLength(pThis))
+		else if(*pIndex == crx_c_string_classProtected_getLength(pThis))
 		{
 			crx_c_string_sub_setString2(pReturn, pThis, 
-					crx_c_string_getLength(pThis), 
-					crx_c_string_getLength(pThis));
+					crx_c_string_classProtected_getLength(pThis), 
+					crx_c_string_classProtected_getLength(pThis));
 			*pIndex = ((size_t)(-1));
 
 			return true;
@@ -3060,8 +3261,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft(
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex, 
-			crx_c_string_constantGetElementsPointer(pDelimiter), 
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_classProtected_constantGetElementsPointer(pDelimiter), 
+			crx_c_string_classProtected_getLength(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft2(
 		Crx_C_String const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
@@ -3099,9 +3300,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft3(
 	}
 	CRX_ENDFOR
 
-	if(vIndex < crx_c_string_getLength(pThis))
+	if(vIndex < crx_c_string_classProtected_getLength(pThis))
 	{
-		crx_c_string_sub_setString2(&vSub, pThis, vIndex, crx_c_string_getLength(pThis));
+		crx_c_string_sub_setString2(&vSub, pThis, vIndex, 
+				crx_c_string_classProtected_getLength(pThis));
 		crx_c_string_arrays_sub_push(pReturn, &vSub);
 	}
 
@@ -3116,9 +3318,6 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_findAllTokensStartingFromLeft4(
 			crx_c_string_sub_getCharsPointer(pSub__delimiter), 
 			crx_c_string_sub_getLength(pSub__delimiter), pSizeOfCharacterSet);
 }
-
-#undef CRX__C__STRING__PRIVATE__SIZE32_MAX
-#undef CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE
 
 //---------------------------
 //CLASS: String::Sub
@@ -3138,7 +3337,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_construct2(Crx_C_String_Sub 
 	if(pString != NULL)
 	{
 		pThis->gPrivate_startIndex = 0;
-		pThis->gPrivate_endIndex = crx_c_string_getLength(pString);
+		pThis->gPrivate_endIndex = crx_c_string_getSize(pString);
 	}
 	else
 	{
@@ -3157,7 +3356,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_construct3(Crx_C_String_Sub 
 
 	if(pThis->gPrivate_string != NULL)
 	{
-		uint32_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+		uint32_t tLength = crx_c_string_getSize(pThis->gPrivate_string);
 
 		if(pStart < tLength)
 		{
@@ -3220,7 +3419,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setRange(Crx_C_String_Su
 		{return 0;}
 
 	CRX_SCOPE
-	size_t vLength = crx_c_string_getLength(pThis->gPrivate_string);
+	size_t vLength = crx_c_string_getSize(pThis->gPrivate_string);
 
 	if((pEnd <= vLength) && (pStart <= pEnd))
 	{
@@ -3245,7 +3444,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setString(Crx_C_String_S
 	if(pThis->gPrivate_string != NULL)
 	{
 		pThis->gPrivate_startIndex = 0;
-		pThis->gPrivate_endIndex = crx_c_string_getLength(pThis->gPrivate_string);
+		pThis->gPrivate_endIndex = crx_c_string_getSize(pThis->gPrivate_string);
 	}
 	else
 	{
@@ -3265,7 +3464,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_setString2(Crx_C_String_
 
 	if(pThis->gPrivate_string != NULL)
 	{
-		size_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+		size_t tLength = crx_c_string_getSize(pThis->gPrivate_string);
 
 		if((pStart < tLength) && (pStart <= pEnd))
 		{
@@ -3311,15 +3510,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_sub_unsetString(Crx_C_String_Sub
 	pThis->gPrivate_endIndex = ((uint32_t)(-1));
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_getLength(Crx_C_String_Sub const * pThis)
-	{return (pThis->gPrivate_endIndex - pThis->gPrivate_startIndex);}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getLength(Crx_C_String_Sub const * pThis)
+	{return ((size_t)(pThis->gPrivate_endIndex - pThis->gPrivate_startIndex));}
 
 CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_sub_getCharsPointer(
 		Crx_C_String_Sub const * pThis)
 {
 	if((pThis->gPrivate_string != NULL) && (pThis->gPrivate_startIndex != ((uint32_t)(-1))))
 	{
-		return crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+		return crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
 				pThis->gPrivate_startIndex;
 	}
 	else
@@ -3384,7 +3583,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_rightExtend(Crx_C_String
 {
 	if((pThis->gPrivate_string != NULL) && (pThis->gPrivate_endIndex != ((uint32_t)(-1))))
 	{
-		size_t tLength = crx_c_string_getLength(pThis->gPrivate_string);
+		size_t tLength = crx_c_string_getSize(pThis->gPrivate_string);
 
 		if((tLength - pThis->gPrivate_endIndex) > pLength)
 			{pThis->gPrivate_endIndex = pThis->gPrivate_endIndex + pLength;}
@@ -3401,9 +3600,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEmpty(Crx_C_String_Sub con
 	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
 		{return true;}
 
-	char const * tCurrentChar = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+	char const * tCurrentChar = crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
 			pThis->gPrivate_startIndex;
-	char const * tEndChar = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+	char const * tEndChar = crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
 			pThis->gPrivate_endIndex;
 
 	while(tCurrentChar != tEndChar)
@@ -3422,7 +3621,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_trim(Crx_C_String_Sub * 
 		{return 0;}
 
 	CRX_SCOPE
-	char const * vChars = crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
+	char const * vChars = crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
 			pThis->gPrivate_startIndex;
 	char const * vChars__end = vChars + pThis->gPrivate_endIndex;
 
@@ -3463,29 +3662,34 @@ CRX__LIB__PUBLIC_C_FUNCTION() uint32_t crx_c_string_sub_trim(Crx_C_String_Sub * 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo(Crx_C_String_Sub const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
-	return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(pString), 
-			crx_c_string_getLength(pString), pIsCaseInSensitive);
+	return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetCharsPointer(pString), 
+			crx_c_string_getSize(pString), pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo2(Crx_C_String_Sub const * pThis,
 		char const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 	{return crx_c_string_sub_isEqualTo3(pThis, pString, strlen(pString), pIsCaseInSensitive);}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
-		{return (pLength == 0);}
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) != pSize)
+		{return false;}
 	else
 	{
-		if(!pIsCaseInSensitive)
-		{
-			return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-					pThis->gPrivate_startIndex, pChars, pLength) == 0);
-		}
+		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
+			{return (pSize == 0);}
 		else
 		{
-			return (crx_c_string_caseInsensitivelyCompare(
-					crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-					pThis->gPrivate_startIndex, pChars, pLength) == 0);
+			if(!pIsCaseInSensitive)
+			{
+				return (memcmp(crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pSize) == 0);
+			}
+			else
+			{
+				return (crx_c_string_caseInsensitivelyCompare(
+						crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pSize) == 0);
+			}
 		}
 	}
 }
@@ -3501,7 +3705,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEqualTo4(Crx_C_String_Sub 
 			{return true;}
 		else
 		{
-			return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetElementsPointer(
+			return crx_c_string_sub_isEqualTo3(pThis, crx_c_string_constantGetCharsPointer(
 							pSub->gPrivate_string) + pSub->gPrivate_startIndex,
 					pThis->gPrivate_endIndex - pThis->gPrivate_startIndex, pIsCaseInSensitive);
 		}
@@ -3512,7 +3716,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith(Crx_C_String
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
 	return crx_c_string_sub_isBeginningWith3(pThis, 
-			crx_c_string_constantGetElementsPointer(pString), crx_c_string_getLength(pString),
+			crx_c_string_constantGetCharsPointer(pString), crx_c_string_getSize(pString),
 			pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith2(Crx_C_String_Sub const * pThis,
@@ -3522,26 +3726,26 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith2(Crx_C_Strin
 			pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pLength)
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pSize)
 		{return false;}
 	else
 	{
 		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
-			{return (pLength == 0);}
+			{return (pSize == 0);}
 		else
 		{
 			if(!pIsCaseInSensitive)
 			{
-				return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-						pThis->gPrivate_startIndex, pChars, pLength) == 0);
+				return (memcmp(crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pSize) == 0);
 			}
 			else
 			{
 				return (crx_c_string_caseInsensitivelyCompare(
-						crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-						pThis->gPrivate_startIndex, pChars, pLength) == 0);
+						crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_startIndex, pChars, pSize) == 0);
 			}
 		}
 	}
@@ -3554,7 +3758,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isBeginningWith4(Crx_C_Strin
 	else
 	{
 		return crx_c_string_sub_isBeginningWith3(pThis, 
-				crx_c_string_constantGetElementsPointer(pSub->gPrivate_string) + 
+				crx_c_string_constantGetCharsPointer(pSub->gPrivate_string) + 
 				pSub->gPrivate_startIndex, pSub->gPrivate_endIndex - 
 				pSub->gPrivate_startIndex, pIsCaseInSensitive);
 	}
@@ -3564,7 +3768,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith(Crx_C_String_Su
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
 {
 	return crx_c_string_sub_isEndingWith3(pThis, 
-			crx_c_string_constantGetElementsPointer(pString), crx_c_string_getLength(pString),
+			crx_c_string_constantGetCharsPointer(pString), crx_c_string_getSize(pString),
 			pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith2(Crx_C_String_Sub const * pThis,
@@ -3574,26 +3778,26 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith2(Crx_C_String_S
 			pIsCaseInSensitive);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith3(Crx_C_String_Sub const * pThis,
-		char const * CRX_NOT_NULL pChars, size_t pLength, bool pIsCaseInSensitive)
+		char const * CRX_NOT_NULL pChars, size_t pSize, bool pIsCaseInSensitive)
 {
-	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pLength)
+	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) < pSize)
 		{return false;}
 	else
 	{
 		if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex) == 0)
-			{return (pLength == 0);}
+			{return (pSize == 0);}
 		else
 		{
 			if(!pIsCaseInSensitive)
 			{
-				return (memcmp(crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-						pThis->gPrivate_endIndex - pLength, pChars, pLength) == 0);
+				return (memcmp(crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_endIndex - pSize, pChars, pSize) == 0);
 			}
 			else
 			{
 				return (crx_c_string_caseInsensitivelyCompare(
-						crx_c_string_constantGetElementsPointer(pThis->gPrivate_string) + 
-						pThis->gPrivate_endIndex - pLength, pChars, pLength) == 0);
+						crx_c_string_constantGetCharsPointer(pThis->gPrivate_string) + 
+						pThis->gPrivate_endIndex - pSize, pChars, pSize) == 0);
 			}
 		}
 	}
@@ -3606,7 +3810,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_isEndingWith4(Crx_C_String_S
 	else
 	{
 		return crx_c_string_sub_isEndingWith3(pThis, 
-				crx_c_string_constantGetElementsPointer(pSub->gPrivate_string) + 
+				crx_c_string_constantGetCharsPointer(pSub->gPrivate_string) + 
 				pSub->gPrivate_startIndex, pSub->gPrivate_endIndex - 
 				pSub->gPrivate_startIndex, pIsCaseInSensitive);
 	}
@@ -3618,8 +3822,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_getIndexOfFirstOccuranceOf3(pThis, pStartIndex, 
-			crx_c_string_constantGetElementsPointer(pDelimiter), 
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_constantGetCharsPointer(pDelimiter), 
+			crx_c_string_getSize(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf2(
 		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
@@ -3632,14 +3836,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf3(
 		Crx_C_String_Sub const * pThis, size_t pStartIndex, 
 		char const * CRX_NOT_NULL pChars__delimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
 			(((uint32_t)(-1)) - 1 - pStartIndex  <= pThis->gPrivate_startIndex))
 		{return ((size_t)(-1));}
 
 	return crx_c_string_getIndexOfFirstOccuranceOf3(pThis->gPrivate_string,
-			pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pLength, 
+			pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pSize, 
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf4(
@@ -3652,7 +3856,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstOccuranceOf
 		{return ((size_t)(-1));}
 
 	return crx_c_string_sub_getIndexOfFirstOccuranceOf3(pThis, pStartIndex, 
-			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+			crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) + 
 					pSub__delimiter->gPrivate_startIndex, 
 			pSub__delimiter->gPrivate_endIndex - 
 					pSub__delimiter->gPrivate_startIndex,
@@ -3665,8 +3869,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccu
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex,
-			crx_c_string_constantGetElementsPointer(pDelimiter), 
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_constantGetCharsPointer(pDelimiter), 
+			crx_c_string_getSize(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf2(
 		Crx_C_String_Sub const * pThis, size_t pInclusiveEndIndex, 
@@ -3679,14 +3883,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccu
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(
 		Crx_C_String_Sub const * pThis, 
 		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, 
-		size_t pLength, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
+		size_t pSize, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
 			(((uint32_t)(-1)) - 1 - pInclusiveEndIndex  <= pThis->gPrivate_startIndex))
 		{return ((size_t)(-1));}
 
 	return crx_c_string_getIndexOfFirstReverseOccuranceOf3(pThis->gPrivate_string,
-			pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pLength, 
+			pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pSize, 
 			pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccuranceOf4(
@@ -3699,7 +3903,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_string_sub_getIndexOfFirstReverseOccu
 		{return ((size_t)(-1));}
 
 	return crx_c_string_sub_getIndexOfFirstReverseOccuranceOf3(pThis, pInclusiveEndIndex, 
-			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+			crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) + 
 					pSub__delimiter->gPrivate_startIndex, 
 			pSub__delimiter->gPrivate_endIndex - 
 					pSub__delimiter->gPrivate_startIndex,
@@ -3712,8 +3916,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurance
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_computeIndicesOfAllOccurancesOf3(pThis, pReturn, pStartIndex, 
-			crx_c_string_constantGetElementsPointer(pDelimiter), 
-			crx_c_string_getLength(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
+			crx_c_string_constantGetCharsPointer(pDelimiter), 
+			crx_c_string_getSize(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf2(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
@@ -3725,7 +3929,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurance
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurancesOf3(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pStartIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pStartIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
@@ -3738,7 +3942,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurance
 	else
 	{
 		return crx_c_string_computeIndicesOfAllOccurancesOf3(pThis->gPrivate_string, pReturn,
-				pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pLength, 
+				pThis->gPrivate_startIndex + pStartIndex, pChars__delimiter, pSize, 
 				pIsToAllowOverlap, pSizeOfCharacterSet);
 	}
 }
@@ -3757,7 +3961,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllOccurance
 	else
 	{
 		return crx_c_string_sub_computeIndicesOfAllOccurancesOf3(pThis, pReturn, pStartIndex, 
-				crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+				crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) + 
 						pSub__delimiter->gPrivate_startIndex, 
 				pSub__delimiter->gPrivate_endIndex - 
 							pSub__delimiter->gPrivate_startIndex,
@@ -3771,8 +3975,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOc
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn, 
-			pInclusiveEndIndex, crx_c_string_constantGetElementsPointer(pDelimiter), 
-			crx_c_string_getLength(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
+			pInclusiveEndIndex, crx_c_string_constantGetCharsPointer(pDelimiter), 
+			crx_c_string_getSize(pDelimiter), pIsToAllowOverlap, pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf2(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
@@ -3785,7 +3989,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOc
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(
 		Crx_C_String_Sub const * pThis, Crx_C_Arrays_Size * CRX_NOT_NULL pReturn,
-		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pInclusiveEndIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		bool pIsToAllowOverlap, uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if((pThis->gPrivate_endIndex - pThis->gPrivate_startIndex == 0) ||
@@ -3798,7 +4002,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOc
 	else
 	{
 		return crx_c_string_computeIndicesOfAllReverseOccurancesOf3(pThis->gPrivate_string, pReturn,
-				pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pLength, 
+				pThis->gPrivate_startIndex + pInclusiveEndIndex, pChars__delimiter, pSize, 
 				pIsToAllowOverlap, pSizeOfCharacterSet);
 	}
 }
@@ -3818,7 +4022,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_computeIndicesOfAllReverseOc
 	{
 		return crx_c_string_sub_computeIndicesOfAllReverseOccurancesOf3(pThis, pReturn, 
 				pInclusiveEndIndex, 
-				crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) +
+				crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) +
 						pSub__delimiter->gPrivate_startIndex, 
 				pSub__delimiter->gPrivate_endIndex - 
 						pSub__delimiter->gPrivate_startIndex,
@@ -3832,8 +4036,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIn
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex,
-			crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_constantGetCharsPointer(pDelimiter),
+			crx_c_string_getSize(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex2(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
@@ -3845,7 +4049,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIn
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Sub * CRX_NOT_NULL pReturn, 
-		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t * CRX_NOT_NULL pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if(pThis->gPrivate_string == NULL)
@@ -3858,7 +4062,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIn
 	else
 	{
 		return crx_c_string_findNextLeftTokenAndUpdateIndex3(pThis->gPrivate_string, pReturn, 
-				pIndex, pChars__delimiter, pLength, pSizeOfCharacterSet);
+				pIndex, pChars__delimiter, pSize, pSizeOfCharacterSet);
 	}
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIndex4(
@@ -3868,7 +4072,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findNextLeftTokenAndUpdateIn
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_findNextLeftTokenAndUpdateIndex3(pThis, pReturn, pIndex,
-			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+			crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) + 
 					pSub__delimiter->gPrivate_startIndex,
 			pSub__delimiter->gPrivate_endIndex - 
 					pSub__delimiter->gPrivate_startIndex, 
@@ -3881,8 +4085,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLef
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex,
-			crx_c_string_constantGetElementsPointer(pDelimiter),
-			crx_c_string_getLength(pDelimiter), pSizeOfCharacterSet);
+			crx_c_string_constantGetCharsPointer(pDelimiter),
+			crx_c_string_getSize(pDelimiter), pSizeOfCharacterSet);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft2(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
@@ -3894,7 +4098,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLef
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft3(
 		Crx_C_String_Sub const * pThis, Crx_C_String_Arrays_Sub * CRX_NOT_NULL pReturn,
-		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pLength,
+		size_t pIndex, char const * CRX_NOT_NULL pChars__delimiter, size_t pSize,
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	if(pThis->gPrivate_string == NULL)
@@ -3906,7 +4110,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLef
 	else
 	{
 		return crx_c_string_findAllTokensStartingFromLeft3(pThis->gPrivate_string, pReturn, pIndex,
-				pChars__delimiter, pLength, pSizeOfCharacterSet);
+				pChars__delimiter, pSize, pSizeOfCharacterSet);
 	}
 }
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLeft4(
@@ -3915,7 +4119,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_sub_findAllTokensStartingFromLef
 		uint8_t pSizeOfCharacterSet CRX_DEFAULT(0))
 {
 	return crx_c_string_sub_findAllTokensStartingFromLeft3(pThis, pReturn, pIndex,
-			crx_c_string_constantGetElementsPointer(pSub__delimiter->gPrivate_string) + 
+			crx_c_string_constantGetCharsPointer(pSub__delimiter->gPrivate_string) + 
 					pSub__delimiter->gPrivate_startIndex,
 			pSub__delimiter->gPrivate_endIndex - 
 					pSub__delimiter->gPrivate_startIndex,
@@ -3932,7 +4136,12 @@ CRX__C__Array__DEFINE(Crx_C_String_Arrays_Sub, crx_c_string_arrays_sub_, Crx_C_S
 				CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_MAX, 0, CRXM__FALSE, 
 		CRXM__FALSE, CRXM__FALSE, 
 		CRXM__FALSE, CRXM__FALSE)
-		
+
+
+
+
+#undef CRX__C__STRING__PRIVATE__SIZE32_MAX
+#undef CRX__C__STRING__PRIVATE__IS_MEMMEM_AVAILABLE		
 #undef CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_T
 #undef CRX__C__STRING__ARRAYS__SUB__PRIVATE__SIZE32_MAX
 

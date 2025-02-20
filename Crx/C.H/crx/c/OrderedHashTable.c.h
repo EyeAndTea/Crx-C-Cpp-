@@ -1852,9 +1852,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getStartIndex(
 		Crx_C_OrderedHashTable const * pThis)
 {
 	if((pThis->gPrivate_keyNodes == NULL) || (pThis->gPrivate_rootKeyNode == NULL))
-		{return 0;}
+		{return pThis->gPrivate_numberOfBuckets;}
 
 	return pThis->gPrivate_rootKeyNode->gPrivate_index;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getLastIndex(
+		Crx_C_OrderedHashTable const * pThis)
+{
+	if((pThis->gPrivate_keyNodes == NULL) || (pThis->gPrivate_lastKeyNode == NULL))
+		{return pThis->gPrivate_numberOfBuckets;}
+
+	return pThis->gPrivate_lastKeyNode->gPrivate_index;
 }
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getEndIndex(
 		Crx_C_OrderedHashTable const * pThis)
@@ -1868,6 +1876,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getNextIndex(
 
 	return (pThis->gPrivate_keyNodes + (pThis->gPrivate_keyNodes + pIndex)->
 			gPrivate_nextIndex)->gPrivate_index;
+}
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_orderedHashTable_getPreviousIndex(
+		Crx_C_OrderedHashTable const * pThis, size_t pIndex)
+{
+	if((pThis->gPrivate_keyNodes == NULL) || (pIndex >= pThis->gPrivate_numberOfBuckets) ||
+			((pThis->gPrivate_keyNodes + pIndex)->gPrivate_previousIndex == ((size_t)-1)))
+		{return pThis->gPrivate_numberOfBuckets;}
+
+	return (pThis->gPrivate_keyNodes + (pThis->gPrivate_keyNodes + pIndex)->
+			gPrivate_previousIndex)->gPrivate_index;
 }
 
 CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_orderedHashTable_private_prepareSeedForHash(

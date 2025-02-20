@@ -115,6 +115,21 @@ NOTE: THE UNDERLYING DATA MEMEBERS OF THE KHASH STRUCTURE ARE ASSUMED PRIVATE. H
 				STANDARD, FOR EXAMPLE, LIKE IS DONE IN THE HashTable CASE. HOWEVER, I
 				DID NOT DO THAT TO KEEP THE CODE SYMMETRIC WITH THE TEMPLATE CODE. I MIGHT
 				STILL DO THAT IN THE FUTURE.
+	- LATER(06-FEB-2025) ADDED SUPPORT FOR REVERSE ITERATION.
+		- FOR FARWARD ITERATION, THE PATTERN IS
+				size_t tIndex = HashTable::getStartIndex();
+				
+				while(tIndex != HashTable::getEndIndex())
+				{
+					tIndex = HashTable::getNextIndex();
+				}
+		- FOR REVERSE ITERATION, THE PATTERN IS
+				size_t tIndex = HashTable::getLastIndex();
+				
+				while(tIndex != HashTable::getEndIndex())
+				{
+					tIndex = HashTable::getPreviousIndex();
+				}
 */
 /*
 Naieve performance test: INSERTION 10,000,000 ITEMS
@@ -461,9 +476,13 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 	\
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getStartIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis); \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getLastIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis); \
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getEndIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis); \
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getNextIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex); \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getPreviousIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex); \
 	\
 	PRIVATE size_t pMEMBER_FUNCTIONS_PREFIX ## prepareSeedForHash( \
@@ -2172,6 +2191,26 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 		return vIndex; \
 	} \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getLastIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis) \
+	{ \
+		pSIZE_T vIndex = pThis->gPrivate_numberOfBuckets - 1; \
+	\
+		while(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
+		{ \
+			if(vIndex > 0) \
+				{vIndex = vIndex - 1;} \
+			else \
+			{ \
+				vIndex = pThis->gPrivate_numberOfBuckets; \
+	\
+				break;	\
+			} \
+		} \
+	\
+		return vIndex; \
+	} \
+	\
 	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getEndIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis) \
 		{return pThis->gPrivate_numberOfBuckets;} \
@@ -2188,6 +2227,31 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 		while((vIndex < pThis->gPrivate_numberOfBuckets) && \
 				CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
 			{vIndex = vIndex + 1;} \
+	\
+		return vIndex; \
+		CRX_SCOPE_END \
+	} \
+	CRX__LIB__PUBLIC_INLINE_C_FUNCTION() pSIZE_T pMEMBER_FUNCTIONS_PREFIX ## getPreviousIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex) \
+	{ \
+		CRX_SCOPE_META \
+		if((pIndex == 0) || (pIndex >= pThis->gPrivate_numberOfBuckets)) \
+			{return pThis->gPrivate_numberOfBuckets;} \
+	\
+		CRX_SCOPE \
+		pSIZE_T vIndex = pIndex - 1; \
+	\
+		while(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, vIndex)) \
+		{ \
+			if(vIndex > 0) \
+				{vIndex = vIndex + 1;} \
+			else \
+			{ \
+				vIndex = pThis->gPrivate_numberOfBuckets; \
+	\
+				break; \
+			} \
+		} \
 	\
 		return vIndex; \
 		CRX_SCOPE_END \
@@ -2370,8 +2434,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_remove(Crx_C_HashTable * pThi
 		void const * CRX_NOT_NULL pKey);
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getStartIndex(Crx_C_HashTable const * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getLastIndex(Crx_C_HashTable const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getEndIndex(Crx_C_HashTable const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getNextIndex(Crx_C_HashTable const * pThis,
+		size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_hashTable_getPreviousIndex(Crx_C_HashTable const * pThis,
 		size_t pIndex);
 
 CRX__LIB__PRIVATE_C_FUNCTION() size_t crx_c_hashTable_private_prepareSeedForHash(

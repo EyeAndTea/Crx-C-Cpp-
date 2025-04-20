@@ -22,15 +22,15 @@ MODIFIED:
 ------------------------------------------------------------------------------
 */
 
-#define CRX_C_RANDOM_ISAAC_IND(mm,x)  ((mm)[(x>>2)&(CRX_C_RANDOM_ISAAC_RANDSIZ-1)])
-#define CRX_C_RANDOM_ISAAC_RNGSTEP(mix,a,b,mm,m,m2,r,x) \
+#define CRX__C__RANDOM__ISAAC__IND(mm,x)  ((mm)[(x>>2)&(CRX_C_RANDOM_ISAAC_RANDSIZ-1)])
+#define CRX__C__RANDOM__ISAAC__RNGSTEP(mix,a,b,mm,m,m2,r,x) \
 { \
   x = *m;  \
   a = ((a^(mix)) + *(m2++)); \
-  *(m++) = y = (CRX_C_RANDOM_ISAAC_IND(mm,x) + a + b); \
-  *(r++) = b = (CRX_C_RANDOM_ISAAC_IND(mm,y>>CRX_C_RANDOM_ISAAC_RANDSIZL) + x) & 0xffffffff; \
+  *(m++) = y = (CRX__C__RANDOM__ISAAC__IND(mm,x) + a + b); \
+  *(r++) = b = (CRX__C__RANDOM__ISAAC__IND(mm,y>>CRX_C_RANDOM_ISAAC_RANDSIZL) + x) & 0xffffffff; \
 }
-#define CRX_C_RANDOM_ISAAC_MIX(a,b,c,d,e,f,g,h) \
+#define CRX__C__RANDOM__ISAAC__MIX(a,b,c,d,e,f,g,h) \
 { \
    a^=b<<11;              d+=a; b+=c; \
    b^=(c&0xffffffff)>>2;  e+=b; c+=d; \
@@ -65,13 +65,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_isaac_construct2(Crx_C_Random_Is
 
    for(tI=0; tI<4; ++tI)          /* scramble it */
    {
-     CRX_C_RANDOM_ISAAC_MIX(pSeed1,pSeed2,pSeed3,pSeed4,pSeed5,pSeed6,pSeed7,pSeed8);
+     CRX__C__RANDOM__ISAAC__MIX(pSeed1,pSeed2,pSeed3,pSeed4,pSeed5,pSeed6,pSeed7,pSeed8);
    }
 
    for(tI=0; tI<CRX_C_RANDOM_ISAAC_RANDSIZ; tI+=8)
    {
      /* fill in mm[] with messy stuff */
-     CRX_C_RANDOM_ISAAC_MIX(pSeed1,pSeed2,pSeed3,pSeed4,pSeed5,pSeed6,pSeed7,pSeed8);
+     CRX__C__RANDOM__ISAAC__MIX(pSeed1,pSeed2,pSeed3,pSeed4,pSeed5,pSeed6,pSeed7,pSeed8);
      m[tI  ]=pSeed1; m[tI+1]=pSeed2; m[tI+2]=pSeed3; m[tI+3]=pSeed4;
      m[tI+4]=pSeed5; m[tI+5]=pSeed6; m[tI+6]=pSeed7; m[tI+7]=pSeed8;
    }
@@ -135,17 +135,17 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_random_isaac_computeNext(Crx_C_Random_
    a = pThis->gPrivate_randa; b = pThis->gPrivate_randb + (++pThis->gPrivate_randc);
    for (m = mm, mend = m2 = m+(CRX_C_RANDOM_ISAAC_RANDSIZ/2); m<mend; )
    {
-      CRX_C_RANDOM_ISAAC_RNGSTEP( a<<13, a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( (a & 0xffffffff) >>6 , a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( a<<2 , a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( (a & 0xffffffff) >>16, a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( a<<13, a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( (a & 0xffffffff) >>6 , a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( a<<2 , a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( (a & 0xffffffff) >>16, a, b, mm, m, m2, r, x);
    }
    for (m2 = mm; m2<mend; )
    {
-      CRX_C_RANDOM_ISAAC_RNGSTEP( a<<13, a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( (a & 0xffffffff) >>6 , a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( a<<2 , a, b, mm, m, m2, r, x);
-      CRX_C_RANDOM_ISAAC_RNGSTEP( (a & 0xffffffff) >>16, a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( a<<13, a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( (a & 0xffffffff) >>6 , a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( a<<2 , a, b, mm, m, m2, r, x);
+      CRX__C__RANDOM__ISAAC__RNGSTEP( (a & 0xffffffff) >>16, a, b, mm, m, m2, r, x);
    }
    pThis->gPrivate_randb = b; pThis->gPrivate_randa = a;
    pThis->gPrivaye_count = CRX_C_RANDOM_ISAAC_RANDSIZ;

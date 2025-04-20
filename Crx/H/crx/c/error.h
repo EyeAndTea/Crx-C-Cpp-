@@ -21,6 +21,7 @@
 //			INCLUDE ".h", NOT ".c.h", OF C CRXed CODE.
 #include "Crx/H/crx/c/Array.h"
 #include "Crx/H/crx/c/String.h"
+#include "Crx/H/crx/c/Queue.h"
 //<<END>>
 
 /* DESIGN
@@ -207,8 +208,6 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_construct3(
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_construct4(
 		Crx_C_Error_ErrorElement * pThis, uint32_t pCode, 
 		char const * pChars, size_t pLength);
-//WARNING: pString MUST BE NULL CHARACTER TERMINATED AS THE NULL CHARACTER IS DEFINED IN 
-//		::crx::c::String, WHICH IS 4 BYTES.
 CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_errorElement_private_takeStringAndConstruct(
 		Crx_C_Error_ErrorElement * pThis, uint16_t pSpace, uint32_t pCode, 
 		Crx_C_String * pString);
@@ -221,10 +220,10 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElemen
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_new2(
 		uint32_t pCode, Crx_C_String const * pString);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_new3(
-		uint32_t pCode, char const * pString);
+		uint32_t pCode, char const * pCString, bool pIsCStringAPermanentConstant);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_new4(
 		uint32_t pCode, char const * pChars, size_t pLength);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_errorElement_moveNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_moveNew(
 		Crx_C_Error_ErrorElement * CRX_NOT_NULL pErrorElement);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_copyNew(
 		Crx_C_Error_ErrorElement const * CRX_NOT_NULL pErrorElement);
@@ -246,7 +245,8 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_errorElement_private_unsafeUnset
 		CRX__C__ERROR__PRIVATE__SIZE_T, CRX__C__ERROR__PRIVATE__SIZE_MAX, 
 		0, CRXM__FALSE,
 		crx_c_error_errorElement_destruct, crx_c_error_errorElement_copyConstruct, CRXM__FALSE, CRXM__FALSE)*/
-typedef Crx_C_Error_Error
+typedef struct Crx_C_Error_Error_Private_Trail Crx_C_Error_Error_Private_Trail;
+typedef struct Crx_C_Error_Error
 {
 	CRX_FRIEND_CLASS(Crx_C_Error_Iterator)
 
@@ -263,7 +263,7 @@ typedef Crx_C_Error_Error
 		Crx_C_String * gString;
 		Crx_C_Error_Error_Private_Trail * gTrail; //IF MODE IS 3, THIS IS NEVER NULL
 	}uPrivate_data;
-}
+}Crx_C_Error_Error;
 
 
 CRX__C__Queue__DECLARE(Crx_C_Error_Error_Private_Trail, crx_c_error_error_private_trail_,
@@ -277,10 +277,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_construct(
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_copyConstruct(
 		Crx_C_Error_Error * pThis, Crx_C_Error_Error const * pError);
 
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_new(uint32_t pOperationMode);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_errorElement_moveNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_error_new(uint32_t pOperationMode);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_error_moveNew(
 		Crx_C_Error_Error * pError);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_errorElement_copyNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_error_copyNew(
+		Crx_C_Error_Error const * pError);
+		
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_destruct(
 		Crx_C_Error_Error const * pError);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_error_error_isError(Crx_C_Error_Error * pThis);
@@ -308,9 +311,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_error_error_getMessage(Crx_C_Er
 
 
 
-typedef Crx_C_Error_Iterator
+typedef struct Crx_C_Error_Iterator
 {
-	bool gPrivate_internalMode; //0: First from front   1: First from back   2: done
+	bool gPrivate_internalMode; //0: First from front   1: First from back   2: done 	3:Using Trail
 	bool gPrivate_isConstant;
 	Crx_C_Error_Error * CRX_NOT_MINE gPrivate_error;
 	Crx_C_Error_Error_Private_Trail_Iterator gPrivate_iterator;
@@ -328,9 +331,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_new(
 		Crx_C_Error_Error * pError);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_new2(
 		Crx_C_Error_Error const * pError);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * Crx_C_Error_iterator_moveNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_moveNew(
 		Crx_C_Error_Iterator * pIterator);
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * Crx_C_Error_iterator_copyNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_copyNew(
 		Crx_C_Error_Iterator const * pIterator);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_free(Crx_C_Error_Iterator * pThis);
@@ -341,7 +344,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_constantAssociateWith(
 		Crx_C_Error_Iterator * pThis, bool pIsConstant,
 		Crx_C_Error_Error const * pError);
 CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_iterator_private_doAssociateWith(
-		Crx_C_Error_Iterator * pThis, Crx_C_Error_Error const * pError);
+		Crx_C_Error_Iterator * pThis, bool pIsConstant, Crx_C_Error_Error const * pError);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_reset(Crx_C_Error_Iterator * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_resetToBack(

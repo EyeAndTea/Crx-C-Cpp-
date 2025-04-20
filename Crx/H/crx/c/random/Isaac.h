@@ -40,6 +40,16 @@ MODIFIED:
 #define CRX_C_RANDOM_ISAAC_RANDSIZ    (1<<CRX_C_RANDOM_ISAAC_RANDSIZL)
 
 /* context of random number generator */
+/*
+CONTRACT:
+	IS FIXED SIZE:			1
+	HAS CONSTRUCT:		 	1
+	HAS DESTRUCT:		 	0
+	IS COPYABLE:			1
+	HAS COPY CONSTRUCT:		0
+	HAS MOVE CONSTRUCT:		0
+	HAS MOVE DESTRUCT:		0
+*/
 typedef struct Crx_C_Random_Isaac
 {
   uint32_t gPrivaye_count;
@@ -55,9 +65,10 @@ typedef struct Crx_C_Random_Isaac
  If (flag==TRUE), then use the contents of gPrivate_randrsl[0..CRX_C_RANDOM_ISAAC_RANDSIZ-1] as the seed.
 ------------------------------------------------------------------------------
 */
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_isaac_construct(Crx_C_Random_Isaac *ctx, uint32_t flag);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_isaac_construct2(Crx_C_Random_Isaac * pThis, uint32_t pSeed1,
-		uint32_t pSeed2, uint32_t pSeed3, uint32_t pSeed4, uint32_t pSeed5,
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_isaac_construct(Crx_C_Random_Isaac * pThis, 
+		uint32_t pSeed);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_isaac_construct2(Crx_C_Random_Isaac * pThis, 
+		uint32_t pSeed1, uint32_t pSeed2, uint32_t pSeed3, uint32_t pSeed4, uint32_t pSeed5,
 		uint32_t pSeed6, uint32_t pSeed7, uint32_t pSeed8);
 
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Random_Isaac * crx_c_random_isaac_new(uint32_t flag);

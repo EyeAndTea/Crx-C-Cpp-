@@ -41,7 +41,7 @@ CRX__LIB__C_CODE_BEGIN()
 	#define CRX__C__Queue__DECLARE(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__Queue__DECLARE, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
-#define CRX__C__Queue__DECLARE__8(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
+#define CRX__C__Queue__DECLARE__9(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		pMODE, pNUMBER_OF_ELEMENTS_PER_NODE, pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
@@ -54,7 +54,7 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		CRX__LIB__PUBLIC_C_FUNCTION(), CRX__LIB__PRIVATE_C_FUNCTION())
 
 
-#define CRX__C__Queue__DECLARE__9(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
+#define CRX__C__Queue__DECLARE__10(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		pMODE, pNUMBER_OF_ELEMENTS_PER_NODE, pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
@@ -184,14 +184,14 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		uint8_t gPrivate_startIndex;, ) \
 		CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 		uint8_t gPRIVATE__NODE_CAPACITY;, ) \
-		pELEMENT_TYPE gPrivate_elements[CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD), \
+		pELEMENT_TYPE gPrivate_elements[CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 				1, pNUMBER_OF_ELEMENTS_PER_NODE)]; \
 	} pQUEUE_TYPE_NAME ## _Private_Node; \
 	\
 	\
 	CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 	PUBLIC size_t pMEMBER_FUNCTIONS_PREFIX ## private_node_getByteSizeOf( \
-			pQUEUE_TYPE_NAME const * CRX_NOT_NULL pNode), ); \
+			pQUEUE_TYPE_NAME ## _Private_Node const * CRX_NOT_NULL pNode), ); \
 	CRXM__IFELSE2(pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 	PUBLIC size_t pMEMBER_FUNCTIONS_PREFIX ## private_node_getByteSizeFor( \
 			uint8_t pNodeCapacity), ); \
@@ -305,11 +305,11 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 			pQUEUE_TYPE_NAME ## _Iterator * pThis); \
 	\
 	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_get( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis); \
 	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## iterator_constantGet( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis); \
 	PRIVATE pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis); \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis); \
 			
 	
 //#END_DEFINE
@@ -320,7 +320,7 @@ _CRX__C__Queue__DECLARE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	#define CRX__C__Queue__DEFINE(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20) CRXM__RESOLVE_OVERLOADED_MACRO_CALL(CRX__C__Queue__DEFINE, p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12,p13,p14,p15,p16,p17,p18,p19,p20)
 #endif
 
-#define CRX__C__Queue__DEFINE__8(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
+#define CRX__C__Queue__DEFINE__9(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		pMODE, pNUMBER_OF_ELEMENTS_PER_NODE, pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		pFUNC_ELEMENT_MOVE_CONSTRUCTOR, pFUNC_ELEMENT_MOVE_DESTRUCTOR) \
@@ -335,7 +335,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		CRX__LIB__PRIVATE_C_FUNCTION())
 
 
-#define CRX__C__Queue__DEFINE__9(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
+#define CRX__C__Queue__DEFINE__10(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		pMODE, pNUMBER_OF_ELEMENTS_PER_NODE, pIS_TO_ENABLE_NODE_CAPACITY_FIELD, \
 		pELEMENT_TYPE, pFUNC_ELEMENT_DESTRUCTOR, \
 		pFUNC_ELEMENT_COPY_CONSTRUCTOR, \
@@ -382,12 +382,12 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		{ \
 			CRXM__IFELSE(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)) \
 			( \
-				pThis->gPrivate_rootNode = pMEMBER_FUNCTIONS_PREFIX ## private_copyNodes( \
+				pThis->gPrivate_rootNode = pMEMBER_FUNCTIONS_PREFIX ## private_copyNodes(pThis, \
 						pQueue->gPrivate_rootNode); \
 			) \
 			( \
 				pThis->gPrivate_lastNode = NULL; \
-				pThis->gPrivate_rootNode = pMEMBER_FUNCTIONS_PREFIX ## private_copyNodes( \
+				pThis->gPrivate_rootNode = pMEMBER_FUNCTIONS_PREFIX ## private_copyNodes(pThis, \
 						pQueue->gPrivate_rootNode, &(pThis->gPrivate_lastNode)); \
 			) \
 		} \
@@ -461,8 +461,8 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## destruct(pQUEUE_TYPE_NAME * pThis) \
 	{ \
-		if(pThis->pThis->gPrivate_rootNode != NULL) \
-			{pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis->gPrivate_rootNode);} \
+		if(pThis->gPrivate_rootNode != NULL) \
+			{pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis, pThis->gPrivate_rootNode);} \
 	} \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## free(pQUEUE_TYPE_NAME * pThis) \
 		{free(pThis);} \
@@ -507,7 +507,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 				{break;} \
 		} \
 	\
-		CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)) \
+		CRXM__IFELSE(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK))) \
 		( \
 			if(vCurrentNode__out != NULL) \
 			{ \
@@ -516,19 +516,20 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 			} \
 			else \
 			{ \
-				pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(vReturn); \
+				pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis, vReturn); \
 				vReturn = NULL; \
 			} \
 		) \
 		( \
 			if(vCurrentNode__out == NULL) \
 			{ \
-				pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(vReturn); \
+				pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis, vReturn); \
 				vReturn = NULL; \
 			} \
 		) \
 	\
 		return vReturn; \
+		CRX_SCOPE_END; \
 	} \
 	\
 	PRIVATE pQUEUE_TYPE_NAME ## _Private_Node * pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes( \
@@ -557,9 +558,9 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## empty(pQUEUE_TYPE_NAME * pThis) \
 	{ \
-		if(pThis->pThis->gPrivate_rootNode != NULL) \
+		if(pThis->gPrivate_rootNode != NULL) \
 		{ \
-			pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis->gPrivate_rootNode); \
+			pMEMBER_FUNCTIONS_PREFIX ## private_removeNodes(pThis, pThis->gPrivate_rootNode); \
 	\
 			pThis->gPrivate_rootNode = NULL; \
 			CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
@@ -578,7 +579,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		if((pThis->gPrivate_lastNode == NULL) || \
 				!pMEMBER_FUNCTIONS_PREFIX ## private_node_hasRoomForPush(pThis->gPrivate_lastNode)) \
 		{ \
-			pQUEUE_TYPE_NAME ## _Private_Node tNode = NULL; \
+			pQUEUE_TYPE_NAME ## _Private_Node * tNode = NULL; \
 	\
 			CRXM__IFELSE(CRXM__NOT(pIS_TO_ENABLE_NODE_CAPACITY_FIELD)) \
 			( \
@@ -720,7 +721,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		if((pThis->gPrivate_lastNode == NULL) || \
 				!pMEMBER_FUNCTIONS_PREFIX ## private_node_hasRoomForPush(pThis->gPrivate_lastNode)) \
 		{ \
-			pQUEUE_TYPE_NAME ## _Private_Node tNode = NULL; \
+			pQUEUE_TYPE_NAME ## _Private_Node * tNode = NULL; \
 	\
 			CRXM__IFELSE(CRXM__NOT(pIS_TO_ENABLE_NODE_CAPACITY_FIELD)) \
 			( \
@@ -757,7 +758,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 				if(pThis->gPrivate_rootNode != NULL) \
 				{ \
 					tNode->gPrivate_next = pThis->gPrivate_rootNode; \
-					CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)) \
+					CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__STACK)), \
 					pThis->gPrivate_rootNode->gPrivate_prev = tNode;, ) \
 				} \
 				else \
@@ -873,7 +874,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 				((pThis->gPrivate_lastNode->gPrivate_length != 0) ? pThis->gPrivate_lastNode : \
 				pThis->gPrivate_lastNode->gPrivate_prev); \
 	\
-		return (tNode->gPrivate_elements + vNode->gPrivate_startIndex + \
+		return (vNode->gPrivate_elements + vNode->gPrivate_startIndex + \
 				vNode->gPrivate_length - 1); \
 	}, ) \
 	\
@@ -889,14 +890,14 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 			pELEMENT_TYPE * pReturn), \
 	PUBLIC pELEMENT_TYPE pMEMBER_FUNCTIONS_PREFIX ## copyGet(pQUEUE_TYPE_NAME const * pThis)) \
 	{ \
-		pELEMENT_TYPE * vElement = pMEMBER_FUNCTIONS_PREFIX ## get(pQUEUE_TYPE_NAME * pThis); \
+		pELEMENT_TYPE * vElement = pMEMBER_FUNCTIONS_PREFIX ## get((pQUEUE_TYPE_NAME *)pThis); \
 	\
 		CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 		( \
 			CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
 			pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
 	\
-			CRXM__IEFLSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+			CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
 			( \
 				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, vElement); \
 			) \
@@ -929,14 +930,14 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC pELEMENT_TYPE pMEMBER_FUNCTIONS_PREFIX ## copyGetFront( \
 			pQUEUE_TYPE_NAME const * pThis)) \
 	{ \
-		pELEMENT_TYPE * vElement = pMEMBER_FUNCTIONS_PREFIX ## getFront(pQUEUE_TYPE_NAME * pThis); \
+		pELEMENT_TYPE * vElement = pMEMBER_FUNCTIONS_PREFIX ## getFront((pQUEUE_TYPE_NAME *)pThis); \
 	\
 		CRXM__IFELSE(CRXM__OR(pFUNC_ELEMENT_COPY_CONSTRUCTOR, pFUNC_ELEMENT_DESTRUCTOR)) \
 		( \
 			CRXM__IFELSE2(pFUNC_ELEMENT_DESTRUCTOR, \
 			pFUNC_ELEMENT_DESTRUCTOR(pReturn);, ) \
 	\
-			CRXM__IEFLSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
+			CRXM__IFELSE(pFUNC_ELEMENT_COPY_CONSTRUCTOR) \
 			( \
 				pFUNC_ELEMENT_COPY_CONSTRUCTOR(pReturn, vElement); \
 			) \
@@ -1033,7 +1034,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	PUBLIC pQUEUE_TYPE_NAME ## _Private_Node * pMEMBER_FUNCTIONS_PREFIX ## private_node_new( \
 			uint8_t pStartIndex, uint8_t pNodeCapacity))) \
 	{ \
-		pQUEUE_TYPE_NAME ## _Private_Node * vReturn = NULL; \
+		pQUEUE_TYPE_NAME ## _Private_Node * vReturn = \
 				((pQUEUE_TYPE_NAME ## _Private_Node *) calloc(1, \
 				CRXM__IFELSE2(CRXM__NOT(pIS_TO_ENABLE_NODE_CAPACITY_FIELD), \
 				sizeof(pQUEUE_TYPE_NAME ## _Private_Node), \
@@ -1130,7 +1131,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 	\
 	CRXM__IFELSE2(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__BIDIRECTIONAL), \
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## private_node_pop( \
-			pQUEUE_TYPE_NAME ## _Private_Node * pThis); \
+			pQUEUE_TYPE_NAME ## _Private_Node * pThis) \
 	{ \
 		if(pThis->gPrivate_length > 0) \
 		{ \
@@ -1162,7 +1163,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		} \
 		else \
 			{return false;} \
-	} \, ) \
+	}, ) \
 	CRXM__IFELSE2(CRXM__NOT(CRXM__IS(pMODE, CRX__C__QUEUE__MODE__QUEUE)), \
 	PUBLIC bool pMEMBER_FUNCTIONS_PREFIX ## private_node_hasRoomForPushToFront( \
 			pQUEUE_TYPE_NAME ## _Private_Node * pThis) \
@@ -1342,7 +1343,7 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		{return (pThis->gPrivate_node != NULL);} \
 	\
 	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_get( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis) \
 	{ \
 		if(pThis->gPrivate_isConstant) \
 			{return NULL;} \
@@ -1350,10 +1351,10 @@ _CRX__C__Queue__DEFINE(pQUEUE_TYPE_NAME, pQUEUE_MEMBER_FUNCTIONS_PREFIX, \
 		return pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet(pThis); \
 	} \
 	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## iterator_constantGet( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis) \
 		{return pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet(pThis);} \
 	PRIVATE pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## iterator_private_doGet( \
-			pTREE_TYPE_NAME ## _Iterator const * pThis) \
+			pQUEUE_TYPE_NAME ## _Iterator const * pThis) \
 	{ \
 		if(pThis->gPrivate_node != NULL) \
 			{return pThis->gPrivate_node->gPrivate_elements + pThis->gPrivate_index;} \
@@ -1459,13 +1460,13 @@ typedef struct Crx_C_Queue_Private_Node
 } Crx_C_Queue_Private_Node;
 
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_queue_private_node_getByteSizeOf(
-		Crx_C_Queue const * CRX_NOT_NULL pNode);
+		Crx_C_Queue_Private_Node const * CRX_NOT_NULL pNode);
 CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_queue_private_node_getByteSizeFor(
-		uint8_t pNodeCapacity);
+		Crx_C_TypeBluePrint const * pTypeBluePrint, uint8_t pNodeCapacity);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_private_node_construct(
-		Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint,
-		Crx_C_Queue_Private_Node * pThis, uint8_t pStartIndex, uint8_t pNodeCapacity);
+		Crx_C_Queue_Private_Node * pThis, Crx_C_TypeBluePrint const * CRX_NOT_NULL pTypeBluePrint,
+		uint8_t pStartIndex, uint8_t pNodeCapacity);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_queue_private_node_copyConstruct(
 		Crx_C_Queue_Private_Node * pThis,
 		Crx_C_Queue_Private_Node const * CRX_NOT_NULL pNode);

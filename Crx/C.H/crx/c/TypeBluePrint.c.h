@@ -27,6 +27,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;
@@ -46,6 +48,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;
@@ -65,6 +69,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;
@@ -84,6 +90,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;
@@ -103,6 +111,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;
@@ -122,6 +132,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_getTypeBluePrint
 		vReturn.gFUNC__MOVE_CONSTRUCT = NULL;
 		vReturn.gFUNC__MOVE_DESTRUCT = NULL;
 		vReturn.gFUNC__GET_BYTE_SIZE_OF = NULL;
+
+		vIsNotFirstTime = true;
 	}
 
 	return &vReturn;

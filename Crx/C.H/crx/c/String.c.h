@@ -104,7 +104,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct2(Crx_C_String * pThis,
 {
 	size_t vLength = ((pString == NULL) ? 0 : strlen(pString));
 	
-	crx_c_string_construct(pThis, vLength + 4);
+	crx_c_string_classProtected_construct(pThis, vLength + 4);
 	crx_c_string_insertCharsAt(pThis, 0, pString, vLength);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis, 
@@ -112,12 +112,12 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct3(Crx_C_String * pThis,
 {
 	size_t vLength = ((pChars == NULL) ? 0 : pSize);
 
-	crx_c_string_construct(pThis, vLength);
+	crx_c_string_classProtected_construct(pThis, vLength);
 	crx_c_string_insertCharsAt(pThis, 0, pChars, vLength);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_construct5(Crx_C_String * pThis, char pChar)
 {
-	crx_c_string_construct(pThis, 1);
+	crx_c_string_classProtected_construct(pThis, 1);
 	crx_c_string_classProtected_push2(pThis, pChar);//WE ARE ASSUMING 12 EMPTY SPACES ALREADY
 	crx_c_string_silentlyAppendNullTerminator(pThis);
 }
@@ -131,7 +131,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new()
 	Crx_C_String * vString = crx_c_string_classProtected_new(1);
 
 	if(vString != NULL)
-		{crx_c_string_silentlyAppendNullTerminator(pThis);}
+		{crx_c_string_silentlyAppendNullTerminator(vString);}
 	
 	return vString;
 }
@@ -164,19 +164,24 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char pChar)
 	
 	return vString;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_moveNew(Crx_C_String * CRX_NOT_NULL pString)
-	{crx_c_string_classProtected_moveNew(pString);}
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyNew(Crx_C_String const * CRX_NOT_NULL pString)
-	{crx_c_string_classProtected_copyNew(pString);}
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_moveNew(
+		Crx_C_String * CRX_NOT_NULL pString)
+	{return crx_c_string_classProtected_moveNew(pString);}
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_copyNew(
+		Crx_C_String const * CRX_NOT_NULL pString)
+	{return crx_c_string_classProtected_copyNew(pString);}
+
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_string_getTypeBluePrint()
+	{return crx_c_string_classProtected_getTypeBluePrint();}
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_destruct(Crx_C_String * pThis)
 	{crx_c_string_classProtected_destruct(pThis);}
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_free(Crx_C_String * pThis)
 	{crx_c_string_classProtected_free(pThis);}
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String * pThis)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String const * pThis)
 	{return crx_c_string_classProtected_getLength(pThis);}
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getCapacity(Crx_C_String * pThis)
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getCapacity(Crx_C_String const * pThis)
 	{return crx_c_string_classProtected_getCapacity(pThis) - 4;}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_ensureCapacity(Crx_C_String * pThis,
 		size_t pCapacity)
@@ -236,21 +241,19 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_trySwapContentWith(
 
 	if(vReturn)
 	{
-		vReturn = crx_c_string_silentlyAppendNullTerminator(pThis) &&
-				crx_c_string_silentlyAppendNullTerminator(pString);
-
-		assert(vReturn);
+		crx_c_string_silentlyAppendNullTerminator(pThis);
+		crx_c_string_silentlyAppendNullTerminator(pString);
 	}
 	
 	return vReturn;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() char crx_c_string_copyGet(Crx_C_String const * pThis, size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() char crx_c_string_copyGet(Crx_C_String const * pThis, size_t pIndex)
 	{return crx_c_string_classProtected_copyGet(pThis, pIndex);}
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharCopiesAt(Crx_C_String * pThis,
 		size_t pIndex, char const pChar, size_t pNumberOfCopies)
 {
-	if(crx_c_string_classProtected_ensureCapacity(crx_c_string_classProtected_getLength(pThis) + 
-			pNumberOfCopies + 4))
+	if(crx_c_string_classProtected_ensureCapacity(pThis, 
+			crx_c_string_classProtected_getLength(pThis) + pNumberOfCopies + 4))
 	{
 		crx_c_string_classProtected_insertElementCopiesAt2(pThis, pIndex, pChar, pNumberOfCopies);
 		crx_c_string_silentlyAppendNullTerminator(pThis);
@@ -263,8 +266,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharCopiesAt(Crx_C_String 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_insertCharsAt(Crx_C_String * pThis,
 		size_t pIndex, char const * CRX_NOT_NULL pChars, size_t pWidth)
 {
-	if(crx_c_string_classProtected_ensureCapacity(crx_c_string_classProtected_getLength(pThis) + 
-			pWidth + 4))
+	if(crx_c_string_classProtected_ensureCapacity(pThis, 
+			crx_c_string_classProtected_getLength(pThis) + pWidth + 4))
 	{
 		crx_c_string_classProtected_insertCArrayAt(pThis, pIndex, pChars, pWidth);
 		crx_c_string_silentlyAppendNullTerminator(pThis);
@@ -436,6 +439,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pTh
 
 	return true;
 }
+
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis)
 {
 	char * vChars = crx_c_string_classProtected_unsafeGetCArray(pThis);
@@ -519,6 +523,26 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightTrim(Crx_C_String * pThis)
 	CRX_SCOPE_END
 }
 
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightCut(Crx_C_String * pThis, size_t pLength)
+{
+	if(crx_c_string_classProtected_getLength(pThis) > pLength)
+	{
+		//STRICTLY, THIS IS ILL DEFINED, A HACK.
+		crx_c_string_classProtected_unsafeUpdateLength(pThis, 
+				crx_c_string_classProtected_getLength(pThis) - pLength);
+	}
+	else
+		{crx_c_string_classProtected_empty(pThis);}
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightCutAt(Crx_C_String * pThis, 
+		size_t pInclusiveIndex)
+{
+	if(crx_c_string_classProtected_getLength(pThis) > pInclusiveIndex)
+	{
+		//STRICTLY, THIS IS ILL DEFINED, A HACK.
+		crx_c_string_classProtected_unsafeUpdateLength(pThis, pInclusiveIndex);
+	}
+}
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive)
@@ -559,14 +583,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo4(Crx_C_String const * 
 
 CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_string_getCString(Crx_C_String const * pThis)
 {
-	char const * tChars = crx_c_string_classProtected_constantGetElementsPointer(pThis);	//crx_c_string_classProtected_unsafeGetCArray(pThis); 
+	char const * vChars = crx_c_string_classProtected_constantGetElementsPointer(pThis);	//crx_c_string_classProtected_unsafeGetCArray(pThis); 
 																					//crx_c_string_classProtected_getElementsPointer(pThis); <== was this first
+	size_t vSize  = crx_c_string_getSize(pThis);
 
 	//THIS PROTECTS FROM USER GETTING CHARS, WHETHER SAFELY OR UNSAFELY, THEN CALLING THIS BEFORE 
 	//		UPDATING LENGTH
-	if((tChars != NULL) && (*(tChars + tLength) == '\0') &&  (*(tChars + tLength + 1) == '\0') &&
-			(*(tChars + tLength + 2) == '\0') && (*(tChars + tLength + 3) == '\0'))
-		{return tChars;}
+	if((vChars != NULL) && (*(vChars + vSize) == '\0') &&  (*(vChars + vSize + 1) == '\0') &&
+			(*(vChars + vSize + 2) == '\0') && (*(vChars + vSize + 3) == '\0'))
+		{return vChars;}
 	else
 		{return NULL;}
 }

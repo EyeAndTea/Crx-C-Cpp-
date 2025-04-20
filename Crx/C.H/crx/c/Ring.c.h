@@ -119,7 +119,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_ring_construct2(Crx_C_Ring * pThis, Crx
 		unsigned char * pBufferOnStack, size_t pSizeOfBufferOnStack, size_t pCapacity, 
 		signed char pStartIndexAlignFactor)
 {
-	assert((pBufferOnStack != NULL) && !CRX__ARE_POINTERS_TO_SAME_OBJECT(pBufferOnStack, pThis->gPrivate_buffer, false));
+	assert((pBufferOnStack != NULL) && (pSizeOfBufferOnStack > 0) &&
+			!CRX__ARE_POINTERS_TO_SAME_OBJECT(pBufferOnStack, pThis->gPrivate_buffer, false));
 
 	pThis->gPrivate_isInternalBufferExternal = true;
 	pThis->gPrivate_internalBuffer = ((unsigned char *) pBufferOnStack);

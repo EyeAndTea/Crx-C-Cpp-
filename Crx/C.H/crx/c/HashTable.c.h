@@ -2061,8 +2061,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_getKeyFromIndex(
 
 	return (pThis->gPrivate_keys + (pIndex * pThis->gPrivate_typeBluePrint__key->gBYTE_SIZE));
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_getElementFromIndex(
-		Crx_C_HashTable const * pThis, size_t pIndex)
+CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_hashTable_getElementFromIndex(
+		Crx_C_HashTable * pThis, size_t pIndex)
 {
 	if(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, pIndex))
 		{return NULL;}
@@ -2070,6 +2070,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_getElementFromIndex(
 	return (pThis->gPrivate_elements + 
 			(pIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE));
 }
+CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_constantGetElementFromIndex(
+		Crx_C_HashTable const * pThis, size_t pIndex)
+	{return ((void const *)crx_c_hashTable_getElementFromIndex((Crx_C_HashTable *)pThis, pIndex));}
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_remove(Crx_C_HashTable * pThis,
 		void const * CRX_NOT_NULL pKey)

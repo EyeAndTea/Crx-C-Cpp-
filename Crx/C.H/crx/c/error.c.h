@@ -30,16 +30,6 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_construct2(
 	pThis->gCode = pCode;
 	pThis->uPrivate_string.gString = crx_c_string_copyNew(pString);
 
-	if(pThis->uPrivate_string.gString != NULL)
-	{
-		if(!crx_c_string_silentlyAppendNullTerminator(pThis->uPrivate_string.gString))
-		{
-			crx_c_string_destruct(pThis->uPrivate_string.gString);
-			crx_c_string_free(pThis->uPrivate_string.gString);
-			pThis->uPrivate_string.gString = NULL;
-		}
-	}
-
 	if(pThis->uPrivate_string.gString == NULL)
 	{
 		pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING;
@@ -55,17 +45,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_construct3(
 	if(!pIsCStringAPermanentConstant)
 	{
 		pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING;
-		pThis->uPrivate_string.gString = crx_c_string_new4(pCString);
-
-		if(pThis->uPrivate_string.gString != NULL)
-		{
-			if(!crx_c_string_silentlyAppendNullTerminator(pThis->uPrivate_string.gString))
-			{
-				crx_c_string_destruct(pThis->uPrivate_string.gString);
-				crx_c_string_free(pThis->uPrivate_string.gString);
-				pThis->uPrivate_string.gString = NULL;
-			}
-		}
+		pThis->uPrivate_string.gString = crx_c_string_new2(pCString);
 
 		if(pThis->uPrivate_string.gString == NULL)
 		{
@@ -84,17 +64,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_construct4(
 {
 	pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING;
 	pThis->gCode = pCode;
-	pThis->uPrivate_string.gString = crx_c_string_new5(pChars, pLength);
-
-	if(pThis->uPrivate_string.gString != NULL)
-	{
-		if(!crx_c_string_silentlyAppendNullTerminator(pThis->uPrivate_string.gString))
-		{
-			crx_c_string_destruct(pThis->uPrivate_string.gString);
-			crx_c_string_free(pThis->uPrivate_string.gString);
-			pThis->uPrivate_string.gString = NULL;
-		}
-	}
+	pThis->uPrivate_string.gString = crx_c_string_new3(pChars, pLength);
 
 	if(pThis->uPrivate_string.gString == NULL)
 	{
@@ -109,7 +79,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_errorElement_private_takeStringA
 	pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING;
 	pThis->gSpace = pSpace;
 	pThis->gCode = pCode;
-	pThis->uPrivate_data.gString = pString;
+	pThis->uPrivate_string.gString = pString;
 	
 	if(pThis->uPrivate_string.gString == NULL)
 	{
@@ -123,7 +93,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_errorElement_private_takeCString
 	pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING;
 	pThis->gSpace = pSpace;
 	pThis->gCode = pCode;
-	pThis->uPrivate_data.gCString = pCString;
+	pThis->uPrivate_string.gCString = pCString;
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_copyConstruct(
 		Crx_C_Error_ErrorElement * pThis, Crx_C_Error_ErrorElement const * pErrorElement)
@@ -137,9 +107,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_errorElement_copyConstruct(
 	{
 		if(pErrorElement->uPrivate_string.gString != NULL)
 		{
-			pThis->uPrivate_string.gString = crx_c_string_new5(
-					crx_c_string_constantGetCharsPointer(pErrorElement->uPrivate_string.gString),
-					crx_c_string_getSize(pErrorElement->uPrivate_string.gString) + 4);
+			pThis->uPrivate_string.gString = crx_c_string_copyNew(
+					pErrorElement->uPrivate_string.gString);
 		}
 		else
 			{pThis->uPrivate_string.gString = NULL;}
@@ -176,13 +145,16 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElemen
 	return vReturn;
 }
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_new3(
-		uint32_t pCode, char const * pString)
+		uint32_t pCode, char const * pCString, bool pIsCStringAPermanentConstant)
 {
 	Crx_C_Error_ErrorElement * vReturn = 
 			((Crx_C_Error_ErrorElement *)malloc(sizeof(Crx_C_Error_ErrorElement)));
 
 	if(vReturn != NULL)
-		{crx_c_error_errorElement_construct3(vReturn, pCode, pString);}
+	{
+		crx_c_error_errorElement_construct3(vReturn, pCode, pCString, 
+				pIsCStringAPermanentConstant);
+	}
 
 	return vReturn;
 }
@@ -197,7 +169,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElemen
 
 	return vReturn;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_errorElement_moveNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_ErrorElement * crx_c_error_errorElement_moveNew(
 		Crx_C_Error_ErrorElement * CRX_NOT_NULL pErrorElement)
 {
 	Crx_C_Error_ErrorElement * vReturn = 
@@ -268,7 +240,7 @@ CRX__C__Queue__DEFINE(Crx_C_Error_Error_Private_Trail, crx_c_error_error_private
 		CRXM__FALSE, CRXM__FALSE)
 		
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_construct(
-		Crx_C_Error_Error * pThis, bool pMode)
+		Crx_C_Error_Error * pThis, uint32_t pMode)
 {
 	pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__UNSET;
 	pThis->gPrivate_mode = pMode;
@@ -285,19 +257,15 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_copyConstruct(
 	pThis->gPrivate_code = pError->gPrivate_code;
 	
 	if(pError->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING)
-		{pThis->gCString = pError->gCString;}
+		{pThis->uPrivate_data.gCString = pError->uPrivate_data.gCString;}
 	else if(pError->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING)
 	{
-		if(pError->gPrivate_uData.gString != NULL)
-		{
-			pThis->gPrivate_uData.gString = crx_c_string_new5(
-					crx_c_string_constantGetCharsPointer(pError->gPrivate_uData.gString),
-					crx_c_string_getSize(pError->gPrivate_uData.gString) + 4);
-		}
+		if(pError->uPrivate_data.gString != NULL)
+			{pThis->uPrivate_data.gString = crx_c_string_copyNew(pError->uPrivate_data.gString);}
 	}
 	else if(pError->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_TRAIL)
 	{
-		if(pError->uPrivate_data.gTrail != NULL))
+		if(pError->uPrivate_data.gTrail != NULL)
 		{
 			pThis->uPrivate_data.gTrail = crx_c_error_error_private_trail_copyNew(
 					pError->uPrivate_data.gTrail);
@@ -305,13 +273,13 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_copyConstruct(
 	}
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_new(bool pMode)
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_error_new(uint32_t pMode)
 {
 	Crx_C_Error_Error * vReturn = 
 			((Crx_C_Error_Error *)malloc(sizeof(Crx_C_Error_Error)));
 
 	if(vReturn != NULL)
-		{crx_c_error_construct(vReturn, pMode);}
+		{crx_c_error_error_construct(vReturn, pMode);}
 
 	return vReturn;
 }
@@ -333,9 +301,27 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Error * crx_c_error_error_copyNew(
 			((Crx_C_Error_Error *)malloc(sizeof(Crx_C_Error_Error)));
 
 	if(vReturn != NULL)
-		{crx_c_error_copyConstruct(vReturn, pError);}
+		{crx_c_error_error_copyConstruct(vReturn, pError);}
 
 	return vReturn;
+}
+
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_destruct(
+		Crx_C_Error_Error const * pThis)
+{
+	if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING)
+	{
+		if(pThis->uPrivate_data.gString != NULL)
+		{
+			crx_c_string_destruct(pThis->uPrivate_data.gString);
+			crx_c_string_free(pThis->uPrivate_data.gString);
+		}
+	}
+	else if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_TRAIL)
+	{
+		crx_c_error_error_private_trail_destruct(pThis->uPrivate_data.gTrail);
+		crx_c_error_error_private_trail_free(pThis->uPrivate_data.gTrail);
+	}
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_error_error_isError(Crx_C_Error_Error * pThis)
@@ -370,14 +356,14 @@ CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_error_error_private_prepareTrace(
 			if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING)
 			{
 				crx_c_error_errorElement_private_takeCStringAndConstruct(&tErrorElement, 
-						pThis->gPrivate_space, pThis->gPrivate_code, pThis->uPrivate_data.pCString);
-				pThis->uPrivate_data.pCString == NULL;
+						pThis->gPrivate_space, pThis->gPrivate_code, pThis->uPrivate_data.gCString);
+				pThis->uPrivate_data.gCString == NULL;
 			}
 			else
 			{
 				crx_c_error_errorElement_private_takeStringAndConstruct(&tErrorElement, 
-						pThis->gPrivate_space, pThis->gPrivate_code, pThis->uPrivate_data.pString);
-				pThis->uPrivate_data.pString == NULL;
+						pThis->gPrivate_space, pThis->gPrivate_code, pThis->uPrivate_data.gString);
+				pThis->uPrivate_data.gString == NULL;
 			}
 
 			if(!crx_c_error_error_private_trail_tryMoveAndPush(tTrail, &tErrorElement))
@@ -450,7 +436,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_private_doPushTrace(
 		if((pThis->gPrivate_mode != CRX__C__ERROR__MODE__SINGULAR_AND_NO_HEAP) &&
 				(pThis->gPrivate_internalMode != CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING))
 		{
-			pThis->uPrivate_data.gString = crx_c_string_new(pLength + 4);
+			pThis->uPrivate_data.gString = crx_c_string_new();
 
 			if(pThis->uPrivate_data.gString != NULL)
 				{pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING;}
@@ -462,17 +448,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_error_private_doPushTrace(
 
 			if(pChars != NULL)
 				{crx_c_string_appendChars(pThis->uPrivate_data.gString, pChars, pLength);}
-
-			if(!crx_c_string_silentlyAppendNullTerminator(pThis->uPrivate_data.gString))
-			{
-				crx_c_string_empty(pThis->uPrivate_data.gString);
-				crx_c_string_silentlyAppendNullTerminator(pThis->uPrivate_data.gString);
-			}
 		}
 		else
 		{
 			assert((pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__UNSET) ||
-					(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING));
+					(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING));
 
 			pThis->gPrivate_internalMode = CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING;
 			pThis->uPrivate_data.gCString = NULL;
@@ -607,17 +587,17 @@ CRX__LIB__PUBLIC_C_FUNCTION() int32_t crx_c_error_error_getCode(Crx_C_Error_Erro
 		return tErrorElement->gCode;
 	}
 }
-CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_error_error_getMessage(Crx_C_Error_Error * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_error_error_getMessage(Crx_C_Error_Error * pThis)
 {
 	if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__UNSET)
 		{return NULL;}
 	else if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_CSTRING)
-		{return pThis->uPrivate_string.gCString;}
+		{return pThis->uPrivate_data.gCString;}
 	//REMEMBER: ErrorElement::uPrivate_string.gString IS ENSURED TO BE NULL CHARACTER TERMINATED.
 	else if(pThis->gPrivate_internalMode == CRX__C__ERROR__PRIVATE__INTERNAL_MODE__SET_WITH_STRING)
 	{
-		if(pThis->uPrivate_string.gString != NULL)
-			{return crx_c_string_constantGetCharsPointer(pThis->uPrivate_string.gString);}
+		if(pThis->uPrivate_data.gString != NULL)
+			{return crx_c_string_constantGetCharsPointer(pThis->uPrivate_data.gString);}
 		else
 			{return NULL;}
 	}
@@ -635,11 +615,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_error_error_getMessage(Crx_C_Er
 
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_construct(Crx_C_Error_Iterator * pThis,
-		Crx_C_Error_Error * pError);
+		Crx_C_Error_Error * pError)
 	{_crx_c_error_iterator_construct(pThis, false, pError);}
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_construct2(Crx_C_Error_Iterator * pThis,
 		Crx_C_Error_Error const * pError)
-	{_crx_c_error_iterator_construct(pThis, true, pError);}
+	{_crx_c_error_iterator_construct(pThis, true, (Crx_C_Error_Error *)pError);}
 CRX__LIB__PRIVATE_C_FUNCTION() void _crx_c_error_iterator_construct(Crx_C_Error_Iterator * pThis,
 		bool pIsConstant, Crx_C_Error_Error * pError)
 {
@@ -697,7 +677,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_new2(
 
 	return vReturn;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * Crx_C_Error_iterator_moveNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_moveNew(
 		Crx_C_Error_Iterator * pIterator)
 {
 	Crx_C_Error_Iterator * vReturn = 
@@ -708,14 +688,14 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * Crx_C_Error_iterator_moveNe
 
 	return vReturn;
 }
-CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * Crx_C_Error_iterator_copyNew(
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Error_Iterator * crx_c_error_iterator_copyNew(
 		Crx_C_Error_Iterator const * pIterator)
 {
 	Crx_C_Error_Iterator * vReturn = 
 			((Crx_C_Error_Iterator *)malloc(sizeof(Crx_C_Error_Iterator)));
 
 	if(vReturn != NULL)
-		{crx_c_error_copyConstruct(vReturn, pIterator);}
+		{memcpy(vReturn, pIterator, sizeof(Crx_C_Error_Iterator));}
 
 	return vReturn;
 }
@@ -731,11 +711,11 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_constantAssociateWith(
 		Crx_C_Error_Error const * pError)
 	{crx_c_error_iterator_private_doAssociateWith(pThis, true, pError);}
 CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_error_iterator_private_doAssociateWith(
-		Crx_C_Error_Iterator * pThis, Crx_C_Error_Error const * pError)
+		Crx_C_Error_Iterator * pThis, bool pIsConstant, Crx_C_Error_Error const * pError)
 {
 	pThis->gPrivate_internalMode = 2;
 	pThis->gPrivate_isConstant = pIsConstant;
-	pThis->gPrivate_error = pError;
+	pThis->gPrivate_error = ((Crx_C_Error_Error *)pError);
 	
 	if((pError != NULL) && (pError->gPrivate_internalMode == 3))
 	{
@@ -779,6 +759,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_reset(Crx_C_Error_Iterat
 			assert(pThis->gPrivate_error->gPrivate_internalMode == 3);
 
 			crx_c_error_error_private_trail_iterator_reset(&(pThis->gPrivate_iterator));
+			pThis->gPrivate_internalMode = 3;
 		}
 	}
 }
@@ -797,6 +778,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_resetToBack(
 			assert(pThis->gPrivate_error->gPrivate_internalMode == 3);
 
 			crx_c_error_error_private_trail_iterator_resetToBack(&(pThis->gPrivate_iterator));
+			pThis->gPrivate_internalMode = 3;
 		}
 	}
 }
@@ -820,7 +802,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_next(Crx_C_Error_Iterato
 		pThis->gPrivate_internalMode = 2;
 	}
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_prev(Crx_C_Error_Iterator * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_error_iterator_prev(Crx_C_Error_Iterator * pThis)
 {
 	if(pThis->gPrivate_internalMode == 2)
 		{return;}
@@ -893,7 +875,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() char const * crx_c_error_iterator_getMessage(
 	if(pThis->gPrivate_internalMode == 2)
 		{return 0;}
 	else if((pThis->gPrivate_internalMode == 0) || (pThis->gPrivate_internalMode == 1))
-		{return pThis->gPrivate_error->gPrivate_code;}
+		{return crx_c_error_error_getMessage(pThis->gPrivate_error);}
 	else
 	{
 		CRX_SCOPE_META

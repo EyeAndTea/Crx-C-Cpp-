@@ -45,6 +45,16 @@ CRX__LIB__C_CODE_BEGIN()
 #define CRX__C__RANDOM__MERSENNE_TWISTER__TEMPERING_MASK_B	0x9d2c5680
 #define CRX__C__RANDOM__MERSENNE_TWISTER__TEMPERING_MASK_C	0xefc60000
 
+/*
+CONTRACT:
+	IS FIXED SIZE:			1
+	HAS CONSTRUCT:		 	1
+	HAS DESTRUCT:		 	0
+	IS COPYABLE:			1
+	HAS COPY CONSTRUCT:		0
+	HAS MOVE CONSTRUCT:		0
+	HAS MOVE DESTRUCT:		0
+*/
 typedef struct Crx_C_Random_MersenneTwister
 {
   uint32_t gPrivate_stateBuffer[CRX__C__RANDOM__MERSENNE_TWISTER__STATE_VECTOR_LENGTH];
@@ -53,11 +63,13 @@ typedef struct Crx_C_Random_MersenneTwister
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_mersenneTwister_construct(Crx_C_Random_MersenneTwister * pThis,
 		uint32_t pSeedNumber);
+
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Random_MersenneTwister * crx_c_random_mersenneTwister_new(uint32_t pSeed);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Random_MersenneTwister * crx_c_random_mersenneTwister_moveNew(
 		Crx_C_Random_MersenneTwister * pMersenneTwister);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_Random_MersenneTwister * crx_c_random_mersenneTwister_copyNew(
 		Crx_C_Random_MersenneTwister const * pMersenneTwister);
+
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_mersenneTwister_destruct(Crx_C_Random_MersenneTwister * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_random_mersenneTwister_free(Crx_C_Random_MersenneTwister * pThis);
 

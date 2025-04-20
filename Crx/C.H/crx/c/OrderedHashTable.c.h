@@ -1832,13 +1832,19 @@ CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_orderedHashTable_getKeyFromInde
 
 	return pThis->gPrivate_keys + (pIndex * pThis->gPrivate_typeBluePrint__key->gBYTE_SIZE);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_orderedHashTable_getElementFromIndex(
-		Crx_C_OrderedHashTable const * pThis, size_t pIndex)
+CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_orderedHashTable_getElementFromIndex(
+		Crx_C_OrderedHashTable * pThis, size_t pIndex)
 {
 	if(CRX__C__HashTable__IS_BUCKET_EMPTY(pThis->gPrivate_bucketData, ((size_t)pIndex)))
 		{return NULL;}
 
 	return (pThis->gPrivate_elements + pIndex * pThis->gPrivate_typeBluePrint__element->gBYTE_SIZE);
+}
+CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_orderedHashTable_constantGetElementFromIndex(
+		Crx_C_OrderedHashTable const * pThis, size_t pIndex)
+{
+	return ((void const *)crx_c_orderedHashTable_getElementFromIndex(
+			(Crx_C_OrderedHashTable *)pThis, pIndex));
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_orderedHashTable_remove(Crx_C_OrderedHashTable * pThis,

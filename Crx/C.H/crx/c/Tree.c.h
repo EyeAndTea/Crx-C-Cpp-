@@ -3968,12 +3968,12 @@ CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_removeElement__do(
 												gFUNC__DESTRUCT != NULL)
 										{
 											(*(pThis->gPrivate_typeBluePrint__element->
-													gFUNC__DESTRUCT))(crx_c_tree_iterator_get(
+													gFUNC__DESTRUCT))(crx_c_tree_iterator_unsafeGet(
 													&tIterator));
 										}
 
 										if(CRX__C__TREE__PRIVATE__ECHO_IS_PERSISTANT)
-											{free(crx_c_tree_iterator_get(&tIterator));}
+											{free(crx_c_tree_iterator_unsafeGet(&tIterator));}
 
 										if(!CRX__C__TREE__PRIVATE__ECHO_ARE_INDICES_IN_INTERNAL_NODES_ONLY ||
 												crx_c_tree_iterator_private_isInInternalNode(
@@ -4584,12 +4584,12 @@ CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_removeElement__do(
 											NULL)
 									{
 										(*(pThis->gPrivate_typeBluePrint__element->
-												gFUNC__DESTRUCT))(crx_c_tree_iterator_get(
+												gFUNC__DESTRUCT))(crx_c_tree_iterator_unsafeGet(
 												&tIterator));
 									}
 
 									if(CRX__C__TREE__PRIVATE__ECHO_IS_PERSISTANT)
-										{free(crx_c_tree_iterator_get(&tIterator));}
+										{free(crx_c_tree_iterator_unsafeGet(&tIterator));}
 
 									if(!CRX__C__TREE__PRIVATE__ECHO_ARE_INDICES_IN_INTERNAL_NODES_ONLY)
 									{
@@ -5096,7 +5096,8 @@ CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__fi
 	bool tIsFound = false;
 	bool tIsToSwap = false;
 
-	if((*(pThis->gPrivate_getOrderOfElements))(crx_c_tree_iterator_get(pIterator), vElement) == 0)
+	if((*(pThis->gPrivate_getOrderOfElements))(crx_c_tree_iterator_unsafeGet(pIterator), 
+			vElement) == 0)
 		{tIsFound = true;}
 
 	if(!tIsFound)
@@ -5124,7 +5125,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__fi
 					{
 						(*(pThis->gPrivate_constructIndexFrom))(
 								vIndex__guide,
-								crx_c_tree_iterator_get(
+								crx_c_tree_iterator_unsafeGet(
 								pIterator__return));
 					}
 
@@ -5141,7 +5142,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__fi
 				if(tOrderOfIndices == 0)
 				{
 					if((*(pThis->gPrivate_getOrderOfElements))(
-							crx_c_tree_iterator_get(
+							crx_c_tree_iterator_unsafeGet(
 							pIterator__return), vElement) == 0)
 					{
 						tIsFound = true;
@@ -5180,7 +5181,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__fi
 					else
 					{
 						(*(pThis->gPrivate_constructIndexFrom))(
-								vIndex__guide, crx_c_tree_iterator_get(pIterator__return));
+								vIndex__guide, crx_c_tree_iterator_unsafeGet(pIterator__return));
 					}
 
 					tOrderOfIndices = (*(pThis->gPrivate_getOrderOfIndices))(pIndex__guide,
@@ -5195,7 +5196,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() uint32_t crx_c_tree_private_removeElement__do__fi
 				if(tOrderOfIndices == 0)
 				{
 					if((*(pThis->gPrivate_getOrderOfElements))(
-							crx_c_tree_iterator_get(pIterator__return), vElement) == 0)
+							crx_c_tree_iterator_unsafeGet(pIterator__return), vElement) == 0)
 					{
 						tIsFound = true;
 						tIsToSwap = true;
@@ -7295,7 +7296,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_iterator_copyAssignFrom(
 }
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_associateWith(
-		Crx_C_Tree_Iterator * pThis, Crx_C_Tree const * pTree)
+		Crx_C_Tree_Iterator * pThis, Crx_C_Tree * pTree)
 	{crx_c_tree_iterator_private_doAssociateWith(pThis, false, pTree);}
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_iterator_constantAssociateWith(
 		Crx_C_Tree_Iterator * pThis, Crx_C_Tree const * pTree)
@@ -10140,7 +10141,7 @@ CRX__LIB__PRIVATE_C_FUNCTION() void crx_c_tree_iterator_private_remove__do(
 	}
 }
 
-CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_tree_iterator_get(
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_tree_iterator_unsafeGet(
 		Crx_C_Tree_Iterator const * pThis)
 {
 	if(pThis->gPrivate_isConstant)
@@ -10148,7 +10149,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() unsigned char * crx_c_tree_iterator_get(
 
 	return crx_c_tree_iterator_private_doGet(pThis);
 }
-CRX__LIB__PUBLIC_C_FUNCTION() unsigned char const * crx_c_tree_iterator_constantGet(
+CRX__LIB__PUBLIC_C_FUNCTION() unsigned char const * crx_c_tree_iterator_get(
 		Crx_C_Tree_Iterator const * pThis)
 	{return crx_c_tree_iterator_private_doGet(pThis);}
 CRX__LIB__PRIVATE_C_FUNCTION() unsigned char * crx_c_tree_iterator_private_doGet(

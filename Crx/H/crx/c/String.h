@@ -163,13 +163,18 @@ CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new();
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new2(char const * pString);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new3(char const * pChars, size_t pSize);
 CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_new5(char pChar);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_moveNew(Crx_C_String * CRX_NOT_NULL pString);
-CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_copyNew(Crx_C_String const * CRX_NOT_NULL pString);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_moveNew(
+		Crx_C_String * CRX_NOT_NULL pString);
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_String * crx_c_string_copyNew(
+		Crx_C_String const * CRX_NOT_NULL pString);
+
+CRX__LIB__PUBLIC_C_FUNCTION() Crx_C_TypeBluePrint const * crx_c_string_getTypeBluePrint();
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_destruct(Crx_C_String * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_free(Crx_C_String * pThis);
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getSize(Crx_C_String const * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_getCapacity(Crx_C_String const * pThis);
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_ensureCapacity(Crx_C_String * pThis,
 		size_t pCapacity);
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_empty(Crx_C_String * pThis);
@@ -213,10 +218,18 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_appendInt2(Crx_C_String * pThis,
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_looselyAppendFloat(Crx_C_String * pThis, 
 		double pDouble);
 
-CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_silentlyAppendNullTerminator(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_silentlyAppendNullTerminator(Crx_C_String * pThis);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEmpty(Crx_C_String const * pThis);
+
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_trim(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_leftTrim(Crx_C_String * pThis);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightTrim(Crx_C_String * pThis);
+
+//THE FOLLOWING TWO FUNCTIONS ARE CURRENTLY EXPERIMENTAL. THEIR EXISTANCE IS CERTAINLY NOT REDUCED.
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightCut(Crx_C_String * pThis, size_t pLength);
+CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_string_rightCutAt(Crx_C_String * pThis, 
+		size_t pInclusiveIndex);
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_string_isEqualTo(Crx_C_String const * pThis,
 		Crx_C_String const * CRX_NOT_NULL pString, bool pIsCaseInSensitive);

@@ -90,7 +90,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_array_construct2(Crx_C_Array * pThis,
 		Crx_C_TypeBluePrint const *  pTypeBluePrint, unsigned char * pBufferOnStack, 
 		size_t pSizeOfBufferOnStack, size_t pCapacity)
 {
-	assert((pBufferOnStack != NULL) && !CRX__ARE_POINTERS_TO_SAME_OBJECT(pBufferOnStack, pThis->gPrivate_buffer, ));
+	assert((pBufferOnStack != NULL) && (pSizeOfBufferOnStack > 0) &&
+			!CRX__ARE_POINTERS_TO_SAME_OBJECT(pBufferOnStack, pThis->gPrivate_buffer, ));
 
 	pThis->gPrivate_internalBuffer = ((unsigned char *) pBufferOnStack);
 		

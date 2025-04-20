@@ -468,7 +468,9 @@ _CRX__C__HashTable__DECLARE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_
 	\
 	PUBLIC pKEY_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## getKeyFromIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex); \
-	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## getElementFromIndex( \
+	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## getElementFromIndex( \
+			pHASH_TABLE_TYPE_NAME * pThis, size_t pIndex); \
+	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## constantGetElementFromIndex( \
 			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex); \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## remove(pHASH_TABLE_TYPE_NAME * pThis, \
@@ -2162,8 +2164,8 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 	\
 		return (pThis->gPrivate_keys + pIndex); \
 	} \
-	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## getElementFromIndex( \
-			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex) \
+	PUBLIC pELEMENT_TYPE * pMEMBER_FUNCTIONS_PREFIX ## getElementFromIndex( \
+			pHASH_TABLE_TYPE_NAME * pThis, size_t pIndex) \
 	{ \
 		assert(pIndex <= pSIZE_T_MAX); \
 	\
@@ -2171,6 +2173,12 @@ _CRX__C__HashTable__DEFINE(pHASH_TABLE_TYPE_NAME, pHASH_TABLE_MEMBER_FUNCTIONS_P
 			{return NULL;} \
 	\
 		return (pThis->gPrivate_elements + pIndex); \
+	} \
+	PUBLIC pELEMENT_TYPE const * pMEMBER_FUNCTIONS_PREFIX ## constantGetElementFromIndex( \
+			pHASH_TABLE_TYPE_NAME const * pThis, size_t pIndex) \
+	{ \
+		return (pELEMENT_TYPE const *) pMEMBER_FUNCTIONS_PREFIX ## getElementFromIndex( \
+				(pHASH_TABLE_TYPE_NAME *)pThis, pIndex); \
 	} \
 	\
 	PUBLIC void pMEMBER_FUNCTIONS_PREFIX ## remove(pHASH_TABLE_TYPE_NAME * pThis, \
@@ -2427,7 +2435,9 @@ CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_hashTable_hasKey(
 
 CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_getKeyFromIndex(
 		Crx_C_HashTable const * pThis, size_t pIndex);
-CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_getElementFromIndex(
+CRX__LIB__PUBLIC_C_FUNCTION() void * crx_c_hashTable_getElementFromIndex(
+		Crx_C_HashTable * pThis, size_t pIndex);
+CRX__LIB__PUBLIC_C_FUNCTION() void const * crx_c_hashTable_constantGetElementFromIndex(
 		Crx_C_HashTable const * pThis, size_t pIndex);
 
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_hashTable_remove(Crx_C_HashTable * pThis,

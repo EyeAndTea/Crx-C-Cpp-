@@ -15,7 +15,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct(Crx_C_Tree * pThis,
 		size_t pCountOfMidElementInNode)
 {
 	crx_c_tree_private_construct(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -27,7 +27,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct2(Crx_C_Tree * pThis,
 		size_t pDesiredNumberOfElementsPerNode)
 {
 	crx_c_tree_private_construct2(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -39,7 +39,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct3(Crx_C_Tree * pThis,
 		size_t pDesiredByteSizeOfNode, bool pIsToBaseOnLeafNode)
 {
 	crx_c_tree_private_construct3(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -51,7 +51,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct4(Crx_C_Tree * pThis,
 		size_t pDesiredByteSizeOfHotRegionInNode)
 {
 	crx_c_tree_private_construct4(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -67,8 +67,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct5(Crx_C_Tree * pThis,
 	assert(pTypeBluePrint__element->gIS_COPYABLE);
 
 	crx_c_tree_private_construct(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -82,8 +82,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct6(Crx_C_Tree * pThis,
 	assert(pTypeBluePrint__element->gIS_COPYABLE);
 
 	crx_c_tree_private_construct2(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -97,8 +97,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct7(Crx_C_Tree * pThis,
 	assert(pTypeBluePrint__element->gIS_COPYABLE);
 
 	crx_c_tree_private_construct3(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -112,8 +112,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct8(Crx_C_Tree * pThis,
 	assert(pTypeBluePrint__element->gIS_COPYABLE);
 
 	crx_c_tree_private_construct4(pThis, pTypeBluePrint__element, NULL, 
-			pOptions & (CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+			pOptions & (CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -132,7 +132,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct9(Crx_C_Tree * pThis,
 			(pOptions & (CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 							CRX__C__TREE__FLAG__PREEMPTIVE | 
 							CRX__C__TREE__FLAG__USES_RINGS)) | 
-					(CRX__C__TREE__FLAG__USES_DELEGATION | CRX__C__TREE__FLAG__PERSISTANT), 
+					(CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY | CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY), 
 			pFunc_getOrderOfElements, NULL, NULL, pCountOfMidElementInNode);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct10(Crx_C_Tree * pThis,
@@ -146,7 +146,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct10(Crx_C_Tree * pThis,
 			(pOptions & (CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 							CRX__C__TREE__FLAG__PREEMPTIVE | 
 							CRX__C__TREE__FLAG__USES_RINGS)) | 
-					(CRX__C__TREE__FLAG__USES_DELEGATION | CRX__C__TREE__FLAG__PERSISTANT), 
+					(CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY | CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY), 
 			pFunc_getOrderOfElements, NULL, NULL, pDesiredNumberOfElementsPerNode);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct11(Crx_C_Tree * pThis,
@@ -160,7 +160,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct11(Crx_C_Tree * pThis,
 			(pOptions & (CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 							CRX__C__TREE__FLAG__PREEMPTIVE | 
 							CRX__C__TREE__FLAG__USES_RINGS)) | 
-					(CRX__C__TREE__FLAG__USES_DELEGATION | CRX__C__TREE__FLAG__PERSISTANT), 
+					(CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY | CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY), 
 			pFunc_getOrderOfElements, NULL, NULL, pDesiredByteSizeOfNode, pIsToBaseOnLeafNode);
 }
 CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct12(Crx_C_Tree * pThis,
@@ -174,7 +174,7 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct12(Crx_C_Tree * pThis,
 			(pOptions & (CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 							CRX__C__TREE__FLAG__PREEMPTIVE | 
 							CRX__C__TREE__FLAG__USES_RINGS)) | 
-					(CRX__C__TREE__FLAG__USES_DELEGATION | CRX__C__TREE__FLAG__PERSISTANT), 
+					(CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY | CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY), 
 			pFunc_getOrderOfElements, NULL, NULL, pDesiredByteSizeOfHotRegionInNode);
 }
 
@@ -190,8 +190,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct13(Crx_C_Tree * pThis,
 	crx_c_tree_private_construct(pThis, pTypeBluePrint__element, pTypeBluePrint__index, 
 			pOptions & (CRX__C__TREE__FLAG__INDICES_IN_INTERNAL_NODES_ONLY |
 					CRX__C__TREE__FLAG__ELEMENT_DATA_IN_LEAVES_ONLY |
-					CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+					CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -209,8 +209,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct14(Crx_C_Tree * pThis,
 	crx_c_tree_private_construct2(pThis, pTypeBluePrint__element, pTypeBluePrint__index, 
 			pOptions & (CRX__C__TREE__FLAG__INDICES_IN_INTERNAL_NODES_ONLY |
 					CRX__C__TREE__FLAG__ELEMENT_DATA_IN_LEAVES_ONLY |
-					CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+					CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -228,8 +228,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct15(Crx_C_Tree * pThis,
 	crx_c_tree_private_construct3(pThis, pTypeBluePrint__element, pTypeBluePrint__index, 
 			pOptions & (CRX__C__TREE__FLAG__INDICES_IN_INTERNAL_NODES_ONLY |
 					CRX__C__TREE__FLAG__ELEMENT_DATA_IN_LEAVES_ONLY |
-					CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+					CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -247,8 +247,8 @@ CRX__LIB__PUBLIC_C_FUNCTION() void crx_c_tree_construct16(Crx_C_Tree * pThis,
 	crx_c_tree_private_construct4(pThis, pTypeBluePrint__element, pTypeBluePrint__index, 
 			pOptions & (CRX__C__TREE__FLAG__INDICES_IN_INTERNAL_NODES_ONLY |
 					CRX__C__TREE__FLAG__ELEMENT_DATA_IN_LEAVES_ONLY |
-					CRX__C__TREE__FLAG__USES_DELEGATION |
-					CRX__C__TREE__FLAG__PERSISTANT |
+					CRX__C__TREE__FLAG__DELEGATION_IS_MANDATORY |
+					CRX__C__TREE__FLAG__PERSISTANCE_IS_MANDATORY |
 					CRX__C__TREE__FLAG__CONSERVATIVE_IN_GROWTH |
 					CRX__C__TREE__FLAG__PREEMPTIVE |
 					CRX__C__TREE__FLAG__USES_RINGS), 
@@ -3242,6 +3242,9 @@ CRX__LIB__PRIVATE_C_FUNCTION() bool crx_c_tree_private_transferAndInsertElementE
 			{return false;}
 	}
 }
+
+CRX__LIB__PUBLIC_C_FUNCTION() size_t crx_c_tree_getSize(Crx_C_Tree const * pThis)
+	{return pThis->gPrivate_numberOfElements;}
 
 CRX__LIB__PUBLIC_C_FUNCTION() bool crx_c_tree_tryMoveAndInsertElement(Crx_C_Tree * pThis,
 		void * CRX_NOT_NULL pElement)
